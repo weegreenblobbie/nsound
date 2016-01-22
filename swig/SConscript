@@ -1,0 +1,181 @@
+###############################################################################
+#
+#  $Id: SConscript 893 2015-06-07 00:46:23Z weegreenblobbie $
+#
+###############################################################################
+
+import glob
+import os
+
+# Import previous Exports
+Import("*")
+
+nsound_pymod_SRC = list(libNsound_SRC)
+
+nsound_config.env.AppendUnique(
+	SWIGFLAGS = [
+		'-I"%s"' % Dir("../src"),
+		'-python',
+		'-outdir', Dir("."),
+		'-c++'])
+
+nsound_wrap_cxx, nsound_py = nsound_config.env.SwigGen("nsound_wrap.cxx", "Nsound.i")
+
+nsound_pymod_SRC.insert(0, nsound_wrap_cxx)
+
+# Add header dependancies to the swig interface,
+for f in libNsound_SRC:
+
+    f = f.get_abspath()
+
+    if f.endswith(".cc"):
+        f = f.replace(".cc", ".h")
+        if os.path.isfile(f):
+            nsound_config.env.Depends(nsound_wrap_cxx, f)
+
+#--------------------------------------------------------------------------
+# Setup dictionary for generating setup_builder.py
+
+env = nsound_config.env
+
+d = {}
+
+d["PACKAGE_NAME"]    = PACKAGE_NAME
+d["PACKAGE_VERSION"] = PACKAGE_VERSION
+
+# CPPPATH may not be there at all
+if "src" not in env.get("CPPPATH", []):
+    env.AppendUnique(CPPPATH = [Dir("../src")])
+
+# CPPPATH
+cpppath = '['
+for path in env["CPPPATH"]:
+
+    path = str(path)
+
+    if nsound_config.on_windows():
+        path = path.replace('\\', '/')
+        path = path.replace('/', '\\\\')
+
+    cpppath += "r'%s', " % path
+
+cpppath += ']'
+
+d["NSOUND_PYMOD_CPPPATH"] = cpppath
+
+# LIBPATH
+libpath = '['
+
+libpaths = nsound_config.env["LIBPATH"]
+
+for path in nsound_config.env["LIBPATH"]:
+
+    path = str(path)
+
+    if nsound_config.on_windows():
+        path = path.replace('\\', '/')
+        path = path.replace('/', '\\\\')
+
+    libpath += "r'%s', " % path
+
+libpath += ']'
+
+d["NSOUND_PYMOD_LIBPATH"] = libpath
+
+# LIBS
+libs = []
+if not env['NS_DISABLE_LIBAO'] and env['NS_HAVE_LIBAO']:
+    libs.append("ao")
+
+    if nsound_config.on_windows() or nsound_config.on_cygwin():
+        libs.append("winmm")
+
+if not env['NS_DISABLE_LIBPORTAUDIO'] and env['NS_HAVE_LIBPORTAUDIO']:
+    libs.append("portaudio")
+
+    if nsound_config.on_windows() or nsound_config.on_cygwin():
+        libs.append("winmm")
+
+d["NSOUND_PYMOD_LIBS"] = str(libs)
+
+# Extra Link Flags
+extra_compile_args = []
+extra_link_args = []
+
+if env['NSOUND_PLATFORM_OS'] == "NSOUND_PLATFORM_OS_MAC":
+#~    extra_link_args = ["-Wl,-Z"]
+    extra_comple_args.append("-mmacosx-version-min=10.7")
+
+if env['NSOUND_PLATFORM_OS'] == "NSOUND_PLATFORM_OS_WINDOWS":
+    extra_compile_args.append("/EHsc")
+    extra_compile_args.append("/D_CRT_SECURE_NO_WARNINGS")
+
+if env['NS_HAVE_CPP11']:
+
+    if 'c++11' in str(env['CXXFLAGS']):
+        extra_compile_args.append("-std=c++11")
+
+    elif 'c++0x' in str(env['CXXFLAGS']):
+        extra_compile_args.append("-std=c++0x")
+
+# Force compiler
+
+d['CC'] = '"%s"' % env['CC']
+d['CXX'] = '"%s"' % env['CXX']
+
+# Disable some clang warnings
+#
+# SWIG currently generates code with the 'register' keyword, which
+# clang is warning that it's deprecated
+#
+if 'clang' in d['CXX']:
+    extra_compile_args.append("-Wno-deprecated-register")
+
+d["NSOUND_PYMOD_COMPILEFLAGS"] = str(extra_compile_args)
+d["NSOUND_PYMOD_LINKFLAGS"] = str(extra_link_args)
+
+#------------------------------------------------------------------------------
+# Source Files
+
+src_str = ''
+
+for src in nsound_pymod_SRC:
+
+    src = src.path
+
+    if nsound_config.on_windows():
+        src = src.replace('\\', '/')
+        src = src.replace('/', '\\\\')
+
+    src_str += "\n    r'%s'," % src
+
+d["NSOUND_PYMOD_SOURCE"] = src_str
+
+#------------------------------------------------------------------------------
+# Download URL
+
+url = 'http://sourceforge.net/projects/nsound/files/nsound/nsound-{VER}/nsound-{VER}.tar.gz/download'
+
+d['NSOUND_DOWNLOAD_URL'] = url.format(VER = PACKAGE_VERSION)
+
+
+#------------------------------------------------------------------------------
+# Generate setup_builder.py
+
+setup_builder_py = env.AcGenerateFile(
+   "../setup_builder.py",
+   "../setup_builder.py.in",
+    AC_GEN_DICT = d)[0]
+
+env.Default(setup_builder_py)
+
+env.Depends(nsound_wrap_cxx,  nsound_h)
+env.Depends(setup_builder_py, nsound_wrap_cxx)
+env.Depends(setup_builder_py, nsound_pymod_SRC)
+
+Export("nsound_wrap_cxx")
+Export("nsound_py")
+Export("setup_builder_py")
+
+
+# :mode=python:

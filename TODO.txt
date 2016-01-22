@@ -1,0 +1,175 @@
+﻿// $Id: TODO.txt 706 2012-03-06 16:24:14Z weegreenblobbie $
+
+TODO list for 0.8.X series:
+
+    - Add Buffer::estimatePitch(method)
+    - Add Buffer::findPeaks(window_size)
+
+    - Change drawGaussian's sigma parameter to be relative to percent duration
+      (This way, sigma will always produce the same curvature regardless of
+        duration)
+
+    - Finish the Pulse Generator class, specify Pulse's Pulse Width as time or
+      percent frequency, fix Pulse sync stuff
+
+    - Implement the Python Plotter class to have the same functions as Plotter.h
+
+    - Add examples using the new flanger and phaser filters
+
+    - Add examples using the Generator slave sync features
+
+    - Add dynamic delay filter sync example
+
+    - Update test_iir_gaa: get impulse response from FIR least squares filter,
+        score iir children by comapring impulse response, skipping the fft
+        calls (and thus speeding up calculation).
+
+    - Make a scons target for building the Nsound_Users_Guide.pdf
+
+    - Make a scons target for binary Python modules: .deb, .rpm, .exe (windows)
+
+    - Update test_iir_gaa: get impulse response from FIR least squares filter,
+        score iir children by comapring impulse response, skipping the fft
+        calls (and thus speeding up calculation).
+
+    Old TODO list from 0.7.5:
+
+    - Try to fix FIR Band Pass filter by convolving the LP & HP kernels to make
+	  one kernel.
+
+    - Ensure all AudioStream/Buffer functions that modify itself have an analogous
+      getFoobar() const
+
+
+    - compare filter.plot() with scipy.signal.freqz()
+
+    - Add Sawtooth::setHarmonics(uint32)
+    - Add Square::setHarmonics(uint32)
+
+    - Add Filter::getFrequencyResponse().dB() to filter unit tests
+
+    - Add FIR filter delay compensation for non-real-time calls
+        (like Matlab or Numpy's "same" option to conv)
+
+    - Add Filter setCutoff() and make makeKernel protected, so on a reset() call
+        the cutoff will go back to what ever was set with setCutoff()
+
+    - Add FIR filter setWindow() for all
+
+    - Add a bunch of synthesizer instruments
+
+    - Add Wavelet Transform
+
+    - Enchance all the plot methods to allow axes handles (subplots), holding,
+      grids, etc.
+
+    - Allow FilterPhaser and FilterFlanger to specify phase offset between channels
+
+
+Nsound TODO List
+
+These are not in any order of importance.  I did try to organize them into 3 sections.
+
+
+Clean up Tasks:
+-------------------------------------------------------------------------------
+
+Add doxygen docs to all classes and methods
+
+Add copy constructor and assignment operator for all objects
+
+Figure out why FFTransform_UnitTest doesn't work on Cygwin & Mac (imaginary part of FFT is very different, floating point model? atan differences? (atan is Dependant on the ratio of angles, making it very sensitive to small values))
+
+Make the Python module a scons target, compile the _Nsound.pyd, create installer .exe for windows (With NSIS? How does distutils do it?)
+
+Update AudioStream to use std::vector< Buffer > instead of raw Buffer *
+
+(May not be necessary) Move Nsound operators to class member functions to simplify Python swig wrapper
+
+Implement the SiteConfig.py overrides file, overrides for NsoundConfig variables, specifically, allow one to specify which version of Python to use.
+
+Update FFTChunk and move real_ & img_ to protected.
+
+Split Plotter.cc into two files, Plotter.cc and Plotter_no_pylab.cc and conditionally compile them from scons (this should clean up the #ifdef mess)
+
+Change example1 to sound like Pacman
+
+Create .dll on Windows by default if it can be confirmed that a MSVC++ .lib library can be created and used from MSVC++.
+
+New Feature Tasks:
+-------------------------------------------------------------------------------
+
+Create website index of Nsound instruments with samples
+
+Create Nsound Users Guide or Tutorial
+
+Enhance DelayLine and FilterDelay to have dynamic delay
+
+Add more standard waveform generators Sawtooth, Pulse, etc.
+
+Implement a set of compression filters, think about dynamic compression.
+
+Add more unit tests, work to get 100% coverage
+
+Add operator &,|, &=, |= to the BooleanVector types so two BooleanVectors can be ored or anded together
+
+Add the len, max, min function to the Python Buffer class
+
+Add FilterLowPassLeastSquaresFIR, uses FilterLeastSquaresFIR to design kernel
+Add FilterHighPassLeastSquaresFIR, uses FilterLeastSquaresFIR to design kernel
+Add FilterBandPassLeastSquaresFIR, uses FilterLeastSquaresFIR to design kernel
+Add FilterBandRejectLeastSquaresFIR, uses FilterLeastSquaresFIR to design kernel
+
+Implement Pitch Detection
+
+After implementing pitch detection, add auto-tune like tools that will detect the pitch of the audio, create an pitch adjustment curve, then call the Stretcher::shiftPitch() to "correct" the pitch
+
+In addition to the current WSOLA Stretcher, implement Time Stretching based on: "Low latency audio pitch shifting in the time domain" by Juillerat, N.  Schubiger-Banz, S.  Arisona, S.M. Comput. Syst. Inst., ETH Zurich, Zurich
+
+Add Generator::drawXXXX functions that are real-time (one sample returned per call).  This will require additional class state and initialization.  Maybe consider if they should become their own classes?
+
+Add new instruments, in particular, realistic sounding drums
+
+Add guitar effect filters
+
+Create plugins, LADSPA, Audio Units (AU's on mac), DSSI, LV2, VST, etc (one example is already in src/plugins/ladspa/)
+
+Formally design and implement a generic FilterKernel class that can be used with all the Filters and kernel cache.
+
+Add a virtual function to class Filter for reading/writing filter kernel to disk, so one can skip the kernel design, just read a pre-designed kernel, or even a whole set of kernels that get loaded into the cache
+
+Create a distort operation that uses a lookup table and replaces values, how Csound uses the table3 opcode to distort a waveform
+
+Create a BASH script to automatically upload example source code to the nsound website, execute examples, convert example wavs to mp3s, tag mp3s and upload mp3s to website
+
+Add support for the Microsoft Compile again via NsoundConfig_MSVCPP32, NsoundConfig_MSVCPP64 (or other appropriate name)
+
+Compile and test on a Big Endian machine
+
+Compile and test on Windows 64-bit machine, also use mingw-w64 and test
+
+Change the Wavefile class to have C style FILE functions like fopen, fread, but called wopen, wread, etc.  This will allow partial reading of samples instead of reading the whole thing at once.  Consider imitating libsndfile.
+
+Use libsndfile when available for reading/writing audio files, enhance Wavefile.h for advance reading/writing like libsndfile, when libsndfile not available, conditinally compile existing Wavefile.cc, add Wavefile_sndfile.cc for use when libsndfile is available
+
+Use libfftw when available for calculating FFTs, Add FFTransform_fftw.cc for use when libfftw is available, conditinally compile FFTransform.cc when not
+
+Possibly add a set of FFT FIR filters that transorm FIR kernels and input to the frequency domain, then perform point by point multiplication, and transform the result back to the time domain.  Requires some kind of overlap & add approach.  These FFT FIR filters should offer better performance, since there are fewer multiplies per output sample.  Use the FilterLeastSquaresFIR to design the kernel.
+
+
+Pie In The Sky Tasks:
+-------------------------------------------------------------------------------
+
+From Python/C++ play sound to sound card via platform independent way?  Look at PulseAudio of libao; the Audacity & Csound projects are already doing this.
+
+Create PyGTK Snyth Gui with layers and operators (like Photoshop).  It plots the waveform and plays sound to sound card, lots of knobs to adjust the sound layers.  Exports settings to a Python file or C++ function file. Imitate TB-303 or some other popular synth.
+
+Simulate drum head with physics equations and differential equations solvers via the GNU Scientific Library (GSL)
+
+Add thread support, parallelize the FIR filters with threads or OpenMP
+
+Render MIDI files with Nsound instruments
+
+Render MIDI events real-time to sound card
+
+Ray-Tracing room simulation reverberation

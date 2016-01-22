@@ -1,0 +1,196 @@
+///////////////////////////////////////////////////////////////////////////////
+//
+//  $Id: Nsound.h.in 875 2014-09-27 22:25:13Z weegreenblobbie $
+//
+//  Nsound is a C++ library and Python module for audio synthesis featuring
+//  dynamic digital filters. Nsound lets you easily shape waveforms and write
+//  to disk or plot them. Nsound aims to be as powerful as Csound but easy to
+//  use.
+//
+//  Copyright (c) 2004, 2005 Nick Hilton
+//
+//  weegreenblobbie_at_yahoo_com
+//
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+//
+//  This program is free software; you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation; either version 2 of the License, or
+//  (at your option) any later version.
+//
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU Library General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with this program; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+//
+///////////////////////////////////////////////////////////////////////////////
+#ifndef _NSOUND_H_
+#define _NSOUND_H_
+
+#define PACKAGE_NAME "@PACKAGE_NAME@"
+
+#define NSOUND_AUTHORS "Nick Hilton"
+#define NSOUND_COPYRIGHT "Copyright 2004 - Present, Nick Hilton et al."
+
+#define NSOUND_VERSION_A @PACKAGE_VERSION_A@
+#define NSOUND_VERSION_B @PACKAGE_VERSION_B@
+#define NSOUND_VERSION_C @PACKAGE_VERSION_C@
+
+#define PACKAGE_VERSION "@PACKAGE_VERSION@"
+#define PACKAGE_RELEASE "@PACKAGE_RELEASE@"
+
+// endianess
+#define @NSOUND_ENDIAN@
+
+// Platform
+#define @NSOUND_PLATFORM_OS@
+
+// Build python module?
+@NSOUND_IN_PYTHON_MODULE@
+
+// 64 bit floats enabled?
+@NSOUND_64_32_BIT@
+
+// Sample size
+#define NSOUND_SAMPLE_SIZE sizeof(float64)
+
+// M_PI macro
+@NSOUND_M_PI@
+
+// Define if we have lib portaudio available
+@NSOUND_LIBPORTAUDIO@
+
+// Define if we have lib ao available
+@NSOUND_LIBAO@
+
+// Define if we have Python module pylab (matplotlib) C API
+@NSOUND_C_PYLAB@
+
+// Ensure Python.h is included before anything else.
+#if defined(NSOUND_C_PYLAB) || defined(NSOUND_IN_PYTHON_MODULE)
+
+    #ifdef __clang__
+        #pragma clang diagnostic push
+        #pragma clang diagnostic ignored "-Wdeprecated"
+        #pragma clang diagnostic ignored "-Wdeprecated-register"
+    #endif
+
+    #include <Python.h>
+
+    #ifdef __clang__
+        #pragma clang diagnostic pop
+    #endif
+
+#endif
+
+// OpenMP usage
+@NSOUND_OPENMP@
+
+#ifdef NSOUND_OPENMP
+    #include <omp.h>
+#endif
+
+// C++11
+@NSOUND_CPP11@
+
+// Cuda usage
+@NSOUND_CUDA@
+
+#ifdef NSOUND_CUDA
+    #include <cuda.h>
+#endif
+
+// C++ headers
+#include <exception>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
+#include <set>
+
+// C header
+#include <math.h>
+
+#ifndef M_PI
+    #define M_PI 3.141592653589793
+#endif
+
+//#ifndef SWIG
+//	extern "C++" {
+//#endif
+
+///////////////////////////////////////////////////////////////////////////////
+// Basic types
+
+namespace Nsound
+{
+
+// setup boolean type
+typedef @NSOUND_BOOLEAN@ boolean;
+
+// Signed types
+
+typedef @NSOUND_INT_8@ byte;
+typedef @NSOUND_INT_8@ int8;
+typedef @NSOUND_INT_16@ int16;
+typedef @NSOUND_INT_32@ int32;
+typedef @NSOUND_INT_64@ int64;
+
+typedef @NSOUND_FLOAT_32@ float32;
+typedef @NSOUND_FLOAT_64@ float64;
+
+// unsigned types
+
+typedef @NSOUND_U_INT_8@ ubyte;
+typedef @NSOUND_U_INT_8@ uint8;
+typedef @NSOUND_U_INT_16@ uint16;
+typedef @NSOUND_U_INT_32@ uint32;
+typedef @NSOUND_U_INT_64@ uint64;
+
+// Always declare these 64 bit types for use with Wavefiles
+typedef @NSOUND_RAW_INT_64@ raw_int64;
+typedef @NSOUND_RAW_U_INT_64@ raw_uint64;
+typedef @NSOUND_RAW_FLOAT_64@ raw_float64;
+
+
+// A C++ exception class so our routines can raise exceptions.
+struct Exception : public std::exception
+{
+	Exception(const std::string & message) : _message(message){};
+
+	~Exception() throw() {};
+
+	const char * what() const throw(){ return _message.c_str(); };
+
+	private:
+
+	std::string _message;
+};
+
+}; // namespace
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Macros
+
+// FIXME need to move these to Macros.h and prefix with M_
+
+#define LINE_PREFIX __FILE__ << ":" << __LINE__ << ": "
+#define ERROR_HEADER __FILE__ << ":" << __LINE__ << ": ***ERROR: "
+#define WARNING_HEADER  __FILE__ << ":" << __LINE__ << ": ***WARNING: "
+
+#include <Nsound/Macros.h>
+
+//#ifndef SWIG
+//	}; //extern "C++" {
+//#endif
+
+#endif
+
+// :mode=c++: jEdit modeline

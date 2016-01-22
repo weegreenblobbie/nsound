@@ -1,0 +1,151 @@
+###############################################################################
+#
+# $Id: SConscript 910 2015-07-09 03:05:58Z weegreenblobbie $
+#
+#  Nsound is a C++ library and Python module for audio synthesis featuring
+#  dynamic digital filters. Nsound lets you easily shape waveforms and write
+#  to disk or plot them. Nsound aims to be as powerful as Csound but easy to
+#  use.
+#
+###############################################################################
+
+import sys
+
+# Import previous Exports
+Import("*")
+
+env = nsound_config.env
+
+nsound_config.lib_env = nsound_config.env.Clone()
+lib_env = nsound_config.lib_env
+
+lib_env.AppendUnique(CPPPATH = [".."])
+
+libNsound_SRC_list = Split("""
+    AudioBackend.cc
+    AudioPlayback.cc
+    AudioPlaybackRt.cc
+    AudioStream.cc
+    AudioStreamSelection.cc
+    Buffer.cc
+    BufferSelection.cc
+    BufferWindowSearch.cc
+    CircularBuffer.cc
+    Clarinet.cc
+    Cosine.cc
+    DelayLine.cc
+    DrumBD01.cc
+    DrumKickBass.cc
+    EnvelopeAdsr.cc
+    FFTChunk.cc
+    FFTransform.cc
+    Filter.cc
+    FilterAllPass.cc
+    FilterBandPassFIR.cc
+    FilterBandPassIIR.cc
+    FilterBandPassVocoder.cc
+    FilterBandRejectFIR.cc
+    FilterBandRejectIIR.cc
+    FilterCombLowPassFeedback.cc
+    FilterDC.cc
+    FilterDelay.cc
+    FilterFlanger.cc
+    FilterHighPassFIR.cc
+    FilterHighPassIIR.cc
+    FilterIIR.cc
+    FilterLeastSquaresFIR.cc
+    FilterLowPassFIR.cc
+    FilterLowPassIIR.cc
+    FilterLowPassMoogVcf.cc
+    FilterMovingAverage.cc
+    FilterParametricEqualizer.cc
+    FilterPhaser.cc
+    FilterSlinky.cc
+    FilterStageIIR.cc
+    FilterTone.cc
+    FluteSlide.cc
+    Generator.cc
+    GeneratorDecay.cc
+    Granulator.cc
+    GuitarBass.cc
+    Hat.cc
+    Kernel.cc
+    Mesh2D.cc
+    MeshJunction.cc
+    Mixer.cc
+    MixerNode.cc
+    OrganPipe.cc
+    Plotter.cc
+    Pluck.cc
+    Pulse.cc
+    ReverberationRoom.cc
+    RngTausworthe.cc
+    Sawtooth.cc
+    Sine.cc
+    Spectrogram.cc
+    Square.cc
+    StreamOperators.cc
+    Stretcher.cc
+    TicToc.cc
+    Triangle.cc
+    Utils.cc
+    Vocoder.cc
+    Wavefile.cc
+""")
+
+if lib_env['NS_HAVE_LIBPORTAUDIO']:
+    libNsound_SRC_list.append("AudioBackendLibportaudio.cc")
+
+#~    if lib_env['NS_HAVE_CPP11']:
+#~        libNsound_SRC_list.append("AudioPlaybackRt.cc")
+
+if lib_env['NS_HAVE_LIBAO']:
+    libNsound_SRC_list.append("AudioBackendLibao.cc")
+
+if lib_env['NS_HAVE_CUDA']:
+    libNsound_SRC_list.append("CudaUtils.cu")
+    libNsound_SRC_list.append("StretcherCuda.cu")
+
+libNsound_SRC_list.sort()
+
+libNsound_SRC = []
+for f in libNsound_SRC_list:
+    libNsound_SRC.append(File(f))
+
+Export("libNsound_SRC")
+
+if not build_py_module:
+
+    target = "Nsound"
+
+#~    # Mac OSX specific flag to set the abs path of the library.
+#~    if nsound_config.on_mac():
+#~        target = os.path.join(env['NS_LIBDIR'], target)
+
+    if lib_env['NS_BUILD_STATIC']:
+        libNsound = lib_env.Library(target, libNsound_SRC)
+    else:
+        libNsound = lib_env.SharedLibrary(target, libNsound_SRC)
+
+    lib_env.Clean(libNsound, nsound_h)
+
+    # Explicit cleaning statements, the CudaTool.py doesn't remember to delete
+    # these.
+    lib_env.Clean(libNsound, "CudaUtils.os")
+    lib_env.Clean(libNsound, "CudaUtils.o")
+    lib_env.Clean(libNsound, "StretcherCuda.os")
+    lib_env.Clean(libNsound, "StretcherCuda.o")
+
+    lib_env.Default(libNsound)
+    lib_env.Install(env['NS_LIBDIR'], libNsound)
+
+    env.Depends(libNsound, nsound_h)
+
+else:
+
+    libNsound = None
+
+Export("libNsound")
+
+
+# :mode=python:

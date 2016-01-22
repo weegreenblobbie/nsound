@@ -1,0 +1,61 @@
+///////////////////////////////////////////////////////////////////////////////
+//
+// $Id: INSTALL 757 2013-09-08 01:04:43Z weegreenblobbie $
+//
+///////////////////////////////////////////////////////////////////////////////
+
+Always check the Nsound User's Guide for the latest information on how to build
+and install Nsound:
+
+    http://nsound.sourceforge.net/users_guide/index.html
+
+Nsound has the following dependencies for build:
+
+    1) Python (www.python.org) $ apt-get install python
+    2) Scons (www.scons.org) $ apt-get install scons
+
+    Optional packages for plotting:
+
+    3) Python Numpy (for Matplotlib)
+    4) Python Matplotlib (Pylab)
+
+
+How to build the Nsound C++ package on Linux or Mac:
+
+    1) Uncompress the package:
+
+        [~]$ tar xfz nsound-A.B.C.tar.gz
+
+    2) Execute Scons
+
+        [~]$ cd nsound-A.B.C
+        [nsound-A.B.C]$ scons
+
+        To compile with debug flags and no optimizations for debugging:
+
+        [nsound-A.B.C]$ CXXFLAGS=-g scons
+
+        To compile with optimizations:
+
+        [nsound-A.B.C]$ CXXFLAGS="-fno-strict-aliasing -fwrapv -O2" scons
+
+
+How to build the Nsound package on windows:
+
+    Please read _WINDOWS_README.txt.
+
+
+How to build the Python Nsound package on Linux or Mac:
+
+    1) Uncompress the package:
+
+        [~]$ tar xfz nsound-A.B.C.tar.gz
+
+    2) Execute Scons to generate setup.py
+
+        [~]$ cd nsound-A.B.C
+        [nsound-A.B.C]$ scons setup.py
+
+    3) Execute the Python disttools builder
+
+        [nsound-A.B.C]$ sudo python setup.py install

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <ImportGroup Label="PropertySheets" />
+        <PropertyGroup Label="UserMacros">
+            <PythonDir>C:\Python27</PythonDir>
+            <PythonExe>$(PythonDir)\python.exe</PythonExe>
+            <PythonIncludeDir>$(PythonDir)\include</PythonIncludeDir>
+            <PythonLibDir>$(PythonDir)\libs</PythonLibDir>
+            <SCons>$(PythonExe) $(PythonDir)\Scripts\scons.py</SCons>
+            <PortAudioDir>$(SolutionDir)..\external</PortAudioDir>
+            <PortAudioIncludeDir>$(PortAudioDir)\include</PortAudioIncludeDir>
+            <PortAudioLibDir>$(PortAudioDir)\win32\lib\$(Platform)</PortAudioLibDir>
+        </PropertyGroup>
+    <ItemDefinitionGroup />
+    <ItemGroup>
+        <BuildMacro Include="PythonDir">
+            <Value>$(PythonDir)</Value>
+            <EnvironmentVariable>true</EnvironmentVariable>
+        </BuildMacro>
+        <BuildMacro Include="PythonExe">
+            <Value>$(PythonExe)</Value>
+            <EnvironmentVariable>true</EnvironmentVariable>
+        </BuildMacro>
+        <BuildMacro Include="PythonIncludeDir">
+            <Value>$(PythonIncludeDir)</Value>
+            <EnvironmentVariable>true</EnvironmentVariable>
+        </BuildMacro>
+        <BuildMacro Include="PythonLibDir">
+            <Value>$(PythonLibDir)</Value>
+            <EnvironmentVariable>true</EnvironmentVariable>
+        </BuildMacro>
+        <BuildMacro Include="SCons">
+            <Value>$(SCons)</Value>
+            <EnvironmentVariable>true</EnvironmentVariable>
+        </BuildMacro>
+        <BuildMacro Include="PortAudioDir">
+            <Value>$(PortAudioDir)</Value>
+            <EnvironmentVariable>true</EnvironmentVariable>
+        </BuildMacro>
+        <BuildMacro Include="PortAudioIncludeDir">
+            <Value>$(PortAudioIncludeDir)</Value>
+            <EnvironmentVariable>true</EnvironmentVariable>
+        </BuildMacro>
+        <BuildMacro Include="PortAudioLibDir">
+            <Value>$(PortAudioLibDir)</Value>
+            <EnvironmentVariable>true</EnvironmentVariable>
+        </BuildMacro>
+    </ItemGroup>
+</Project>

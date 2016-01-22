@@ -1,0 +1,127 @@
+#!/usr/bin/env python
+
+"""
+
+$Id: setup_builder.py.in 919 2015-08-22 17:43:50Z weegreenblobbie $
+
+This is a config file for python distutils to build Nsound as a Python module.
+
+"""
+
+from setuptools import setup, Extension
+import os
+import shutil
+
+# README.rst processing
+
+with open("README.rst") as fd:
+    readme_rst = fd.read()
+
+# Select compiler if defined in shell environment
+
+CC = os.getenv('CC')
+CXX = os.getenv('CXX')
+
+if CXX:
+    os.environ['CC'] = CXX
+
+elif CC is None:
+
+    # Use C++ compiler detected by scons
+
+    os.environ['CC'] = @CXX@
+
+# Always delete CXX since it breaks the link step on Linux
+
+if CXX is not None:
+    del os.environ['CXX']
+
+# Work around, copy swig/Nsound.py to current directory
+swig_nsound_py = os.path.join("swig", "Nsound.py")
+nsound_py = "Nsound.py"
+shutil.copyfile(swig_nsound_py, nsound_py)
+
+include_path       = @NSOUND_PYMOD_CPPPATH@
+library_path       = @NSOUND_PYMOD_LIBPATH@
+libraries          = @NSOUND_PYMOD_LIBS@
+extra_compile_args = @NSOUND_PYMOD_COMPILEFLAGS@
+extra_link_args    = @NSOUND_PYMOD_LINKFLAGS@
+sources            = [@NSOUND_PYMOD_SOURCE@]
+download_url       = '@NSOUND_DOWNLOAD_URL@'
+
+keywords = '''
+    audio
+    wav
+    music
+    dsp
+    PortAudio
+    cross-platform
+    filters
+    synthesis
+    '''.split()
+
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 2.7",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Multimedia :: Sound/Audio",
+    "Topic :: Multimedia :: Sound/Audio :: Analysis",
+    "Topic :: Multimedia :: Sound/Audio :: Sound Synthesis",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: pygame",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+description = """\
+    Nsound is a C++ library and Python module for audio synthesis
+    featuring dynamic digital filters. Nsound lets you easily shape
+    waveforms and write to disk or plot them. Nsound aims to be as
+    powerful as Csound but easy to use.
+"""
+
+nsound_module = Extension(
+    '_Nsound',
+    extra_compile_args = extra_compile_args,
+    extra_link_args    = extra_link_args,
+    include_dirs       = include_path,
+    language           = 'c++',
+    libraries          = libraries,
+    library_dirs       = library_path,
+    sources            = sources,
+)
+
+setup(
+    author           = "Nick Hilton et al",
+    author_email     = "weegreenblobbie@yahoo.com",
+    classifiers      = classifiers,
+    description      = description,
+    download_url     = download_url,
+    ext_modules      = [nsound_module],
+    keywords         = keywords,
+    long_description = readme_rst,
+    name             = "@PACKAGE_NAME@",
+    py_modules       = ["Nsound"],
+    url              = "http://nsound.sourceforge.net",
+    version          = "@PACKAGE_VERSION@",
+)
+
+# Workaround cleanup
+try:
+    os.remove(nsound_py)
+    os.remove(nsound_py + "c")
+    os.remove(nsound_py + "o")
+except:
+    pass
+
+# :mode=python:

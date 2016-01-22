@@ -1,0 +1,712 @@
+#------------------------------------------------------------------------------
+#
+# $Id: ChangeLog 926 2015-08-23 17:36:20Z weegreenblobbie $
+#
+#  Nsound is a C++ library and Python module for audio synthesis featuring
+#  dynamic digital filters. Nsound lets you easily shape waveforms and write
+#  to disk or plot them. Nsound aims to be as powerful as Csound but easy to
+#  use.
+#
+#------------------------------------------------------------------------------
+
+Key:
++ Finished item
+- Planned item
+
+2015-08-23 Nsound 0.9.4
+
+    + C++11 now required for compiling Nsound
+    + Fixed an AudioStream pickling bug, wasn't loading n channels or sample rate
+    + Switched to setuptools to build wheel packages on windows (maybe os x)
+    + Moved circular_iterator out of Buffer.h
+    + Fixed #76: DelayLine: add dynamic delay
+    + Fixed #63: Add 'classic' filters with resonance control
+        FilterLowPassMoogVcf added
+    + AudioStream now using std::vector<Buffer *> instead of raw array
+    + Fixed Python expressions for returning references
+    + Fixed Python expressions for iterating over Buffer in AudioStreams
+    + Reworked circular_iterator, added unit tests
+    + Created delayline demo video: https://www.youtube.com/watch?v=9m3KA6JBDH8
+    + Created tapedeck demo video: https://www.youtube.com/watch?v=Al6aHlwyEuA
+
+
+2015-06-13 Nsound 0.9.3
+
+    + Fixed #64: Nsound is now available as a source package from PyPI!
+    + Fixed #74: Can't compile c++ lib if swig is not installed
+    + Fixed #75: setup.py: use shell environment CC/CXX if defined
+    + Some fixes to AudioPlaybackRt
+
+
+2015-01-01 Nsound 0.9.2
+
+    + Created buildbot config running on my local network [#53]
+    + Fixed building on GCC 4.6 (Ubuntu 12) [#65]
+    + Fixed compiling without portaudio [#66]
+    + Fixed segfault with operator[] [#70]
+    + Fixed python module errors with operator<< [#71]
+    + AudioStreams and Buffers can now be Pickeled in Python
+    + Added a CircularBuffer class which returns the last N samples on read
+    + Added src/example/bebot-disp.py which adds a real-time oscilloscope and
+      spectrogram display: https://www.youtube.com/watch?v=j4uLvl68PtI
+    + Added StreamOperators.h to support serializing Buffers & AudioStream
+      (Pickling in Python)
+
+
+2014-07-01 Nsound 0.9.1
+
+    + Real-time audio playback via AudioPlaybackRt class
+        + Requires low-latency driver like JACK Audio Connection Kit for
+          smooth playback
+    + Added real-time playback example called piano.py
+    + Added real-time playback example called bebot.py
+        + Which mimics the iPhone App called 'Bebot'
+    + Compiles on Mac again (#55)
+    + Closed #49: Buffer::getPow() undefined in python module
+    + Closed #50: AudioPlayback: use double buffering (added AudioPlaybackRt)
+    + Closed #55: nsound_config: update Mac version
+    + Closed #60: Filters: add a parameter 'bool is_realtime' like the Generator
+        class (added setRealtime(bool) instead)
+    + Closed #61: Remove 'reset_first' and add member variable is_realtime for
+        the Generator class (added setRealtime(bool) instead)
+
+2013-12-24 Nsound 0.9.0
+
+    + Added precompiled static libs of libao & libportaudio for Windows
+    + Added Visual Studio compiler again for Windows builds, 64-bit builds
+    + Can now build 64-bit Python module for Windows (no cygwin\mingw required)
+    + Added Visual Studio 2010+ project files (using VS 2012 Express) in msvs/
+    + Refactored SCons configuration a bit (nsound_config.py).
+    + Added some SCons custom builds in site_scons/site_tools
+    + Fixed an init problem with Moving Average Filter
+    + Added Buffer.mul() for multiplying over a sub-region of the buffer.
+    + Added getFrequencyOffset(f1, octaves, cents)
+    + Added kwargs to most Plotter functions
+    + Added Macros.h and C++ exceptions
+    + Added Python module C++ exception wrapping
+    + Added Python Buffer.toList() method, converts Buffer to Python List
+    + Added Utils.h, computes octaves and cents away from reference frequency
+    + Improved the Vocoder band-pass filter bank, vocoder example sounds much
+      better
+    + Refactored some code to assert values and pointers, throwing exception on
+      error
+    + Refactored lots of Plotter methods, now supports kwargs, added Axes class
+    + Changed Plotter::subplot(), now supports sharex, sharey (see example5.cc)
+    + Renamed AdsrEnvelope to EnvelopeAdsr and reworked completely to be more
+      useful, calculates sustain time automatically.
+    + Removed duplicate plotting code, Nsound Python module calls the smae
+      C++ code (Pylab.cc)
+
+2012-04-15 Nsound 0.8.2
+
+    + Fixed bug 3341096 FFTransform windowing
+
+    + Added Spectrogram class for calculating and plotting spectrograms
+
+    + Added AudioPlayback::getStateString()
+
+    + Added AudioPlayback::scanDevices() which will try to play a sample on
+      all the available audio drivers detected
+
+    + Added Nsound::use(AudioBackendtype)
+
+    + Added Nsound::getBackends(), returns a list of strings of available
+      audio backends (libao or libportaudio).
+
+    + Updated AudioBackendLibao::setOptions(), now can select specific driver
+
+    + Updated AudioBackendLibportaudio::setOptions(), now can select specific
+      driver
+
+    + Added AudioStream::pad(), ensures channels in the AudioStream are the
+      same length
+
+    + Added AudioStream::transpose(), performs a matrix transpose by treating
+      the AudioStream like a 2D matrix
+
+    + Added AudioStream::pow() & operator^ for powers
+
+    + Added Buffer::pow() & operator^ for powers
+
+    + Added Buffer::log(), log10()"
+
+    + Added Buffer::findPeaks() to find indices of local peaks
+
+    + Removed some FFTChunk functions
+
+    + Added Generator::gausssianNoise() that draws random number from the
+      normal distribution
+
+    + Added Plotter::imagesc() to plot AudioStreams, treating them  like a 2D
+      matrix, used by Spectrogram::plot()
+
+    + Enhanced Wavefile::read() to decode the format tag, but still only reads
+      uncompressed PCM wavefiles
+
+    + Added example cepstral_pitch_estimate that calculates the cepstrum for
+      pitch estimation
+
+
+2011-06-25 Nsound 0.8.1
+
+    + Added basic sound card playback via libao or libportaudio!
+
+    + Examples now play to the sound card!
+
+    + Made the scons build system smarter in searching for the correct python
+      lib to link with
+
+    + Enhanced the Wavefile class to handle unknown chunk ids and skip them
+
+    + Added User's Guide documentation for Audio Playback and Instruments
+
+2011-03-26 Nsound 0.8.0
+
+    + Fixed Python Buffer slicing (bug 3204997)
+    + Fixed build on MacOSX (bug 3186360)
+    + Fixed scons error with setup.py (bug 3168738)
+    + Fixed Generator::operator= (bug 3163766)
+    + Closed Hat::play() demo has small artifact (bug 3148915)
+
+    + Fixed Python AudioStream expressions like:
+        a = AudioStream(100, 2)
+        a << 1 << 2
+        a[0] <<= 2  # Didn't work before
+        a[1] <<= 3  # Didn't work before
+
+    + Added Buffer(const FloatVector & list) constructor, allows Python
+      expressions like "b = Buffer([1,2,3,4,5])"
+
+    + Added notice to SCons build to contact Nick with bugs and help requests
+
+    + Added lots of documentation to Generator including LaTeX formulas!
+
+    + Added small section "Getting Started" in the User's Guide
+
+    + Changed the signature to Generator::drawGaussian(), now specifies
+        duration, mu, sigma
+
+    + Added Buffer::exp(), std(), zNorm()
+
+    + Added Buffer::operator^, operator^=
+
+    + Added Buffer::getNBytes()
+
+    + Added Generator::drawSine(), uses math, not a wavetable for precise
+        waveforms with dynamic frequency.
+
+    + Added Generator::drawSine2(), uses math, not a wavetable for precise
+        waveforms with dynamic frequency and phase.
+
+    + Added Generator::generate2(), waveforms with dynamic frequency and phase.
+
+    + Added CudaTool.py, for compiling Cuda .cu files (EXPERIMENTAL)
+
+    + Added StretcherCuda.cu, Cuda accelerated functions. (EXPERIMENTAL)
+
+    + Renamed Plotter::axisX to xlim, axisY to ylim
+
+    + Updated Doxyfile and set formula font size.
+
+    + Changed example1 to sound like Pac Man.
+
+2010-12-31 Nsound 0.7.5
+
+    Minor interface changes:
+    + Changed AudioStream::getMono(), now returns an AudioStream
+	+ Changed Buffer.toPythonList() to Buffer.toList()
+
+    + Added the first draft of the Nsound User's Guide!
+
+    + Fixed a bug in Wavefile, ID3v1 tag called fclose() twice
+    + Fixed the Stretcher class for time shiffting Buffers.
+    + Fixed Wavefile bug, now able to read unsigned 8 bit wavefiles.
+
+    + Added convenience functions zeros, ones, rand, for Buffers & AudioStreams
+    + Added AudioStream::select(), returns AudioStreamSelection
+    + Added Buffer::getResample(), dynamic case
+    + Added Buffer::select(), returns BufferSelection
+    + Added chorus setting to generators
+    + Added ability to sync generators together like an analog synth
+    + Added dynamics to FilterDelay, variable delay
+    + Added Sawtooth Generator class
+    + Added WindowTypes.h
+    + Added Generator::drawWindow()
+    + Added FilterLeastSquaresFIR::setWindow()
+    + Added FFTransform::setWindow(Window)
+    + Added FFTChunk::getFrequencyAxis()
+    + Added Plotter::grid()
+    + Added Plotter::hold()
+    + Added Plotter::set_xscale(), set_yscale()
+    + Added Square(sr, n_harmonics) constructor, sum of sine waves
+    + Added FilterFlanger
+    + Added FilterPhaser
+    + Added BufferWindowSearch
+    + Enhanced Buffer::getResample() to use windows of the input buffer,
+      conserving memory usage.
+
+    + Allow Filter plot data in dB to go to -60 dB
+
+    + In the Python module, updated __getitem__() and __setitem__() functions
+      to handle slice objects, returns new copy of a Buffer or AudioStream
+
+
+2010-07-09 Nsound 0.7.4
+
+    + Fixed bug 2944836 GCC 4.4.1+ errors
+    + Fixed bug 2948680 NsoundConfig_Cygwin.py
+    + Fixed bug 2944837 Python: FilterLowPassIIR.plot() fails
+    + Fixed bug 2974228: Wavefile read
+    + Fixed some byte swapping in Wavefile
+    + Fixed Buffer::getResample(), now matches Matlab's resample.m
+
+    + Added BufferResample_UnitTest()
+
+    + Added Buffer::operator<<(AudioStream), concatenates a mono version of the
+      AudioStream to the Buffer
+    + Added FilterLeastSquaresFIR, creates a FIR filter with least squares fit
+      to custom frequency response
+    + Added Generator::drawWindowKaiser()
+    + Added Stretcher class, implemented WSOLA for dynamic pitch & time
+      shifting!
+    + Added examples/stretcher.cc & stretcher.py that performs dynamic pitch &
+      time shifting!
+
+    + Added cool plugins for The GIMP, import/export wavefiles, high & low pass
+      filters!
+
+    + Added ID3v1 tags to the Wavefile class, this breaks the RIFF standard
+      but is only used by the GIMP plugin to store image width & height.
+
+    + Added Python operator Buffer << list, Buffer >> list, len()
+
+    + Header include cleanup to ensure Python.h is included first
+    + Some scons build system work
+
+
+2009-12-07 Nsound 0.7.3
+
+    + Added Python2.6 support on Windows (aready worked on Linux/OSX)
+    + Added typedef std::vector< boolean > BooleanVector
+    + Added typedef std::vector< BooleanVector > BooleanVectorVector
+    + Added AudioStream::mono()
+    + Added AudioStream::getMono()
+    + Added class AudioStreamSelection
+    + Added class BufferSelection
+    + Added example7
+    + Added FilterStageIIR::operator=()
+    + Added Generator::drawWindowBartlett()
+    + Added Generator::drawWindowBlackman()
+    + Added Generator::drawWindowBlackmanHarris()
+    + Added Generator::drawWindowHamming()
+    + Added Generator::drawWindowHanning()
+    + Added Generator::drawWindowNuttall()
+    + Added Generator::drawWindowParzen()
+    + Added Generator::drawWindowRectangular()
+    + Added Instrument Hat
+    + Added Instrument OrganPipe (A pipe organ)
+    + Added TODO.txt, a list of things Nick would like to see get done
+    + Added Wavefile 64 & 32 floating point support (Most apps can't open
+      64-bit, but usefull for unit testing or saving high precision waveforms)
+    - Removed AudioStream::setLessThan(), new operators replace functionality
+    - Removed AudioStream::setGreaterThan(), new operators replace functionality
+    - Removed Buffer::setLessThan(), new operators replace functionality
+    - Removed Buffer::setGreaterThan(), new operators replace functionality
+    + Fixed FilterLowPassFIR::filter(AudioStream, float64) infinite recursion
+      error
+    + Fixed FilterLowPassFIR::filter(x,y), was calling itself
+    + Fixed Generator::ctor(sample_rate, Buffer) memory copy
+    + Fixed NsoundConfig.py::checkForMatplotlibCAPI() bug, need to return 0;
+    + Fixed swig/plotting.i to report a warning when paylab is not available
+
+2009-09-11 Nsound 0.7.2
+
+    + Code fixes to compile with GCC 4.3.3
+    + Added AudioStream::AudioStream(sample_rate, channels, preallocate)
+    + Added AudioStream::convolve() convolves the signal with any other signal
+    + Added AudioStream::downSample()
+    + Added AudioStream::limit(Buffer min, Buffer max)
+    + Added AudioStream::limit(min, max)
+    + Added AudioStream::resample()
+    + Added AudioStream::setGreaterThan(threshold, value)
+    + Added AudioStream::setLessThan(threshold, value)
+    + Added AudioStream::sqrt()
+    + Added AudioStream::upSample()
+    + Added Buffer::circular_iterator operators += and -=
+    + Added Buffer::convolve() convolves the signal with any other signal
+    + Added Buffer::downSample()
+    + Added Buffer::limit(Buffer min, Buffer max)
+    + Added Buffer::limit(min, max)
+    + Added Buffer::preallocate(n)
+    + Added Buffer::resample()
+    + Added Buffer::round()
+    + Added Buffer::setGreaterThan(threshold, value)
+    + Added Buffer::setLessThan(threshold, value)
+    + Added Buffer::sqrt()
+    + Added Buffer::upSample()
+    + Added Cosine generator
+    + Added DrumBD01 based on Istvan Varga's drum kits
+         http://www.csounds.com/istvan/
+    + Added Docs/How_To_Reverse_Engineer_Csound_Instrument.odt
+    + Added FFTransform::fft(Buffer) and FFTransform::ifft(Buffer)
+    + Added Filter::filter(AudioStream, float64)
+    + Added Filter::filter(Buffer, float64)
+    + Added FilterBandPassFIR::filter(AudioStream, float64, float64)
+    + Added FilterBandPassIIR::filter(AudioStream, float64, float64)
+    + Added FilterBandRejectFIR::filter(Buffer, float64, float64)
+    + Added FilterBandRejectIIR::filter(Buffer, float64, float64)
+    + Added FilterHighPassFIR::filter(Buffer, float64)
+    + Added FilterHighPassIIR::filter(Buffer, float64)
+    + Added FilterLowPassFIR::filter(AudioStream, float64)
+    + Added FilterLowPassIIR::filter(AudioStream, float64)
+    + Added FilterStageIIR::filter(AudioStream, float64)
+    + Added Generator::buzz(), generates a set of harmonics
+    + Added Generator::buzz() unit tests
+    + Added Generator::reset()
+    + Added Generator::setPhase()
+    + Added Generator::tell()
+    + Added Plotter::run_string(string), sends raw string command to Python
+    + Fixed FilterTone::filter(), a bug when using dynamic frequencies
+    + Fixed Generator::generate_(), changed some if's to while's
+    + Fixed Plotter, added an internal state to avoid initializing the Python
+         interpreter multiple times, prevents crashes
+
+    - Removed DMALLOC stuff from NsoundConfig.py
+
+2009-04-01 Nsound 0.7.1
+
+    + Added Python module, you can now use Nsound in Python!
+    + Added Mesh2D class, uses a mesh of delay lines to simulate 2D membrane
+    + Reworked classes Envelope and AdsrEnvelope a bit, these are untested
+    + Fixed a bug in Filter, reset() wasn't being called
+    + Updated INSTALL with instructions for building the Python module in Linux
+    + Made some small updates to the Pluck class
+    + Changed default compiler flags to include optimizations
+
+2009-02-14 Nsound 0.7.0
+
+    + Added Mac OS X support, nsound compiles on the Mac!
+    + Added option to disable 64-bit data types,     $ scons disable-64=1
+    + Added option to compile a static library,      $ scons static=1
+    + Added option to disable linking with python,   $ scons disable-python=1
+    + Added option to enable dmalloc linking,        $ scons dmalloc=1
+    + Added option to compile with lots of warnings, $ scons extra-warnings=1
+    + Added a FilterMovingAverage class
+    + Changed the Vocoder Class to use less memory
+    + Added FilterBandPassVocoder, better performance than FilterBandPassIIR
+    + Changed the raw data holder to std::vector in the Buffer class
+    + Added Buffer::iterator, Buffer::circular_iterator
+    + Reworked the AudioStream class, made sure to extend methods form the
+      Buffer to the AudioStream class.
+    + Changed the AudioStream constructor to specify sample_rate first, like
+      other classes in Nsound
+    + Added Buffer_UnitTest to the Unit Test dir
+    + Added Plotter::text to add text at location x,y
+    + Added RandomNumberGenerator interface
+    + Added RngTausworthe class, based on GNU's Scientific Library (GSL)
+      taus.c random number generator
+
+2008-12-23 Nsound 0.6.1
+
+    + Added FilterDelay, reworked from DelayLine, DelayLine will get removed
+    + Added FilterCombLowPassFeedback, used for simple reverb/echo
+    + Added FilterAllPass
+    + Added ReverbrationRoom, simulates the echo of a room (freeverb)
+    + Added Vocoder, talk like Walle!
+    + Added FilterSlinky, delays signals by frequency, like traveling waves in
+          a slinky
+    + Added AudioStream(std::string &) constructor, to read wavefiles
+    + Added Buffer(std::string &) constructor, to read wavefiles
+    + Updated examples
+
+2008-11-01 Nsound 0.6.0
+
+    + Dropped the Microsoft compiler, use cygwin + mingw to compile on winblows
+    + Added Instruments GuitarBass, FluteSlide, Clarinet, DrumKickBass
+    + Wavefile class can now write 32, 48, 64 bit values
+    + Generator class now can be an arbitray sample rate
+    + Generator::generate() can now be used for real-time code
+    + Added ParametricEqualizerFilter class based on the Csound pareq opcode
+    + Added Generator::drawExp()
+    + Added AudioStream::abs().
+    + Renamed FIRLowPassFilter to FilterLowPassFIR
+    + Renamed FIRHighPassFilter to FilterHighPassFIR
+    + Renamed FIRBandPassFilter to FilterBandPassFIR
+    + Renamed FIRBandRejectFilter to FilterBandRejectFIR
+    + Added FilterLowPassFIR_UnitTest
+    + Added FilterHighPassFIR_UnitTest
+    + Added FilterBandPassFIR_UnitTest
+    + Added FilterBandRejectFIR_UnitTest
+    + Renamed IIRLowPassFilter to FilterLowPassIIR
+    + Renamed IIRHighPassFilter to FilterHighPassIIR
+    + Renamed IIRBandPassFilter to FilterBandPassIIR
+    + Renamed IIRBandRejectFilter to FilterBandRejectIIR
+    + Added FilterLowPassIIR_UnitTest
+    + Added FilterHighPassIIR_UnitTest
+    + Added FilterBandPassIIR_UnitTest
+    + Added FilterBandRejectIIR_UnitTest
+
+
+2008-08-09 Nsound 0.5.1
+
+    Bugs Closed:
+    + Fixed scons path link encoding, closed bug 1921838
+    + Added IIRFilter::clearHistory(), closed bug 1899358
+
+    New Features:
+    + Created src/bin to hold nsound tools, e.g. ns_readwaveheader
+    + Added Plotter::spectrogram(), plot frequency content of a signal
+    + Added Plotter::imshow(), interpret a Buffer as a matrix and draw it
+        (like Matlabs imagesc)
+    + IIR plots work, easily plot filter's frequency response!
+        (try src/test/test_fft)
+
+    Other:
+    + Removed Pluck::generate2(), it was low quality and cpu expensive
+    + Changed filters to use pointers instead of array indexing, faster
+
+
+2008-03-05 Nsound 0.5.0
+
+    + Changed Generator::generate(duration, frequency, acceleration) to
+              Generator::generate(duration, frequencies)
+    + Removed Plotter::quickPlot()
+    + Added AudioStream::plot()
+    + Added Buffer::plot()
+    + Added FFTChunk::plot()
+    + Added Plotter::show(), must be called to make plots visible.
+    + FIR & IIR are now derived classes from Filter.
+    + Added FIR::filter(float64 x), FIR::Filter(float64 x, float64 freq1),
+            FIR::filter(float64 x, float64 freq1, float64 freq2) -- FIR filters
+            can do sample by sample filtering, like IIRs
+    + Added Wavefile::get/setDefaultSampleRate()
+    + Added Wavefile::get/setDefaultSampleSize()
+
+2008-02-18 Nsound 0.4.4
+
+    + Fixed a bug with Buffer::subbuffer()
+    + Moved IIRFilter to IIRFilterStage
+    + Created base class IIRFilter that all IIR Filters inherit
+    + Added class FFTransform to perform FFTs & IFFTs
+    + Added class FFTChunk to represent the result of an FFT
+    + Added Plotter::axhline(), draws horizontal line
+    + Added Plotter::axvline(), draws horizontal line
+    + Added Plotter::xlabel(), sets x axis label
+    + Added Plotter::ylabel(), sets y axis label
+    + Added Plotter::axisX(), sets plot xmin, xmax
+    + Added Plotter::axisY(), sets plot ymin, ymax
+    + Added Plotter::quickPlot(FFTChunk)
+    + Added Plotter::quickPlot(FIRFilter), plots frequency response, phase
+    + Added Buffer::dB() to convert a signal to dB
+    + Update Doxyfile.in
+    - Matplotlib still not working for cygwin, special case for linking with
+        Python that I haven't had time to figure out :(
+
+2007-12-09 Nsound 0.4.3
+
+    + Fixed a bug with the Plotter class when the Matplotlib's C API is not
+        found
+    + Build libNsound statically for profiling, when -pg is in CXXFLAGS
+    + Added a few more tests to test/test_buffer.cc
+    + BufferChunk now uses pointers, not an array
+    + Allow the Buffer class to control the BufferChunk size
+    + Fixed bugs associated with building on Big Endian systems
+    - Matplotlib still not working for cygwin, special case for linking with
+        Python that I haven't had time to figure out :(
+    + Updated INSTALL
+
+2007-11-20 Nsound 0.4.2
+
+    + Integrated Python matplotlib, awesome plot package, plotting with gnuplot
+        will become deprecated
+    + Added test_plotter.cc in the test directory
+    + Added operators to allow easy writing of wave files:
+        buffer >> "somefile.wav";
+        audio_stream >> "somefile.wav";
+    + Added mynameis-filtered example
+    + Don't do Scons configuration when cleaning the build
+    + Cleaned up the examples a tiny bit
+
+2007-09-30 Nsound 0.4.1
+
+    + Added Pluck Generator for simple string simulation (Karplus-Strong)
+    + Added Buffer::getMax(), getMaxMagnitude(), getMin()
+    + Added Buffer::normalize()
+    + Added AudioStream::getMax(), getMaxMagnitude(), getMin()
+    + Added AudioStream::normalize()
+    + Added class ToneFilter (based on Csound's tone opcode)
+    + Added class DelayLine (based on Csound's delayr, delayw opcode)
+    + Added class DCFilter, filters out DC offsets from signal
+    + Added Wavefile::write(std::string, Buffer, bits, sample rate)
+    + Added class IIRFilter, IIRLowPassFilter, IIRHighPassFilter,
+        IIRBandPassFilter, IIRBandRejectFilter
+    + Added example6.cc
+
+2007-07-26 Nsound 0.4.0
+
+    + Implemented FIR Low pass, High pass, Band Reject, Band Pass filters!!!
+    + New filters can dynamically filter audio, look at:
+        src/test/test_filters.cc
+        src/examples/dynamic_filter.cc
+    + Added class Granulator for granular synthesis!
+    + Added AudioStream::getDuration(), returns length of stream in seconds
+    + Added NsoundAll.h for convience
+    + Added Buffer::abs()
+    + Added Instrument.h
+    + Added Generator::silence()
+    + Added Buffer::smooth(), implements moving average filter.
+    + cleaned up Buffer and AudioStream header files, only returns an object
+        when necessary
+    + Added Generator::drawGaussian()
+    + Added Generator::drawFatGaussian()
+    + Added Generator::drawDecay()
+
+2007-04-10 Nsound 0.3.2
+
+    + Added Cygwin build target
+    + Removed old GNU Build System, SCons all the way!
+    + Added DistTar.py, creates nsound-A.B.C.[tar.gz|tar.bz2]
+    + Added DistZip.py, creates nsound-A.B.C.zip
+    + Added AudioStream::stepAverage(uint32 n_samples_per_step); degrades the
+        AudioStream
+    + Added Buffer::speedUp(float32 x); resamples the stream by x
+    + Added Buffer::speedUp(Buffer x); resamples the stream by x on a per
+        sample basis, note that a less than 1.0 value will really slow down the
+        stream, so the name is a tiny bit missleading.
+    + Added AudioStream::speedUp(float32 x); calls Buffer::speedUp() accross
+        all channels
+    + Added AudioStream::speedUp(Buffer x); calls Buffer::speedUp() accross
+        all channels
+    + Added AudioStream::subStream(float32 start_time, float32 n_seconds);
+    + Added Buffer::subbuffer(uint32 start_index, uint32 n_samples)
+
+2007-02-13 Nsound 0.3.1
+
+    + Started using subversion
+    + Extensive testing implemented in the test dir for classes:
+        Buffer, AudioStream and Mixer
+    + Fixed Buffer::operator-(buffer_t d, Buffer b)
+    + Fixed Buffer::operator/(buffer_t d, Buffer b)
+    + Fixed AudioStream::pan(buffer_t d), missing '='
+    + Fixed Mixer::getStream(float32 start_time, float32
+    + Removed BufferChunk::alocated_; not needed
+    + Changed BUFFER_CHUNK_SIZE_ to non-const to aid in testing
+    + Added AudioStream::operator=(const Buffer * rhs)
+    + Added AudioStream::operator+,-,*,/(const buffer_t d, const AudioStream &
+        rhs)
+    + Added AudioStream::subStream(uint32 offset, uint32 n_samples);
+
+2006-10-18 Nsound 0.3.0
+
+    + Updated all examples with new useage and cleaned them up
+    + Added Buffer::reverse()
+    + Added AudioStream::reverse()
+    + Code cleaned up by turning on all the g++ warnings, to use it try:
+        $ scons warn=g++
+    + Cleaned up and implemented operator=() and copy constructor for all
+        classes
+    + Added a test to SConstruct to test for the M_PI macro
+    + Removed M_PI macro declaration in .cpp files
+    + Class Envelope now uses an arbartary number of channels.
+    + Removed any class Allocated() crap, don't need it.
+    + Removed AudioStream number of channels limitation, now any number of
+        channels may be stored
+    + Added AudioStream::operator[+-*/](Buffer)
+    + AudioStream's channel indicies now start at 0 like it should
+    + Renamed AudioStream::write() to AudioStream::setChannel()
+    + Renamed AudioStream::getNumberOfChannels() to AudioStream::getNChannels()
+    + Added AudioStream::setNumberOfChannels(int)
+    + Added Buffer Wavefile::operator<<(Buffer, std::string)
+        e.g. Buffer b1 << "some_file.wav";
+    + Added AudioStream Wavefile::operator<<(AudioStream, std::string)
+        e.g. AudioStream as1 << "some_file.wav";
+    + Rewrote Wavefile to read/write an arbartrary number of channels
+        to/from a file.
+
+
+2006-08-01 Nsound 0.2.2
+
+    + Fixed and tested gnuplot usage on windows
+    + Reworked scons build system a bit to check for endianess and sizeof
+    + Added ACGenerateFile.py, an scons replacement for AC_SUBST()
+    + Added Generator::drawParabola() for exponential curves
+    + Added Generator::tanh() that will draw the tanh funciton
+    + Added Generator::whiteNoise()
+    + Added class LowPassFilter
+    + Added example5 that simulates a drum
+    + Added test_lfp that uses LowPassFilter
+    + Added class ComplexNumber, not tested
+    + Replaced tabs with spaces
+
+    These don't work yet, I'm doing research:
+    - Started class CascadeFilter
+    - Started class LowPassFilterIIR
+
+2006-05-01 Nsound 0.2.1
+
+    + Added Scons (www.scons.org) build system, works on linux and windows
+    + Nsound now builds natively on windows; CAUTION: windows development is
+        hazardous to your health!
+    + Removed a "using namespace" from Wavefile.h, shame on me!
+    + Added MSVC++ project files under nsound-0.2.1/msw in hopes that it may
+        be useful
+
+2006-03-22 Nsound 0.2.0
+
+    + Reorganized directory structure.
+    + Updated configure.ac to capture CFLAGS, CPPFLAGS, and CXXFLAGS correctly
+    + Put everything in one namespace called Nsound.
+    + Removed the NSOUND_DELETE macro from Nsound.h.
+    + Moved the SWAP_BYTES macro from Nsound.h to private members of the
+        Wavefile class.
+    + Removed unused AudioStream.typeMatches().
+    + Added AudioStream.pan() method.
+    + Buffer class math operations now don't require buffers of same length,
+        only operates over the shorter buffer.
+    + Added -=, +=, *=, and /= operators to Buffers and AudioStreams.
+    + Changed the Generator class:
+        The Generator class now holds a generic waveform in a wavetable.  The
+        Sine, Cosine, Triangle and Square all fill the wavetable with their
+        waveform so all classes get the generate() method for free.
+    + Added Triangle, Square derived from Generator.
+    + Removed the Line class and implemented a drawLine method for class
+        Generator.  drawLine() method takes (duration,amplitude_start,
+        amplitude_finish).
+    + Added a Envelope base class.
+    + Reworked AdsrEnvelope to be a derived class from Envelope.
+    + Updated Buffer::add(), works for all cases.
+    + Updated test/test_buffer.cc to brute force test the Buffer::add() method.
+    + Added examples/example4.cc to show a sine wave turn into a triange to a
+        square wave.
+    + Added a check in Wavefile::write() to avoid clipping.
+
+2005-10-26 Nsound 0.1.2
+
+    + Found and fixed bug in Buffer::operator<<(Buffer)
+    + Replaced legacy NsoundSystem::LinkList class with std::vector
+    + Added example3.cc
+
+2005-08 Nick Hilton <weegreenblobbie_yahoo_com>
+
+    * Nsound-0.1.0 released under GPL
+
+-----
+
+Copyright (C) 2005  Nick Hilton
+
+This file is part of Nsound.
+
+Nsound is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
+
+Nsound is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Nsound; see the file COPYING.  If not, write to
+the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+Boston, MA 02111-1307, USA.

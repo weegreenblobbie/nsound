@@ -1,0 +1,38 @@
+###############################################################################
+#
+#  $Id: SConscript 807 2013-12-26 22:49:36Z weegreenblobbie $
+#
+###############################################################################
+
+Import("nsound_config")
+Import("nsound_h")
+
+env = nsound_config.env
+
+linkflags = "$_RPATH"
+
+if env['NS_BUILD_STATIC']:
+    linkflags = ""
+
+exe_env = env.Clone()
+
+exe_env.AppendUnique(
+    CPPPATH = [".."],
+    LIBPATH = [env['NS_LIBDIR']],
+    LINKFLAGS = [linkflags])
+
+exe_env.AppendUnique(LIBS = ["Nsound"])
+
+exe_list = Split(
+"""
+    ns_readwaveheader
+    ns_vocoder
+""")
+
+for f in exe_list:
+    exe = exe_env.Program(target = f, source = f + ".cc")
+    nsound_config.env.Default(exe)
+    nsound_config.env.Depends(exe, nsound_h)
+    nsound_config.env.Install(dir = env['NS_BINDIR'], source = exe)
+
+# :mode=python:

@@ -1,0 +1,46 @@
+###############################################################################
+#
+#  $Id: SConscript 823 2014-02-18 03:44:15Z weegreenblobbie $
+#
+###############################################################################
+
+Import("nsound_config")
+Import("nsound_h")
+
+env = nsound_config.env
+
+linkflags = "$_RPATH"
+
+if env['NS_BUILD_STATIC']:
+    linkflags = ""
+
+exe_env = env.Clone()
+
+exe_env.PrependUnique(
+    CPPPATH = [".."],
+    LIBPATH = [env['NS_LIBDIR']],
+    LINKFLAGS = [linkflags])
+
+exe_env.PrependUnique(LIBS = ["Nsound"])
+
+exe_list = Split(
+"""
+    bebot
+    cepstral_pitch_estimate
+    dynamic_filter
+    example1
+    example2
+    example3
+    example4
+    example5
+    example6
+    mynameis
+    stretcher
+""")
+
+for f in exe_list:
+    exe = exe_env.Program(target = f, source = f + ".cc")
+    nsound_config.env.Depends(exe, nsound_h)
+    nsound_config.env.Default(exe)
+
+# :mode=python:

@@ -1,0 +1,11 @@
+include *
+recursive-include src *
+recursive-include external *
+recursive-include site_scons *
+recursive-include swig *
+exclude swig/nsound_wrap.cxx
+global-exclude *.log
+global-exclude *.pyc
+global-exclude *.wav
+global-exclude .sconsign.dblite
+global-exclude Nsound.py

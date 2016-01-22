@@ -1,0 +1,71 @@
+###############################################################################
+# SConstruct - scons file (www.scons.org)
+###############################################################################
+
+Import("nsound_config")
+Import("nsound_h")
+
+env = nsound_config.env
+
+linkflags = "$_RPATH"
+
+if env['NS_BUILD_STATIC']:
+    linkflags = ""
+
+exe_env = env.Clone()
+
+exe_env.AppendUnique(
+    CPPPATH = [".."],
+    LIBPATH = [env['NS_LIBDIR']],
+    LINKFLAGS = [linkflags])
+
+exe_env.AppendUnique(LIBS = ["Nsound"])
+
+unit_tests = []
+
+source_list = Split(
+"""
+    BufferResample_UnitTest.cc
+    Buffer_UnitTest.cc
+    DelayLine_UnitTest.cc
+    FFTransform_UnitTest.cc
+    FilterCombLowPassFeedback_UnitTest.cc
+    FilterDelay_UnitTest.cc
+    FilterLeastSquaresFIR_UnitTest.cc
+    FilterParametricEqualizer_UnitTest.cc
+    Generator_UnitTest.cc
+    Main.cc
+    Sine_UnitTest.cc
+    Triangle_UnitTest.cc
+    Wavefile_UnitTest.cc
+""")
+
+prog = exe_env.Program(target = "Main", source = source_list)
+nsound_config.env.Depends(prog, nsound_h)
+unit_tests.append(prog)
+
+other_tests = Split(
+"""
+    test_audio_stream
+    test_convolve
+    test_generators
+    test_granulator
+    test_fft
+    test_filters
+    test_iir_ga
+    test_rng
+    test_mesh
+    test_mixer
+    test_moving_average
+    test_pluck
+    test_plotter
+""")
+
+for t in other_tests:
+    prog = exe_env.Program(target = t, source = t + ".cc")
+    nsound_config.env.Depends(prog, nsound_h)
+    unit_tests.append(prog)
+
+Export("unit_tests")
+
+# :mode=python:
