@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 //
-//  $Id: FilterLowPassIIR.cc 874 2014-09-08 02:21:29Z weegreenblobbie $
+//  $Id: FilterLowPassIIR.cc 930 2015-10-16 17:12:03Z weegreenblobbie $
 //
 //  Copyright (c) 2007 Nick Hilton
 //
@@ -159,14 +159,27 @@ reset()
     FilterStageIIR::reset();
 }
 
+
 void
 FilterLowPassIIR::
-setCutoff(const float64 & fc)
+setCutoff(float64 fc)
 {
     if(fc > 0.0 && fc < sample_rate_ / 2.0)
     {
         frequency_ = fc;
         makeKernel(fc);
+    }
+}
+
+
+void
+FilterLowPassIIR::
+setRipple(float64 ripple)
+{
+    if(ripple >= 0.0 && ripple < 1.0)
+    {
+        percent_ripple_ = ripple;
+        makeKernel(frequency_);
     }
 }
 

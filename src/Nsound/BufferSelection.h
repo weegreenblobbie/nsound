@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 //
-//  $Id: BufferSelection.h 912 2015-07-26 00:50:29Z weegreenblobbie $
+//  $Id: BufferSelection.h 930 2015-10-16 17:12:03Z weegreenblobbie $
 //
 //  Nsound is a C++ library and Python module for audio synthesis featuring
 //  dynamic digital filters. Nsound lets you easily shape waveforms and write
@@ -76,6 +76,13 @@ public:
     BufferSelection & operator=(const BufferSelection & rhs);
     ~BufferSelection(){};
 
+    BufferSelection & operator+=(const Buffer & rhs);
+    BufferSelection & operator-=(const Buffer & rhs);
+    BufferSelection & operator*=(const Buffer & rhs);
+    BufferSelection & operator/=(const Buffer & rhs);
+    BufferSelection & operator^=(const Buffer & rhs);
+    BufferSelection & operator=(const Buffer & rhs);
+
     BufferSelection & operator+=(const float64 & rhs);
     BufferSelection & operator-=(const float64 & rhs);
     BufferSelection & operator*=(const float64 & rhs);
@@ -83,7 +90,10 @@ public:
     BufferSelection & operator^=(const float64 & rhs);
     BufferSelection & operator=(const float64 & rhs);
 
+    Buffer get_samples() const; // return a concatenated Buffer of selected samples
+
     // For SWIG
+    void set(const Buffer & rhs){this->operator=(rhs);};
     void set(const float64 & rhs){this->operator=(rhs);};
 
 protected:

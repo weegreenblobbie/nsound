@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 //
-//  $Id: Buffer.i 912 2015-07-26 00:50:29Z weegreenblobbie $
+//  $Id: Buffer.i 930 2015-10-16 17:12:03Z weegreenblobbie $
 //
 //  Copyright (c) 2009 to Present Nick Hilton
 //
@@ -241,6 +241,8 @@ def __getitem__(self,i):
 
 def __setitem__(self,i, d):
 
+    d = float(d)
+
     if isinstance(i, int):
 
         if i >= self.getLength():
@@ -250,9 +252,6 @@ def __setitem__(self,i, d):
         elif i < -self.getLength():
             raise IndexError("Error: Index out of bounds, %d < -%d" %(
                 i, self.getLength()))
-
-        if type(d) != types.IntType and type(d) != types.FloatType:
-            raise TypeError("Error: Argument must be numeric")
 
         _Nsound.Buffer__set_at_index(self, i, d)
 

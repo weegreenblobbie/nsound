@@ -1,6 +1,6 @@
 #------------------------------------------------------------------------------
 #
-# $Id: ChangeLog 926 2015-08-23 17:36:20Z weegreenblobbie $
+# $Id: ChangeLog 930 2015-10-16 17:12:03Z weegreenblobbie $
 #
 #  Nsound is a C++ library and Python module for audio synthesis featuring
 #  dynamic digital filters. Nsound lets you easily shape waveforms and write
@@ -12,6 +12,12 @@
 Key:
 + Finished item
 - Planned item
+
+2015-08-23 Nsound 0.9.5
+
+    - BufferSelections can be manipulated by rhs Buffer objects
+    - Adding biquad namespace for high-order parametric eq design (hpeq)
+
 
 2015-08-23 Nsound 0.9.4
 

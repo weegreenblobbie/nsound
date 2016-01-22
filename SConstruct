@@ -1,5 +1,5 @@
 """
-$Id: SConstruct 926 2015-08-23 17:36:20Z weegreenblobbie $
+$Id: SConstruct 929 2015-08-23 19:33:40Z weegreenblobbie $
 
 Nsound is a C++ library and Python module for audio synthesis featuring
 dynamic digital filters. Nsound lets you easily shape waveforms and write
@@ -37,14 +37,14 @@ PACKAGE_NAME = "Nsound"
 
 VERSION_A = "0"
 VERSION_B = "9"
-VERSION_C = "4"
+VERSION_C = "5"
 
-DEVELOPMENMT = False
+DEVELOPMENMT = True
 
 PACKAGE_VERSION = "%s.%s.%s" % (VERSION_A, VERSION_B, VERSION_C)
 
 if DEVELOPMENMT:
-    PACKAGE_VERSION += ".dev7"
+    PACKAGE_VERSION += ".dev1"
 
 PACKAGE_RELEASE = PACKAGE_NAME + "-" + PACKAGE_VERSION
 

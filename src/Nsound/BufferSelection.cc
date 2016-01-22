@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 //
-//  $Id: BufferSelection.cc 912 2015-07-26 00:50:29Z weegreenblobbie $
+//  $Id: BufferSelection.cc 930 2015-10-16 17:12:03Z weegreenblobbie $
 //
 //  Nsound is a C++ library and Python module for audio synthesis featuring
 //  dynamic digital filters. Nsound lets you easily shape waveforms and write
@@ -35,6 +35,7 @@
 
 using namespace Nsound;
 
+
 Nsound::
 BufferSelection::
 BufferSelection(Buffer & buffer, const BooleanVector & bv)
@@ -42,7 +43,12 @@ BufferSelection(Buffer & buffer, const BooleanVector & bv)
     target_buffer_(&buffer),
     bv_(bv)
 {
+    M_ASSERT_MSG(
+        buffer.getLength() == bv.size(),
+        "Buffer & BooleanVector must be same length! ("
+        << buffer.getLength() << " != " << bv.size() << ")");
 };
+
 
 Nsound::
 BufferSelection::
@@ -52,6 +58,7 @@ BufferSelection(const BufferSelection & copy)
     bv_(copy.bv_)
 {
 };
+
 
 BufferSelection &
 Nsound::
@@ -68,129 +75,314 @@ operator=(const BufferSelection & rhs)
     return *this;
 };
 
+
 BufferSelection &
 Nsound::
 BufferSelection::
 operator+=(const float64 & rhs)
 {
-    Buffer::iterator b = target_buffer_->begin();
-    Buffer::iterator b_end = target_buffer_->end();
+    Buffer::iterator l = target_buffer_->begin();
+    Buffer::iterator l_end = target_buffer_->end();
 
-    BooleanVector::iterator bv     = bv_.begin();
-    BooleanVector::iterator bv_end = bv_.end();
+    BooleanVector::iterator b     = bv_.begin();
+    BooleanVector::iterator b_end = bv_.end();
 
-    while(b != b_end && bv != bv_end)
+    while(l != l_end)
     {
-        if(*bv) *b += rhs;
+        if(*b) *l += rhs;
+        ++l;
         ++b;
-        ++bv;
     }
 
     return *this;
 }
+
+
+BufferSelection &
+Nsound::
+BufferSelection::
+operator+=(const Buffer & rhs)
+{
+    Buffer::iterator l = target_buffer_->begin();
+    Buffer::iterator l_end = target_buffer_->end();
+
+    Buffer::const_iterator r = rhs.begin();
+    Buffer::const_iterator r_end = rhs.end();
+
+    BooleanVector::iterator b     = bv_.begin();
+    BooleanVector::iterator b_end = bv_.end();
+
+    while(l != l_end && r != r_end)
+    {
+        if(*b) *l += *r;
+        ++r;
+        ++l;
+        ++b;
+    }
+
+    return *this;
+}
+
 
 BufferSelection &
 Nsound::
 BufferSelection::
 operator-=(const float64 & rhs)
 {
-    Buffer::iterator b = target_buffer_->begin();
-    Buffer::iterator b_end = target_buffer_->end();
+    Buffer::iterator l = target_buffer_->begin();
+    Buffer::iterator l_end = target_buffer_->end();
 
-    BooleanVector::iterator bv     = bv_.begin();
-    BooleanVector::iterator bv_end = bv_.end();
+    BooleanVector::iterator b     = bv_.begin();
+    BooleanVector::iterator b_end = bv_.end();
 
-    while(b != b_end && bv != bv_end)
+    while(l != l_end)
     {
-        if(*bv) *b -= rhs;
+        if(*b) *l -= rhs;
+        ++l;
         ++b;
-        ++bv;
     }
 
     return *this;
 }
+
+
+BufferSelection &
+Nsound::
+BufferSelection::
+operator-=(const Buffer & rhs)
+{
+    Buffer::iterator l = target_buffer_->begin();
+    Buffer::iterator l_end = target_buffer_->end();
+
+    Buffer::const_iterator r = rhs.begin();
+    Buffer::const_iterator r_end = rhs.end();
+
+    BooleanVector::iterator b     = bv_.begin();
+    BooleanVector::iterator b_end = bv_.end();
+
+    while(l != l_end && r != r_end)
+    {
+        if(*b) *l -= *r;
+        ++r;
+        ++l;
+        ++b;
+    }
+
+    return *this;
+}
+
 
 BufferSelection &
 Nsound::
 BufferSelection::
 operator*=(const float64 & rhs)
 {
-    Buffer::iterator b = this->target_buffer_->begin();
-    Buffer::iterator b_end = this->target_buffer_->end();
+    Buffer::iterator l = target_buffer_->begin();
+    Buffer::iterator l_end = target_buffer_->end();
 
-    BooleanVector::iterator bv     = this->bv_.begin();
-    BooleanVector::iterator bv_end = this->bv_.end();
+    BooleanVector::iterator b     = bv_.begin();
+    BooleanVector::iterator b_end = bv_.end();
 
-    while(b != b_end && bv != bv_end)
+    while(l != l_end)
     {
-        if(*bv) *b *= rhs;
+        if(*b) *l *= rhs;
+        ++l;
         ++b;
-        ++bv;
     }
 
     return *this;
 }
+
+
+BufferSelection &
+Nsound::
+BufferSelection::
+operator*=(const Buffer & rhs)
+{
+    Buffer::iterator l = target_buffer_->begin();
+    Buffer::iterator l_end = target_buffer_->end();
+
+    Buffer::const_iterator r = rhs.begin();
+    Buffer::const_iterator r_end = rhs.end();
+
+    BooleanVector::iterator b     = bv_.begin();
+    BooleanVector::iterator b_end = bv_.end();
+
+    while(l != l_end && r != r_end)
+    {
+        if(*b) *l *= *r;
+        ++r;
+        ++l;
+        ++b;
+    }
+
+    return *this;
+}
+
 
 BufferSelection &
 Nsound::
 BufferSelection::
 operator/=(const float64 & rhs)
 {
-    Buffer::iterator b = this->target_buffer_->begin();
-    Buffer::iterator b_end = this->target_buffer_->end();
+    Buffer::iterator l = target_buffer_->begin();
+    Buffer::iterator l_end = target_buffer_->end();
 
-    BooleanVector::iterator bv     = this->bv_.begin();
-    BooleanVector::iterator bv_end = this->bv_.end();
+    BooleanVector::iterator b     = bv_.begin();
+    BooleanVector::iterator b_end = bv_.end();
 
-    while(b != b_end && bv != bv_end)
+    while(l != l_end)
     {
-        if(*bv) *b /= rhs;
+        if(*b) *l /= rhs;
+        ++l;
         ++b;
-        ++bv;
     }
 
     return *this;
 }
+
+
+BufferSelection &
+Nsound::
+BufferSelection::
+operator/=(const Buffer & rhs)
+{
+    Buffer::iterator l = target_buffer_->begin();
+    Buffer::iterator l_end = target_buffer_->end();
+
+    Buffer::const_iterator r = rhs.begin();
+    Buffer::const_iterator r_end = rhs.end();
+
+    BooleanVector::iterator b     = bv_.begin();
+    BooleanVector::iterator b_end = bv_.end();
+
+    while(l != l_end && r != r_end)
+    {
+        if(*b) *l /= *r;
+        ++r;
+        ++l;
+        ++b;
+    }
+
+    return *this;
+}
+
 
 BufferSelection &
 Nsound::
 BufferSelection::
 operator^=(const float64 & rhs)
 {
-    Buffer::iterator b = this->target_buffer_->begin();
-    Buffer::iterator b_end = this->target_buffer_->end();
+    Buffer::iterator l = target_buffer_->begin();
+    Buffer::iterator l_end = target_buffer_->end();
 
-    BooleanVector::iterator bv     = this->bv_.begin();
-    BooleanVector::iterator bv_end = this->bv_.end();
+    BooleanVector::iterator b     = bv_.begin();
+    BooleanVector::iterator b_end = bv_.end();
 
-    while(b != b_end && bv != bv_end)
+    while(l != l_end)
     {
-        if(*bv) std::pow(*b, rhs);
+        if(*b) *l = std::pow(*l, rhs);
+        ++l;
         ++b;
-        ++bv;
     }
 
     return *this;
 }
+
+
+BufferSelection &
+Nsound::
+BufferSelection::
+operator^=(const Buffer & rhs)
+{
+    Buffer::iterator l = target_buffer_->begin();
+    Buffer::iterator l_end = target_buffer_->end();
+
+    Buffer::const_iterator r = rhs.begin();
+    Buffer::const_iterator r_end = rhs.end();
+
+    BooleanVector::iterator b     = bv_.begin();
+    BooleanVector::iterator b_end = bv_.end();
+
+    while(l != l_end && r != r_end)
+    {
+        if(*b) *l = std::pow(*l, *r);
+        ++r;
+        ++l;
+        ++b;
+    }
+
+    return *this;
+}
+
 
 BufferSelection &
 Nsound::
 BufferSelection::
 operator=(const float64 & rhs)
 {
-    Buffer::iterator b = this->target_buffer_->begin();
-    Buffer::iterator b_end = this->target_buffer_->end();
+    Buffer::iterator l = target_buffer_->begin();
+    Buffer::iterator l_end = target_buffer_->end();
 
-    BooleanVector::iterator bv     = this->bv_.begin();
-    BooleanVector::iterator bv_end = this->bv_.end();
+    BooleanVector::iterator b     = bv_.begin();
+    BooleanVector::iterator b_end = bv_.end();
 
-    while(b != b_end && bv != bv_end)
+    while(l != l_end)
     {
-        if(*bv) *b = rhs;
+        if(*b) *l = rhs;
+        ++l;
         ++b;
-        ++bv;
     }
 
     return *this;
 }
 
+
+BufferSelection &
+Nsound::
+BufferSelection::
+operator=(const Buffer & rhs)
+{
+    Buffer::iterator l = target_buffer_->begin();
+    Buffer::iterator l_end = target_buffer_->end();
+
+    Buffer::const_iterator r = rhs.begin();
+    Buffer::const_iterator r_end = rhs.end();
+
+    BooleanVector::iterator b     = bv_.begin();
+    BooleanVector::iterator b_end = bv_.end();
+
+    while(l != l_end && r != r_end)
+    {
+        if(*b) *l = *r;
+        ++r;
+        ++l;
+        ++b;
+    }
+
+    return *this;
+}
+
+
+Buffer
+Nsound::
+BufferSelection::
+get_samples() const
+{
+    Buffer out;
+
+    Buffer::const_iterator l = target_buffer_->begin();
+    Buffer::const_iterator l_end = target_buffer_->end();
+
+    BooleanVector::const_iterator b     = bv_.begin();
+    BooleanVector::const_iterator b_end = bv_.end();
+
+    while(l != l_end)
+    {
+        if(*b) out << *l;
+        ++l;
+        ++b;
+    }
+
+    return out;
+}

@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 //
-//  $Id: FilterLowPassIIR.h 874 2014-09-08 02:21:29Z weegreenblobbie $
+//  $Id: FilterLowPassIIR.h 930 2015-10-16 17:12:03Z weegreenblobbie $
 //
 //  Nsound is a C++ library and Python module for audio synthesis featuring
 //  dynamic digital filters. Nsound lets you easily shape waveforms and write
@@ -89,17 +89,20 @@ class FilterLowPassIIR : public FilterStageIIR
 
     //! Sets the cut off frequency (Hz).
     void
-    setCutoff(const float64 & fc);
+    setCutoff(float64 fc);
 
-    protected:
+    //! Sets the ripple percent.
+    void
+    setRipple(float64 ripple);
+
+protected:
 
     void
     makeKernel(const float64 & frequency);
-
-
 };
 
-};
+} // namespace
 
-// :mode=c++:  jEdit modeline
 #endif
+
+// :mode=c++:

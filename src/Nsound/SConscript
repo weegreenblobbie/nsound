@@ -1,6 +1,6 @@
 ###############################################################################
 #
-# $Id: SConscript 910 2015-07-09 03:05:58Z weegreenblobbie $
+# $Id: SConscript 930 2015-10-16 17:12:03Z weegreenblobbie $
 #
 #  Nsound is a C++ library and Python module for audio synthesis featuring
 #  dynamic digital filters. Nsound lets you easily shape waveforms and write
@@ -91,6 +91,7 @@ libNsound_SRC_list = Split("""
     Utils.cc
     Vocoder.cc
     Wavefile.cc
+    biquad/Design.cc
 """)
 
 if lib_env['NS_HAVE_LIBPORTAUDIO']:
