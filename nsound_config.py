@@ -88,6 +88,10 @@ class NsoundConfig(SConfBase):
             if os.path.isdir(boost_prefix):
                 env.AppendUnique(CPPPATH = [boost_prefix])
 
+        # pico json
+
+        env.AppendUnique(CPPPATH = ["#external/picojson"])
+
         #----------------------------------------------------------------------
         # Setup installer prefixes
 

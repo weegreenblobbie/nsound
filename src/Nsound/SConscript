@@ -22,6 +22,8 @@ lib_env = nsound_config.lib_env
 lib_env.AppendUnique(CPPPATH = [".."])
 
 libNsound_SRC_list = Split("""
+    biquad/Design.cc
+    biquad/Biquad.cpp
     AudioBackend.cc
     AudioPlayback.cc
     AudioPlaybackRt.cc
@@ -91,14 +93,10 @@ libNsound_SRC_list = Split("""
     Utils.cc
     Vocoder.cc
     Wavefile.cc
-    biquad/Design.cc
 """)
 
 if lib_env['NS_HAVE_LIBPORTAUDIO']:
     libNsound_SRC_list.append("AudioBackendLibportaudio.cc")
-
-#~    if lib_env['NS_HAVE_CPP11']:
-#~        libNsound_SRC_list.append("AudioPlaybackRt.cc")
 
 if lib_env['NS_HAVE_LIBAO']:
     libNsound_SRC_list.append("AudioBackendLibao.cc")

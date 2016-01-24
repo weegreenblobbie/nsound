@@ -27,8 +27,9 @@
 //-----------------------------------------------------------------------------
 
 #include <Nsound/Nsound.h>
-#include <Nsound/biquad/Biquad.h>
+#include <Nsound/biquad/Biquad.hpp>
 #include <Nsound/biquad/Design.h>
+
 #include <picojson.h>               // https://github.com/kazuho/picojson
 
 
@@ -41,59 +42,60 @@ namespace biquad
 Biquad::
 Biquad(const BiquadKernel & bk)
     :
-    _sample_rate{0},
-    _freq_center{0},
-    _band_width{0},
-    _gain_db_at_fc{0},
-    _gain_db_at_bandwidth{0},
-    _gain_db_baseline{0},
-    _order{_kernel._b.size()},
-    _modified{false},
-    _design_mode{CLOSED},
-    _render_mode{OFFLINE},
-    _kernel{bk},
-    _x_buf{_order, 0.0},
-    _y_buf{_order, 0.0},
-    _x_ptr{_x_buf.begin()},
-    _y_ptr{_y_buf.begin()},
-    _x_end{_x_buf.end()},
-    _y_end{_y_buf.end()}
+    _sample_rate(0),
+    _freq_center(0),
+    _band_width(0),
+    _gain_db_at_fc(0),
+    _gain_db_at_band_width(0),
+    _gain_db_baseline(0),
+    _order(static_cast<uint32>(bk._b.size())),
+    _design_mode(CLOSED),
+    _render_mode(OFFLINE),
+    _kernel(bk),
+    _x_buf(_order, 0.0),
+    _x_ptr(_x_buf.begin()),
+    _x_begin(_x_buf.begin()),
+    _x_end(_x_buf.end()),
+    _y_buf(_order, 0.0),
+    _y_ptr(_y_buf.begin()),
+    _y_begin(_y_buf.begin()),
+    _y_end(_y_buf.end())
 {}
 
 
 Biquad::
 Biquad(
-    sample_rate,
+    float64 sample_rate,
     float64 freq_center,
     float64 bandwidth,
-    float64 gain_db_at_fc,        // g0
-    float64 gain_db_at_bandwidth, // g1
-    float64 gain_db_baseline,     // g2
+    float64 gain_db_at_fc,         // g0
+    float64 gain_db_at_band_width, // g1
+    float64 gain_db_baseline,      // g2
     uint32  order_)
     :
-    _sample_rate{sample_rate},
-    _freq_center{freq_center},
-    _band_width{bandwidth},
-    _gain_db_at_fc{gain_db_at_fc},
-    _gain_db_at_bandwidth{gain_db_at_bandwidth},
-    _gain_db_baseline{gain_db_baseline},
-    _order{order_},
-    _modified{true},
-    _design_mode{OPEN},
-    _render_mode{OFFLINE},
-    _kernel{std::vector<float64>(_order, 0.0), std::vector<float64>(_order, 0.0)},
-    _x_buf{_order, 0.0},
-    _y_buf{_order, 0.0},
-    _x_ptr{_x_buf.begin()},
-    _y_ptr{_y_buf.begin()},
-    _x_end{_x_buf.end()},
-    _y_end{_y_buf.end()}
-
+    _sample_rate(sample_rate),
+    _freq_center(freq_center),
+    _band_width(bandwidth),
+    _gain_db_at_fc(gain_db_at_fc),
+    _gain_db_at_band_width(gain_db_at_band_width),
+    _gain_db_baseline(gain_db_baseline),
+    _order(order_),
+    _design_mode(OPEN),
+    _render_mode(OFFLINE),
+    _kernel({std::vector<float64>(_order, 0.0), std::vector<float64>(_order, 0.0)}),
+    _x_buf(_order, 0.0),
+    _x_ptr(_x_buf.begin()),
+    _x_begin(_x_buf.begin()),
+    _x_end(_x_buf.end()),
+    _y_buf(_order, 0.0),
+    _y_ptr(_y_buf.begin()),
+    _y_begin(_y_buf.begin()),
+    _y_end(_y_buf.end())
 {
     // range check some of these
-    bw(_bandwidth);
+    bw(_band_width);
     g0(_gain_db_at_fc);
-    g1(_gain_db_at_bandwidth);
+    g1(_gain_db_at_band_width);
     g2(_gain_db_baseline);
     order(_order);
     update_design();
@@ -113,10 +115,10 @@ update_design()
         _sample_rate,
         _order,
         _freq_center,
-        _bandwidth,
+        _band_width,
         _gain_db_baseline,
         _gain_db_at_fc,
-        _gain_db_at_bandwidth,
+        _gain_db_at_band_width,
         BUTTERWORTH
     );
 
@@ -126,13 +128,13 @@ update_design()
 
     _x_buf.clear();
     _x_buf.resize(_kernel._b.size(), 0.0);
-    _x_ptr{_x_buf.begin()},
-    _x_end{_x_buf.end()},
+    _x_ptr = _x_buf.begin();
+    _x_end = _x_buf.end();
 
     _y_buf.clear();
     _y_buf.resize(_kernel._b.size(), 0.0);
-    _y_ptr{_y_buf.begin()},
-    _y_end{_y_buf.end()}
+    _y_ptr = _y_buf.begin();
+    _y_end = _y_buf.end();
 }
 
 
@@ -166,7 +168,7 @@ _filter(float64 x, float64 fc_, float64 bw_)
 
     float64 y = 0.0;
 
-    auto * xptr = _xptr;
+    auto xptr = _x_ptr;
 
     for(auto b : _kernel._b)
     {

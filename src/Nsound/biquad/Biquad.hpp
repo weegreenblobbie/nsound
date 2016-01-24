@@ -30,8 +30,8 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_BIQUAD_BIQUAD_H_
-#define _NSOUND_BIQUAD_BIQUAD_H_
+#ifndef _NSOUND_BIQUAD_BIQUAD_HPP_
+#define _NSOUND_BIQUAD_BIQUAD_HPP_
 
 #include <Nsound/Nsound.h>
 
@@ -60,9 +60,9 @@ public:
         float64 sample_rate,
         float64 freq_center,
         float64 bandwidth,
-        float64 gain_db_at_fc,        // g0
-        float64 gain_db_at_bandwidth, // g1
-        float64 gain_db_baseline,     // g2
+        float64 gain_db_at_fc,         // g0
+        float64 gain_db_at_band_width, // g1
+        float64 gain_db_baseline,      // g2
         uint32  order);
 
     std::string to_json() const;
@@ -76,7 +76,7 @@ public:
     float64 lo() const { return _freq_center - 0.5 * _band_width; }
     float64 hi() const { return _freq_center + 0.5 * _band_width; }
     float64 g0() const { return _gain_db_at_fc; }
-    float64 g1() const { return _gain_db_at_bandwidth; }
+    float64 g1() const { return _gain_db_at_band_width; }
     float64 g2() const { return _gain_db_baseline; }
     uint32  order() const { return _order; }
 
@@ -112,7 +112,7 @@ private:
     float64 _freq_center;
     float64 _band_width;
     float64 _gain_db_at_fc;
-    float64 _gain_db_at_bandwidth;
+    float64 _gain_db_at_band_width;
     float64 _gain_db_baseline;
     uint32  _order;
 
@@ -128,15 +128,15 @@ private:
     BiquadKernel _kernel;
 
     // history buffers
-    std::vector<float64>                 _x_buf;
-    std::vector<float64>::iterator       _x_ptr;
-    std::vector<float64>::const_iterator _x_begin;
-    std::vector<float64>::const_iterator _x_end;
+    std::vector<float64>           _x_buf;
+    std::vector<float64>::iterator _x_ptr;
+    std::vector<float64>::iterator _x_begin;
+    std::vector<float64>::iterator _x_end;
 
-    std::vector<float64>                 _y_buf;
-    std::vector<float64>::iterator       _y_ptr;
-    std::vector<float64>::const_iterator _y_begin;
-    std::vector<float64>::const_iterator _y_end;
+    std::vector<float64>           _y_buf;
+    std::vector<float64>::iterator _y_ptr;
+    std::vector<float64>::iterator _y_begin;
+    std::vector<float64>::iterator _y_end;
 };
 
 
@@ -165,7 +165,7 @@ void Biquad::g0(float64 v)
 
 void Biquad::g1(float64 v)
 {
-    _gain_db_at_bandwidth = v;
+    _gain_db_at_band_width = v;
 }
 
 
@@ -182,11 +182,8 @@ void Biquad::order(uint32 v)
 }
 
 
-
-
-
-
-
-
 } // namespace
 } // namespace
+
+
+#endif
