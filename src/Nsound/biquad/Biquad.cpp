@@ -30,6 +30,8 @@
 #include <Nsound/biquad/Biquad.hpp>
 #include <Nsound/biquad/Design.h>
 
+#define PICOJSON_USE_INT64
+
 #include <picojson.h>               // https://github.com/kazuho/picojson
 
 
@@ -277,6 +279,122 @@ operator()(Callable<float64> & in, Callable<float64> & fc_, Callable<float64> & 
     return out;
 }
 
+
+Biquad
+Biquad::
+from_json(const std::string & in)
+{
+    typedef picojson::value::array Array;
+//~    typedef picojson::value::object Object;
+    typedef picojson::value Value;
+
+    Value v;
+
+    std::string err;
+
+    picojson::parse(v, in.begin(), in.end(), &err);
+
+    if (! err.empty())
+    {
+        M_THROW("JSON parser error: " << err);
+    }
+
+    // open design
+
+    if(v.contains("samplerate"))
+    {
+        auto samplerate = v.get("samplerate").get<float64>();
+        auto freq_center = v.get("freq_center_hz").get<float64>();
+        auto band_width = v.get("band_width_hz").get<float64>();
+        auto gain_db_at_fc = v.get("gain_db_at_fc").get<float64>();
+        auto gain_db_at_band_width = v.get("gain_db_at_band_width").get<float64>();
+        auto gain_db_baseline = v.get("gain_db_baseline").get<float64>();
+        auto o = v.get("order").get<int64_t>();
+
+        M_ASSERT_MSG(o > 0, "order must be > 0 (" << o << " <= 0)");
+
+        uint32 order = static_cast<uint32>(o);
+
+        return Biquad(
+            samplerate,
+            freq_center,
+            band_width,
+            gain_db_at_fc,
+            gain_db_at_band_width,
+            gain_db_baseline,
+            order);
+    }
+
+    M_ASSERT_MSG(v.contains("b"), "Error, expecting JSON to contian key 'b'");
+    M_ASSERT_MSG(v.contains("a"), "Error, expecting JSON to contian key 'a'");
+
+    Array b = v.get("b").get<Array>();
+    Array a = v.get("a").get<Array>();
+
+    BiquadKernel bk;
+
+    for(auto & bb : b)
+    {
+        bk._b.push_back(bb.get<float64>());
+    }
+
+    for(auto & aa : a)
+    {
+        bk._a.push_back(aa.get<float64>());
+    }
+
+    return BiquadKernel(bk);
+}
+
+
+std::string
+Biquad::
+to_json() const
+{
+    typedef picojson::value::array Array;
+    typedef picojson::value::object Object;
+    typedef picojson::value Value;
+
+    Object obj;
+
+    switch(_design_mode)
+    {
+        case OPEN:
+        {
+            obj["samplerate"] = Value(_sample_rate);
+            obj["freq_center_hz"] = Value(_freq_center);
+            obj["band_width_hz"] = Value(_band_width);
+            obj["gain_db_at_fc"] = Value(_gain_db_at_fc);
+            obj["gain_db_at_band_width"] = Value(_gain_db_at_band_width);
+            obj["gain_db_baseline"] = Value(_gain_db_baseline);
+            obj["order"] = Value(static_cast<int64_t>(_order));
+            break;
+        }
+
+        case CLOSED:
+        {
+            Array b;
+            Array a;
+
+            for(const auto bb : _kernel._b)
+            {
+                b.push_back(Value(bb));
+            }
+
+            for(const auto aa : _kernel._a)
+            {
+                a.push_back(Value(aa));
+            }
+
+            obj["b"] = Value(b);
+            obj["a"] = Value(a);
+
+            break;
+        }
+    }
+
+    return Value(obj).serialize(true);
+}
 
 
 

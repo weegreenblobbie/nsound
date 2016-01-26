@@ -6,6 +6,7 @@
 
 #include <Nsound/NsoundAll.h>
 #include <Nsound/biquad/Design.h>
+#include <Nsound/biquad/Biquad.hpp>
 
 #include <iostream>
 
@@ -32,6 +33,20 @@ main(void)
     float64 gbw = gfc - 3;
 
     hpeq_design(sr, N, fc, bw, g0, gfc, gbw);
+
+    Biquad bq(sr, fc, bw, gfc, gbw, g0, N);
+
+    cout
+        << "-----------------------------------------------------------\n"
+        << bq.to_json() << "\n"
+        << "-----------------------------------------------------------\n";
+
+    std::string json_1 = "{ \"b\" : [1,2,3,4], \"a\" : [10,20,30,40] }";
+
+    Biquad bq2 = Biquad::from_json(json_1);
+
+    cout
+        << bq2.to_json() << "\n";
 
     return 0;
 }
