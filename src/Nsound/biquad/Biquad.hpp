@@ -71,14 +71,17 @@ public:
 
     // QT style getters
 
-    float64 bw() const { return _band_width; }
-    float64 fc() const { return _freq_center; }
-    float64 lo() const { return _freq_center - 0.5 * _band_width; }
-    float64 hi() const { return _freq_center + 0.5 * _band_width; }
-    float64 g0() const { return _gain_db_at_fc; }
-    float64 g1() const { return _gain_db_at_band_width; }
-    float64 g2() const { return _gain_db_baseline; }
-    uint32  order() const { return _order; }
+    BiquadKernel kernel() const { return _kernel; }
+
+    float64 sr() const    { M_ASSERT_VALUE(_design_mode, ==, OPEN); return _sample_rate; }
+    float64 bw() const    { M_ASSERT_VALUE(_design_mode, ==, OPEN); return _band_width; }
+    float64 fc() const    { M_ASSERT_VALUE(_design_mode, ==, OPEN); return _freq_center; }
+    float64 lo() const    { M_ASSERT_VALUE(_design_mode, ==, OPEN); return _freq_center - 0.5 * _band_width; }
+    float64 hi() const    { M_ASSERT_VALUE(_design_mode, ==, OPEN); return _freq_center + 0.5 * _band_width; }
+    float64 g0() const    { M_ASSERT_VALUE(_design_mode, ==, OPEN); return _gain_db_at_fc; }
+    float64 g1() const    { M_ASSERT_VALUE(_design_mode, ==, OPEN); return _gain_db_at_band_width; }
+    float64 g2() const    { M_ASSERT_VALUE(_design_mode, ==, OPEN); return _gain_db_baseline; }
+    uint32  order() const { M_ASSERT_VALUE(_design_mode, ==, OPEN); return _order; }
 
     // QT style setters
 
@@ -104,7 +107,20 @@ public:
     FloatVector operator()(Callable<float64> & in, Callable<float64> & fc_);
     FloatVector operator()(Callable<float64> & in, Callable<float64> & fc_, Callable<float64> & bw_);
 
+    void plot(boolean show_phase = false) const;
+    void plot(float64 sample_rate, boolean show_phase = false) const;
+
 private:
+
+    // plot support functions
+
+    Buffer _get_freq_axis(float64 sample_rate, float64 size_sec) const;
+    Buffer _get_freq_response(float64 sample_rate, float64 size_sec) const;
+    Buffer _get_impulse_response(float64 sample_rate, float64 size_sec) const;
+    Buffer _get_phase_response(float64 sample_rate, float64 size_sec) const;
+    uint32 _get_nfft(float64 sample_rate, float64 size_sec) const;
+
+    // all filter calls eventually call this one:
 
     float64 _filter(float64 in, float64 fc, float64 bw);
 
@@ -146,6 +162,7 @@ private:
 
 void Biquad::bw(float64 v)
 {
+    M_ASSERT_VALUE(_design_mode, ==, OPEN);
     M_ASSERT_MSG(v > 0.0, "bandwidth must be > 0 (" << v << " <= 0)");
     _band_width = v;
 }
@@ -153,30 +170,35 @@ void Biquad::bw(float64 v)
 
 void Biquad::fc(float64 v)
 {
+    M_ASSERT_VALUE(_design_mode, ==, OPEN);
     _freq_center = v;
 }
 
 
 void Biquad::g0(float64 v)
 {
+    M_ASSERT_VALUE(_design_mode, ==, OPEN);
     _gain_db_at_fc = v;
 }
 
 
 void Biquad::g1(float64 v)
 {
+    M_ASSERT_VALUE(_design_mode, ==, OPEN);
     _gain_db_at_band_width = v;
 }
 
 
 void Biquad::g2(float64 v)
 {
+    M_ASSERT_VALUE(_design_mode, ==, OPEN);
     _gain_db_baseline = v;
 }
 
 
 void Biquad::order(uint32 v)
 {
+    M_ASSERT_VALUE(_design_mode, ==, OPEN);
     M_ASSERT_MSG(v > 0, "order must be > 0 (" << v << " <= 0)");
     _order = v;
 }

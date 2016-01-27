@@ -27,12 +27,20 @@
 //-----------------------------------------------------------------------------
 
 #include <Nsound/Nsound.h>
+
+#include <Nsound/Buffer.h>
+#include <Nsound/FFTransform.h>
+#include <Nsound/Plotter.h>
+
 #include <Nsound/biquad/Biquad.hpp>
 #include <Nsound/biquad/Design.h>
 
 #define PICOJSON_USE_INT64
 
 #include <picojson.h>               // https://github.com/kazuho/picojson
+
+#include <cmath>
+
 
 
 namespace Nsound
@@ -62,7 +70,9 @@ Biquad(const BiquadKernel & bk)
     _y_ptr(_y_buf.begin()),
     _y_begin(_y_buf.begin()),
     _y_end(_y_buf.end())
-{}
+{
+    std::cout << "order = " << _order << "\n";
+}
 
 
 Biquad::
@@ -170,26 +180,28 @@ _filter(float64 x, float64 fc_, float64 bw_)
 
     float64 y = 0.0;
 
-    auto xptr = _x_ptr;
+    auto xhist = _x_ptr;
 
     for(auto b : _kernel._b)
     {
-        if(xptr == _x_begin) xptr = _x_end - 1;
-        else                 --xptr;
+        --xhist;
 
-        y += b * (*xptr);
+        if(xhist < _x_begin) xhist = _x_end - 1;
+
+        y += b * (*xhist);
     }
 
     // sum over: a * y[n]
 
-    auto yptr = _y_ptr;
+    auto yhist = _y_ptr;
 
     for(auto a : _kernel._a)
     {
-        if(yptr == _y_begin) yptr = _y_end - 1;
-        else                 --yptr;
+        --yhist;
 
-        y -= a * (*yptr);
+        if(yhist < _y_begin) yhist = _y_end - 1;
+
+        y -= a * (*yhist);
     }
 
     // write y to y history buffer
@@ -397,12 +409,176 @@ to_json() const
 }
 
 
+void
+Biquad::
+plot(boolean show_phase) const
+{
+    M_ASSERT_VALUE(_design_mode, ==, OPEN);
+    plot(sr(), show_phase);
+}
 
 
+void
+Biquad::
+plot(float64 sample_rate, boolean show_phase) const
+{
+    float64 window_size = 0.080;
+
+    Biquad bq(kernel());
+
+    Buffer f_axis = bq._get_freq_axis(sample_rate, window_size);
+    Buffer resp   = bq._get_freq_response(sample_rate, window_size);
+
+    return;
+
+    Plotter pylab;
+
+    pylab.figure();
+
+    uint32 n_rows = 1;
+    uint32 n_cols = 1;
+
+    if(show_phase)
+    {
+        n_rows = 2;
+    }
+
+    pylab.subplot(n_rows, n_cols, 1);
+
+    // Frequency response
+    pylab.plot(f_axis, resp, "blue");
+    pylab.grid(true);
+
+    float64 y0 = -60.0;
+    float64 y1 = resp.getMax();
+    float64 yrange = y1 - y0;
+
+    y1 += 0.05 * yrange;
+
+//~    pylab.ylim(y0, y1);
+
+    pylab.xlabel("Frequency (Hz)");
+    pylab.ylabel("Frequency Response (dB)");
+
+    // Phase response
+    if(show_phase)
+    {
+        pylab.subplot(n_rows, n_cols, 2);
+
+        Buffer phase = bq._get_phase_response(sample_rate, window_size).getdB();
+
+        pylab.plot(f_axis, phase);
+
+        pylab.xlabel("Frequency (Hz)");
+        pylab.ylabel("Phase Response (dB)");
+    }
+}
 
 
+uint32
+Biquad::
+_get_nfft(float64 sample_rate, float64 size_sec) const
+{
+    M_ASSERT_VALUE(sample_rate, >, 0);
+    M_ASSERT_VALUE(size_sec, >, 0);
+
+    uint32 n_fft = FFTransform::roundUp2(
+        static_cast<uint32>(std::round(size_sec * sample_rate)));
+
+    M_ASSERT_VALUE(n_fft, >, 0);
+
+    return n_fft;
+}
 
 
+Buffer
+Biquad::
+_get_freq_axis(float64 sample_rate, float64 size_sec) const
+{
+    uint32 n_fft = _get_nfft(sample_rate, size_sec);
+
+    uint32 n_samples = n_fft / 2 + 1;
+
+    float64 f_step =
+        (1.0 / (static_cast<float64>(n_fft) / 2.0)) * (sample_rate / 2.0);
+
+    Buffer f_axis;
+
+    float64 f = 0.0;
+
+    for(uint32 i = 0; i < n_samples; ++i)
+    {
+        f_axis << f;
+        f += f_step;
+    }
+
+    return f_axis;
+}
+
+
+Buffer
+Biquad::
+_get_freq_response(float64 sample_rate, float64 size_sec) const
+{
+    uint32 n_fft = _get_nfft(sample_rate, size_sec);
+
+    FFTransform fft(sample_rate);
+
+    FFTChunkVector vec = fft.fft(
+        _get_impulse_response(sample_rate, size_sec),
+        n_fft);
+
+    return vec[0].getMagnitude();
+}
+
+
+Buffer
+Biquad::
+_get_impulse_response(float64 sample_rate, float64 size_sec) const
+{
+    Biquad bq(kernel());
+
+    uint32 n_fft = _get_nfft(sample_rate, size_sec);
+
+    std::cout << "n_fft = " << n_fft << "\n";
+
+    Buffer resp(n_fft);
+
+    resp << bq(1.0);
+
+    std::cout << "resp[0] = " << resp[0] << "\n";
+
+    for(uint32 i = 1; i < n_fft; ++i)
+    {
+        auto f = bq(0.0);
+
+        if(i < 30)
+        {
+            std::cout << "resp[" << i << "] = " << f << "\n";
+
+//~        resp << bq(0.0);
+        resp << f;
+        }
+    }
+
+    return resp;
+}
+
+
+Buffer
+Biquad::
+_get_phase_response(float64 sample_rate, float64 size_sec) const
+{
+    uint32 n_fft = _get_nfft(sample_rate, size_sec);
+
+    FFTransform fft(n_fft);
+
+    FFTChunkVector vec = fft.fft(
+        _get_impulse_response(sample_rate, size_sec),
+        n_fft);
+
+    return vec[0].getPhase();
+}
 
 
 

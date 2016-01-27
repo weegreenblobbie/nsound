@@ -42,6 +42,14 @@ namespace Nsound
 namespace biquad
 {
 
+#define DEBUG_OUT
+
+#ifdef DEBUG_OUT
+    #define dout std::cout
+#else
+    #define dout if(false) std::cout
+#endif
+
 
 // support types and operators
 
@@ -193,11 +201,11 @@ hpeq_design(
         order += order % 2;
     }
 
-    std::cout << "fc = " << freq_center_hz * 2 * M_PI / sample_rate << "\n";
-    std::cout << "wb = " << bandwidth_hz * 2 * M_PI / sample_rate << "\n";
-    std::cout << "G0 = " << gain_reference_db << "\n";
-    std::cout << "G = " << gain_freq_center_db << "\n";
-    std::cout << "GB = " << gain_bandwidth_db << "\n";
+    dout << "fc = " << freq_center_hz * 2 * M_PI / sample_rate << "\n";
+    dout << "wb = " << bandwidth_hz * 2 * M_PI / sample_rate << "\n";
+    dout << "G0 = " << gain_reference_db << "\n";
+    dout << "G = " << gain_freq_center_db << "\n";
+    dout << "GB = " << gain_bandwidth_db << "\n";
 
     // convert to linear gain
 
@@ -283,6 +291,9 @@ hpeq_design(
     Matrix2D ba;
     Matrix2D aa;
 
+    dout << "r = " << r << "\n";
+    dout << "L = " << l << "\n";
+
     if(r == 0)
     {
         if(type != ELLIPTIC)
@@ -346,50 +357,50 @@ hpeq_design(
             v.push_back(1.0);
         }
 
-        std::cout << "------------------------------------------------\n";
-        std::cout << "N = " << order << "\n";
-        std::cout << "r = " << r << "\n";
-        std::cout << "L = " << l << "\n";
-        std::cout << "i = ";
+        dout << "------------------------------------------------\n";
+        dout << "N = " << order << "\n";
+        dout << "r = " << r << "\n";
+        dout << "L = " << l << "\n";
+        dout << "i = ";
 
         for(auto i : x)
         {
-            std::cout << i << ", ";
+            dout << i << ", ";
         }
 
-        std::cout << "\nui = ";
+        dout << "\nui = ";
 
         for(auto i : ux)
         {
-            std::cout << i << ", ";
+            dout << i << ", ";
         }
 
-        std::cout << "\nci = ";
+        dout << "\nci = ";
 
         for(auto i : ci)
         {
-            std::cout << i << ", ";
+            dout << i << ", ";
         }
 
-        std::cout << "\nsi = ";
+        dout << "\nsi = ";
 
         for(auto i : si)
         {
-            std::cout << i << ", ";
+            dout << i << ", ";
         }
 
-        std::cout << "\nv = ";
+        dout << "\nv = ";
 
         for(auto i : v)
         {
-            std::cout << i << ", ";
+            dout << i << ", ";
         }
 
-        std::cout << "\n";
-        std::cout << "gfc = " << gfc << "\n";
-        std::cout << "wb = " << std::setprecision(15) << wb << "\n";
-        std::cout << "b = " << b << "\n";
-        std::cout << "a = " << a << "\n";
+        dout << "\n";
+        dout << "gfc = " << gfc << "\n";
+        dout << "wb = " << std::setprecision(15) << wb << "\n";
+        dout << "b = " << b << "\n";
+        dout << "a = " << a << "\n";
 
         Matrix2D temp_ba;
         Matrix2D temp_aa;
@@ -425,32 +436,32 @@ hpeq_design(
 
         for(auto & bbb : ba)
         {
-            std::cout << "ba" << i++ << " : ";
+            dout << "ba" << i++ << " : ";
 
             for(auto & xxx : bbb)
             {
-                std::cout << xxx << ", ";
+                dout << xxx << ", ";
             }
 
-            std::cout << "\n";
+            dout << "\n";
         }
 
         i = 0;
 
         for(auto & aaa : aa)
         {
-            std::cout << "aa" << i++ << " : ";
+            dout << "aa" << i++ << " : ";
 
             for(auto & xxx : aaa)
             {
-                std::cout << xxx << ", ";
+                dout << xxx << ", ";
             }
 
-            std::cout << "\n";
+            dout << "\n";
         }
     }
 
-    std::cout << "f0 = " << freq_center_hz << "\n";
+    dout << "f0 = " << freq_center_hz << "\n";
 
     // bilinear transform
 
@@ -460,10 +471,10 @@ hpeq_design(
 
     BiquadKernel bk = {cas2dir(blt.b), cas2dir(blt.a)};
 
-    std::cout << "--------------------------------------------------\n";
-    std::cout << "director form 1\n";
-    std::cout << "bk.b = " << bk._b << "\n";
-    std::cout << "bk.a = " << bk._a << "\n";
+    dout << "--------------------------------------------------\n";
+    dout << "director form 1\n";
+    dout << "bk.b = " << bk._b << "\n";
+    dout << "bk.a = " << bk._a << "\n";
 
     return bk;
 }
@@ -556,14 +567,14 @@ bilinear_transform(const Matrix2D & ba, const Matrix2D & aa, float64 w0)
         c0 = std::cos(w0);
     }
 
-    std::cout << "w0 = " << w0 << "\n";
-    std::cout << "c0 = " << c0 << "\n";
+    dout << "w0 = " << w0 << "\n";
+    dout << "c0 = " << c0 << "\n";
 
     //-------------------------------------------------------------------------
     // find 0th-order sections (i.e., gain sections)
 
-    std::cout << "---------------------------------------------------------\n";
-    std::cout << "find 0th-order sections (i.e., gain sections)\n";
+    dout << "---------------------------------------------------------\n";
+    dout << "find 0th-order sections (i.e., gain sections)\n";
 
     auto bv =
         B1 == 0.0 &&
@@ -580,32 +591,32 @@ bilinear_transform(const Matrix2D & ba, const Matrix2D & aa, float64 w0)
         idx = tmp_idx - bv.begin();
     }
 
-    std::cout << "idx = " << idx << "\n";
+    dout << "idx = " << idx << "\n";
 
     Bhat[idx][0] = B0[idx] / A0[idx];
     Ahat[idx][0] = 1.0;
 
-    std::cout << "Bhat = " << Bhat << "\n";
-    std::cout << "Ahat = " << Ahat << "\n";
+    dout << "Bhat = " << Bhat << "\n";
+    dout << "Ahat = " << Ahat << "\n";
 
     B[idx][0] = Bhat[idx][0];
     A[idx][0] = 1.0;
 
-    std::cout << "B = " << B << "\n";
-    std::cout << "A = " << A << "\n";
+    dout << "B = " << B << "\n";
+    dout << "A = " << A << "\n";
 
     //-------------------------------------------------------------------------
     // find 1st-order analog sections
 
-    std::cout << "---------------------------------------------------------\n";
-    std::cout << "find 1st-order analog sections\n";
+    dout << "---------------------------------------------------------\n";
+    dout << "find 1st-order analog sections\n";
 
     auto bv0 = B1 != 0.0 || A1 != 0.0;
     auto bv1 = B2 == 0.0 && A2 == 0.0;
 
     bv = bv0 && bv1;
 
-    std::cout << "bv = " << bv << "\n";
+    dout << "bv = " << bv << "\n";
 
     for(uint32 j = 0; j < bv.size(); ++j)
     {
@@ -627,21 +638,21 @@ bilinear_transform(const Matrix2D & ba, const Matrix2D & aa, float64 w0)
         A[j][2] = -Ahat[j][1];
     }
 
-    std::cout << "Bhat = " << Bhat << "\n";
-    std::cout << "Ahat = " << Ahat << "\n";
+    dout << "Bhat = " << Bhat << "\n";
+    dout << "Ahat = " << Ahat << "\n";
 
-    std::cout << "B = " << B << "\n";
-    std::cout << "A = " << A << "\n";
+    dout << "B = " << B << "\n";
+    dout << "A = " << A << "\n";
 
     //-------------------------------------------------------------------------
     // find 2nd-order analog sections
 
-    std::cout << "---------------------------------------------------------\n";
-    std::cout << "find 2nd-order analog sections\n";
+    dout << "---------------------------------------------------------\n";
+    dout << "find 2nd-order analog sections\n";
 
     bv = B2 != 0.0 || A2 != 0.0;
 
-    std::cout << "bv = " << bv << "\n";
+    dout << "bv = " << bv << "\n";
 
     for(uint32 j = 0; j < bv.size(); ++j)
     {
@@ -670,11 +681,11 @@ bilinear_transform(const Matrix2D & ba, const Matrix2D & aa, float64 w0)
         A[j][4] = Ahat[j][2];
     }
 
-    std::cout << "Bhat = " << Bhat << "\n";
-    std::cout << "Ahat = " << Ahat << "\n";
+    dout << "Bhat = " << Bhat << "\n";
+    dout << "Ahat = " << Ahat << "\n";
 
-    std::cout << "B = " << B << "\n";
-    std::cout << "A = " << A << "\n";
+    dout << "B = " << B << "\n";
+    dout << "A = " << A << "\n";
 
     //-------------------------------------------------------------------------
     // LP or HP shelving filter
@@ -692,10 +703,10 @@ bilinear_transform(const Matrix2D & ba, const Matrix2D & aa, float64 w0)
         for(auto & row : B) {row.push_back(0.0); row.push_back(0.0);}
         for(auto & row : A) {row.push_back(0.0); row.push_back(0.0);}
 
-        std::cout << "-----------------------------------------------------\n";
-        std::cout << "LP or HP shelving filter\n";
-        std::cout << "B = " << B << "\n";
-        std::cout << "A = " << A << "\n";
+        dout << "-----------------------------------------------------\n";
+        dout << "LP or HP shelving filter\n";
+        dout << "B = " << B << "\n";
+        dout << "A = " << A << "\n";
     }
 
     return {B, A, Bhat, Ahat};

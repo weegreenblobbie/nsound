@@ -32,7 +32,7 @@ main(void)
     float64 gfc = 12;
     float64 gbw = gfc - 3;
 
-    hpeq_design(sr, N, fc, bw, g0, gfc, gbw);
+//~    hpeq_design(sr, N, fc, bw, g0, gfc, gbw);
 
     Biquad bq(sr, fc, bw, gfc, gbw, g0, N);
 
@@ -41,12 +41,21 @@ main(void)
         << bq.to_json() << "\n"
         << "-----------------------------------------------------------\n";
 
-    std::string json_1 = "{ \"b\" : [1,2,3,4], \"a\" : [10,20,30,40] }";
+//~    Biquad bq2(bq.kernel());
 
-    Biquad bq2 = Biquad::from_json(json_1);
+//~    std::string json_2 = bq2.to_json();
 
-    cout
-        << bq2.to_json() << "\n";
+//~    cout << "bq2.to_json(): " << bq2.to_json() << "\n";
+
+//~    Biquad bq3 = Biquad::from_json(json_2);
+
+//~    cout << "bq3.to_json(): " << bq3.to_json() << "\n";
+
+//~    bq3.plot(sr);
+
+    bq.plot();
+
+    Plotter::show();
 
     return 0;
 }
