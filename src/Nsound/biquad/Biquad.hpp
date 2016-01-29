@@ -38,6 +38,7 @@
 #include <Nsound/CircularIterators.h>
 #include <Nsound/Interfaces.hpp>
 
+#include <Nsound/biquad/Design.h>
 #include <Nsound/biquad/Kernel.h>
 
 
@@ -76,8 +77,8 @@ public:
     float64 sr() const    { M_ASSERT_VALUE(_design_mode, ==, OPEN); return _sample_rate; }
     float64 bw() const    { M_ASSERT_VALUE(_design_mode, ==, OPEN); return _band_width; }
     float64 fc() const    { M_ASSERT_VALUE(_design_mode, ==, OPEN); return _freq_center; }
-    float64 lo() const    { M_ASSERT_VALUE(_design_mode, ==, OPEN); return _freq_center - 0.5 * _band_width; }
-    float64 hi() const    { M_ASSERT_VALUE(_design_mode, ==, OPEN); return _freq_center + 0.5 * _band_width; }
+    float64 lo() const    { M_ASSERT_VALUE(_design_mode, ==, OPEN); return _band_edge._lo_hz; }
+    float64 hi() const    { M_ASSERT_VALUE(_design_mode, ==, OPEN); return _band_edge._hi_hz; }
     float64 g0() const    { M_ASSERT_VALUE(_design_mode, ==, OPEN); return _gain_db_at_fc; }
     float64 g1() const    { M_ASSERT_VALUE(_design_mode, ==, OPEN); return _gain_db_at_band_width; }
     float64 g2() const    { M_ASSERT_VALUE(_design_mode, ==, OPEN); return _gain_db_baseline; }
@@ -127,6 +128,7 @@ private:
     float64 _sample_rate;
     float64 _freq_center;
     float64 _band_width;
+    BandEdge _band_edge;
     float64 _gain_db_at_fc;
     float64 _gain_db_at_band_width;
     float64 _gain_db_baseline;
@@ -144,15 +146,11 @@ private:
     BiquadKernel _kernel;
 
     // history buffers
-    std::vector<float64>           _x_buf;
-    std::vector<float64>::iterator _x_ptr;
-    std::vector<float64>::iterator _x_begin;
-    std::vector<float64>::iterator _x_end;
+    std::vector<float64>_x_buf;
+    int32 _x_ptr;
 
-    std::vector<float64>           _y_buf;
-    std::vector<float64>::iterator _y_ptr;
-    std::vector<float64>::iterator _y_begin;
-    std::vector<float64>::iterator _y_end;
+    std::vector<float64> _y_buf;
+    int32 _y_ptr;
 };
 
 

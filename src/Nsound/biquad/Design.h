@@ -49,6 +49,15 @@ namespace biquad
 enum DesignType { BUTTERWORTH, CHEBYSHEV_1, CHEBYSHEV_2, ELLIPTIC };
 
 
+struct BandEdge
+{
+    BandEdge();
+    BandEdge(float64 sample_rate, float64 freq_center_hz, float64 bandwidth_hz);
+    float64 _lo_hz;
+    float64 _hi_hz;
+};
+
+
 BiquadKernel
 hpeq_design(
     float64    sample_rate,

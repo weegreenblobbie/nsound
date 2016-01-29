@@ -42,7 +42,7 @@ namespace Nsound
 namespace biquad
 {
 
-#define DEBUG_OUT
+//~#define DEBUG_OUT
 
 #ifdef DEBUG_OUT
     #define dout std::cout
@@ -117,6 +117,41 @@ bilinear_transform(const Matrix2D & ba, const Matrix2D & aa, float64 w0);
 Vector cas2dir(const Matrix2D & matrix);
 
 Vector convolve(const Vector & x, const Vector & h);
+
+
+//-----------------------------------------------------------------------------
+//
+// band_edge.m - calculate left and right bandedge frequencies from bilinear transformation
+
+BandEdge::
+BandEdge() : _lo_hz(0.0), _hi_hz(0.0) {}
+
+
+BandEdge::
+BandEdge(
+    float64 sample_rate,
+    float64 freq_center_hz,
+    float64 bandwidth_hz)
+    :
+    _lo_hz(0.0),
+    _hi_hz(0.0)
+{
+    const float64 hz_to_radians = 2 * M_PI / sample_rate;
+    const float64 radians_to_hz = 1.0 / hz_to_radians;
+
+    float64 wc = freq_center_hz * hz_to_radians;
+    float64 wb = bandwidth_hz * hz_to_radians;
+
+    float64 wwbb = std::tan(wb / 2.0);
+    float64 c0 = std::cos(wc);
+    float64 s0 = std::sin(wc);
+
+    float64 temp0 = wwbb * std::sqrt(wwbb*wwbb + s0 * s0);
+    float64 temp1 = 1.0 + wwbb * wwbb;
+
+    _lo_hz = radians_to_hz * std::acos((c0 + temp0) / temp1);
+    _hi_hz = radians_to_hz * std::acos((c0 - temp0) / temp1);
+}
 
 
 //-----------------------------------------------------------------------------

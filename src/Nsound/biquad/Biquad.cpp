@@ -55,6 +55,7 @@ Biquad(const BiquadKernel & bk)
     _sample_rate(0),
     _freq_center(0),
     _band_width(0),
+    _band_edge(),
     _gain_db_at_fc(0),
     _gain_db_at_band_width(0),
     _gain_db_baseline(0),
@@ -63,15 +64,10 @@ Biquad(const BiquadKernel & bk)
     _render_mode(OFFLINE),
     _kernel(bk),
     _x_buf(_order, 0.0),
-    _x_ptr(_x_buf.begin()),
-    _x_begin(_x_buf.begin()),
-    _x_end(_x_buf.end()),
+    _x_ptr(0),
     _y_buf(_order, 0.0),
-    _y_ptr(_y_buf.begin()),
-    _y_begin(_y_buf.begin()),
-    _y_end(_y_buf.end())
+    _y_ptr(0)
 {
-    std::cout << "order = " << _order << "\n";
 }
 
 
@@ -88,6 +84,7 @@ Biquad(
     _sample_rate(sample_rate),
     _freq_center(freq_center),
     _band_width(bandwidth),
+    _band_edge(),
     _gain_db_at_fc(gain_db_at_fc),
     _gain_db_at_band_width(gain_db_at_band_width),
     _gain_db_baseline(gain_db_baseline),
@@ -96,13 +93,9 @@ Biquad(
     _render_mode(OFFLINE),
     _kernel({std::vector<float64>(_order, 0.0), std::vector<float64>(_order, 0.0)}),
     _x_buf(_order, 0.0),
-    _x_ptr(_x_buf.begin()),
-    _x_begin(_x_buf.begin()),
-    _x_end(_x_buf.end()),
+    _x_ptr(0),
     _y_buf(_order, 0.0),
-    _y_ptr(_y_buf.begin()),
-    _y_begin(_y_buf.begin()),
-    _y_end(_y_buf.end())
+    _y_ptr(0)
 {
     // range check some of these
     bw(_band_width);
@@ -123,6 +116,8 @@ update_design()
         "Can not update the design for CLOSED kernels"
     );
 
+    _band_edge = BandEdge(_sample_rate, _freq_center, _band_width);
+
     _kernel = hpeq_design(
         _sample_rate,
         _order,
@@ -140,14 +135,34 @@ update_design()
 
     _x_buf.clear();
     _x_buf.resize(_kernel._b.size(), 0.0);
-    _x_ptr = _x_buf.begin();
-    _x_end = _x_buf.end();
+    _x_ptr = 0;
 
     _y_buf.clear();
-    _y_buf.resize(_kernel._b.size(), 0.0);
-    _y_ptr = _y_buf.begin();
-    _y_end = _y_buf.end();
+    _y_buf.resize(_kernel._a.size(), 0.0);
+    _y_ptr = 0;
 }
+
+
+// helper object to iterate over a vector, skipping the first element
+
+template<int32 offset, typename T>
+class SkipN
+{
+
+private:
+
+    T & _vector;
+
+public:
+
+    SkipN(T & vec) : _vector( vec ) {}
+
+    auto begin() const -> decltype( _vector.begin() )
+    { return _vector.begin() + offset; }
+
+    auto end() const -> decltype( _vector.end() )
+    { return _vector.end(); }
+};
 
 
 float64
@@ -169,12 +184,15 @@ _filter(float64 x, float64 fc_, float64 bw_)
     //
     //     https://en.wikipedia.org/wiki/Infinite_impulse_response
 
+    const int32 size_b = static_cast<int32>(_kernel._b.size());
+    const int32 size_a = static_cast<int32>(_kernel._a.size());
+
     // write x to x history buffer
 
-    *_x_ptr = x;
+    _x_buf[_x_ptr] = x;
     ++_x_ptr;
 
-    if(_x_ptr == _x_end) _x_ptr = _x_begin;
+    if(_x_ptr >= size_b) _x_ptr = 0;
 
     // sum over: b * x[n]
 
@@ -186,30 +204,31 @@ _filter(float64 x, float64 fc_, float64 bw_)
     {
         --xhist;
 
-        if(xhist < _x_begin) xhist = _x_end - 1;
+        if(xhist < 0) xhist = size_b - 1;
 
-        y += b * (*xhist);
+        y += b * _x_buf[xhist];
     }
 
     // sum over: a * y[n]
 
     auto yhist = _y_ptr;
 
-    for(auto a : _kernel._a)
+    for(auto a : SkipN<1, std::vector<float64>>(_kernel._a))
     {
         --yhist;
 
-        if(yhist < _y_begin) yhist = _y_end - 1;
+        if(yhist < 0) yhist = size_a - 1;
 
-        y -= a * (*yhist);
+        y -= a * _y_buf[yhist];
     }
 
     // write y to y history buffer
 
-    *_y_ptr = y;
+    _y_buf[_y_ptr] = y;
+
     ++_y_ptr;
 
-    if(_y_ptr == _y_end) _y_ptr = _y_begin;
+    if(_y_ptr >= size_a) _y_ptr = 0;
 
     return y;
 }
@@ -429,7 +448,7 @@ plot(float64 sample_rate, boolean show_phase) const
     Buffer f_axis = bq._get_freq_axis(sample_rate, window_size);
     Buffer resp   = bq._get_freq_response(sample_rate, window_size);
 
-    return;
+    resp.dB();
 
     Plotter pylab;
 
@@ -460,6 +479,15 @@ plot(float64 sample_rate, boolean show_phase) const
     pylab.xlabel("Frequency (Hz)");
     pylab.ylabel("Frequency Response (dB)");
 
+    // plot design parameters
+
+    if(_design_mode == OPEN)
+    {
+        pylab.plot(lo(), g1(), "r+", "ms=10,mew=2");
+        pylab.plot(hi(), g1(), "r+", "ms=10,mew=2");
+        pylab.plot(fc(), g0(), "r+", "ms=10,mew=2");
+    }
+
     // Phase response
     if(show_phase)
     {
@@ -472,6 +500,8 @@ plot(float64 sample_rate, boolean show_phase) const
         pylab.xlabel("Frequency (Hz)");
         pylab.ylabel("Phase Response (dB)");
     }
+
+    pylab.xlim(f_axis[0], f_axis[f_axis.getLength()-1]);
 }
 
 
@@ -540,25 +570,13 @@ _get_impulse_response(float64 sample_rate, float64 size_sec) const
 
     uint32 n_fft = _get_nfft(sample_rate, size_sec);
 
-    std::cout << "n_fft = " << n_fft << "\n";
-
     Buffer resp(n_fft);
 
     resp << bq(1.0);
 
-    std::cout << "resp[0] = " << resp[0] << "\n";
-
     for(uint32 i = 1; i < n_fft; ++i)
     {
-        auto f = bq(0.0);
-
-        if(i < 30)
-        {
-            std::cout << "resp[" << i << "] = " << f << "\n";
-
-//~        resp << bq(0.0);
-        resp << f;
-        }
+        resp << bq(0.0);
     }
 
     return resp;
