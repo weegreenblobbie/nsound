@@ -62,18 +62,6 @@ public:
 
 
 //-----------------------------------------------------------------------------
-// Producers / generators
-
-template <class T>
-class Callable
-{
-public:
-    virtual T operator()() = 0;
-    virtual bool finished() const = 0;
-};
-
-
-//-----------------------------------------------------------------------------
 // Inline implementation
 
 std::string to_string(const RenderMode rm)

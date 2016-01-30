@@ -30,18 +30,13 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_BIQUAD_BIQUAD_HPP_
-#define _NSOUND_BIQUAD_BIQUAD_HPP_
+#ifndef _NSOUND_BIQUAD_FILTER_BANK_HPP_
+#define _NSOUND_BIQUAD_FILTER_BANK_HPP_
 
 #include <Nsound/Nsound.h>
 
-#include <Nsound/Callable.hpp>
 #include <Nsound/CircularIterators.h>
 #include <Nsound/Interfaces.hpp>
-
-#include <Nsound/biquad/Design.h>
-#include <Nsound/biquad/Kernel.h>
-
 
 namespace Nsound
 {
@@ -105,9 +100,9 @@ public:
     float64 operator()(float64 in, float64 fc_);
     float64 operator()(float64 in, float64 fc_, float64 bw_);
 
-    Buffer operator()(const Iterate<float64> & in);
-    Buffer operator()(const Iterate<float64> & in, const Callable<float64> & fc_);
-    Buffer operator()(const Iterate<float64> & in, const Callable<float64> & fc_, const Callable<float64> & bw_);
+    FloatVector operator()(Callable<float64> & in);
+    FloatVector operator()(Callable<float64> & in, Callable<float64> & fc_);
+    FloatVector operator()(Callable<float64> & in, Callable<float64> & fc_, Callable<float64> & bw_);
 
     void plot(boolean show_phase = false) const;
     void plot(float64 sample_rate, boolean show_phase = false) const;
@@ -125,8 +120,6 @@ private:
     // all filter calls eventually call this one:
 
     float64 _filter(float64 in, float64 fc, float64 bw);
-
-    void _reset();
 
     float64 _sample_rate;
     float64 _freq_center;
@@ -202,38 +195,6 @@ void Biquad::order(uint32 v)
     M_ASSERT_VALUE(_design_mode, ==, OPEN);
     M_ASSERT_MSG(v > 0, "order must be > 0 (" << v << " <= 0)");
     _order = v;
-}
-
-
-float64 Biquad::operator()(float64 in)
-{
-    return (*this)(in, _freq_center, _band_width);
-}
-
-
-float64 Biquad::operator()(float64 in, float64 fc_)
-{
-    M_ASSERT_MSG(
-        _design_mode == OPEN,
-        "Can't change freq center or bandwidth with 'CLOSED' design");
-
-    return (*this)(in, fc_, _band_width);
-}
-
-
-Buffer
-Biquad::
-operator()(const Iterate<float64> & in)
-{
-    return (*this)(in, Constant<float64>(_freq_center), Constant<float64>(_band_width));
-}
-
-
-Buffer
-Biquad::
-operator()(const Iterate<float64> & in, const Callable<float64> & fc_)
-{
-    return (*this)(in, fc_, Constant<float64>(_band_width));
 }
 
 

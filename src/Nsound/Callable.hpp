@@ -31,42 +31,47 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef _NSOUND_INTERFACES_HPP_
-#define _NSOUND_INTERFACES_HPP_
+#ifndef _NSOUND_CALLABLE_HPP_
+#define _NSOUND_CALLABLE_HPP_
 
 #include <Nsound/Nsound.h>
 #include <Nsound/Interfaces.hpp>
 
 
-namespace nsound
+namespace Nsound
 {
+
+template <class T>
+class Iterate
+{
+
+private:
+    const std::vector<T> & _vector;
+    typename std::vector<T>::const_iterator _itor;
+
+public:
+    Iterate(const std::vector<T> & t);
+    auto begin() const -> decltype( _vector.cbegin() ) { return _vector.cbegin(); }
+    auto end() const ->   decltype( _vector.cend() )   { return _vector.cend(); }
+};
+
+
+template <class T>
+class Callable
+{
+public:
+    virtual T operator()() const = 0;
+};
 
 
 template <class T>
 class Constant : public Callable<T>
 {
 public:
-    Constant(const T & t) : _t(t) {}
-    T operator()          {return _t;}
-    bool finished() const { return false; }
+    Constant(T t) : _t(t) {}
+    T operator()() const  {return _t;}
 private:
     const T _t;
-};
-
-
-template <class R, class T>
-class Iterate : public Callable<R>
-{
-public:
-    Iterate(const T & t);
-    R operator();
-    bool finished() const { return _itor == _end; }
-    T::const_iterator cbegin() { return _begin; }
-    T::const_iterator cend()   { return _end; }
-private:
-    T::const_iterator _begin;
-    T::const_iterator _end;
-    T::const_iterator _itor;
 };
 
 
@@ -74,13 +79,11 @@ template <class R, class T>
 class Circular : public Callable<R>
 {
 public:
-    Circular(const T & t);
-    R operator();
-    bool finished() const { return false; }
+    Circular(T & t);
+    R operator()();
 private:
-    const T::const_iterator _begin;
-    const T::const_iterator _end;
-    T::const_iterator       _itor;
+    T & _vector;
+    typename T::iterator _itor;
 };
 
 
@@ -88,48 +91,40 @@ private:
 //-----------------------------------------------------------------------------
 // inline implementation
 
+template <class T>
+Iterate<T>::
+Iterate(const std::vector<T> & v)
+    :
+    _vector(v),
+    _itor(v.begin())
+{}
+
+
+//~template <class T>
+//~Iterate<T>::
+//~Iterate(const Buffer & b)
+//~    :
+//~    _vector(b.data()),
+//~    _itor(_vector.begin())
+//~{}
+
 
 template <class R, class T>
-Iterate::
-Iterate(const T & t)
+Circular<R,T>::
+Circular(T & t)
     :
-    _begin(t.cbegin());
-    _end(t.cend()),
-    _itor(t.cbegin())
+    _vector(t),
+    _itor(t.begin())
 {}
 
 
 template <class R, class T>
 R
-Iterate::
-operator()
+Circular<R,T>::
+operator()()
 {
-    M_ASSERT_MSG(_itor < _end, "already reached end!");
-    R temp{*_itor};
-    ++itor;
-    return temp;
-}
-
-
-template <class R, class T>
-Circular::
-Circular(const T & t)
-    :
-    _begin(t.cbegin()),
-    _end(t.cend()),
-    _itor(t.cbegin())
-{}
-
-
-template <class R, class T>
-R
-Circular::
-operator()
-{
-    if(_itor == _end) _itor = _begin;
-    R temp{*_itor};
-    ++itor;
-    return temp;
+    if(_itor == _vector.end()) _itor = _vector.begin();
+    return *_itor++;
 }
 
 

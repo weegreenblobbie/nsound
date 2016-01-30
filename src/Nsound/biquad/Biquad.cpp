@@ -109,6 +109,18 @@ Biquad(
 
 void
 Biquad::
+_reset()
+{
+    std::fill(_x_buf.begin(), _x_buf.end(), 0.0);
+    std::fill(_y_buf.begin(), _y_buf.end(), 0.0);
+
+    _x_ptr = 0;
+    _y_ptr = 0;
+}
+
+
+void
+Biquad::
 update_design()
 {
     M_ASSERT_MSG(
@@ -135,11 +147,9 @@ update_design()
 
     _x_buf.clear();
     _x_buf.resize(_kernel._b.size(), 0.0);
-    _x_ptr = 0;
 
     _y_buf.clear();
     _y_buf.resize(_kernel._a.size(), 0.0);
-    _y_ptr = 0;
 }
 
 
@@ -236,75 +246,25 @@ _filter(float64 x, float64 fc_, float64 bw_)
 
 float64
 Biquad::
-operator()(float64 in)
-{
-    return _filter(in, _freq_center, _band_width);
-}
-
-
-float64
-Biquad::
-operator()(float64 in, float64 fc_)
-{
-    M_ASSERT_MSG(_design_mode == OPEN, "Can't change freq center with 'CLOSED' design");
-
-    return _filter(in, fc_, _band_width);
-}
-
-
-float64
-Biquad::
 operator()(float64 in, float64 fc_, float64 bw_)
 {
-    M_ASSERT_MSG(_design_mode == OPEN, "Can't change freq center or bandwidth with 'CLOSED' design");
-
     return _filter(in, fc_, bw_);
 }
 
 
-FloatVector
+Buffer
 Biquad::
-operator()(Callable<float64> & in)
-{
-    FloatVector out;
-
-    while(!in.finished())
-    {
-        out.push_back(_filter(in(), _freq_center, _band_width));
-    }
-
-    return out;
-}
-
-
-FloatVector
-Biquad::
-operator()(Callable<float64> & in, Callable<float64> & fc_)
-{
-    M_ASSERT_MSG(_design_mode == OPEN, "Can't change freq center with 'CLOSED' design");
-
-    FloatVector out;
-
-    while(!in.finished())
-    {
-        out.push_back(_filter(in(), fc_(), _band_width));
-    }
-
-    return out;
-}
-
-
-FloatVector
-Biquad::
-operator()(Callable<float64> & in, Callable<float64> & fc_, Callable<float64> & bw_)
+operator()(const Iterate<float64> & in, const Callable<float64> & fc_, const Callable<float64> & bw_)
 {
     M_ASSERT_MSG(_design_mode == OPEN, "Can't change freq center or bandwidth with 'CLOSED' design");
 
-    FloatVector out;
+    if(_render_mode == OFFLINE) _reset();
 
-    while(!in.finished())
+    Buffer out;
+
+    for(auto x : in)
     {
-        out.push_back(_filter(in(), fc_(), bw_()));
+        out << _filter(x, fc_(), bw_());
     }
 
     return out;
