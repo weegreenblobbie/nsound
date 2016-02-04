@@ -30,12 +30,12 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_BIQUAD_DESIGN_H_
-#define _NSOUND_BIQUAD_DESIGN_H_
+#ifndef _NSOUND_BIQUAD_DESIGN_HPP_
+#define _NSOUND_BIQUAD_DESIGN_HPP_
 
 #include <Nsound/Nsound.h>
 
-#include <Nsound/biquad/Kernel.h>
+#include <Nsound/biquad/Kernel.hpp>
 
 namespace Nsound
 {

@@ -35,7 +35,8 @@
 #include <cmath>
 #include <iomanip>
 
-#include <Nsound/biquad/Design.h>
+#include <Nsound/biquad/Design.hpp>
+#include <Nsound/biquad/Vector.hpp>
 
 namespace Nsound
 {
@@ -54,12 +55,8 @@ namespace biquad
 // support types and operators
 
 typedef std::vector<bool> BoolVector;
-typedef std::vector<float64> Vector;
-typedef std::vector<Vector> Matrix2D;
 
-Vector operator * (const Vector & lhs, const Vector & rhs);
-Vector operator * (const Vector & lhs, float64 rhs);
-Vector operator * (float64 lhs, const Vector & rhs);
+typedef std::vector<Vector> Matrix2D;
 
 BoolVector operator == (const Vector & lhs, float64 rhs);
 BoolVector operator == (float64 lhs, const Vector & rhs) { return rhs == lhs; }
@@ -71,6 +68,7 @@ BoolVector operator && (const BoolVector & lhs, const BoolVector & rhs);
 BoolVector operator || (const BoolVector & lhs, const BoolVector & rhs);
 
 Matrix2D zeros(uint32 m, uint32 n);
+
 Vector column(const Matrix2D &, uint32);
 
 
@@ -95,7 +93,11 @@ struct BilinearTransformResult
     Matrix2D ahat;
 };
 
-std::ostream & operator << (std::ostream & out, const Matrix2D & in);
+
+BilinearTransformResult
+bilinear_transform(const Matrix2D & ba, const Matrix2D & aa, float64 w0);
+
+Vector cas2dir(const Matrix2D & matrix);
 
 template <class T>
 std::ostream & operator << (std::ostream & out, const std::vector<T> & in)
@@ -111,12 +113,7 @@ std::ostream & operator << (std::ostream & out, const std::vector<T> & in)
 }
 
 
-BilinearTransformResult
-bilinear_transform(const Matrix2D & ba, const Matrix2D & aa, float64 w0);
-
-Vector cas2dir(const Matrix2D & matrix);
-
-Vector convolve(const Vector & x, const Vector & h);
+std::ostream & operator << (std::ostream & out, const Matrix2D & in);
 
 
 //-----------------------------------------------------------------------------
@@ -748,49 +745,6 @@ bilinear_transform(const Matrix2D & ba, const Matrix2D & aa, float64 w0)
 }
 
 
-Vector operator * (const Vector & lhs, const Vector & rhs)
-{
-    M_ASSERT_MSG(
-        lhs.size() == rhs.size(),
-        "Size mismatch (" << lhs.size() << " != " << rhs.size() << ")");
-
-    Vector out;
-
-    std::transform(
-        lhs.begin(), lhs.end(),
-        rhs.begin(), std::back_inserter(out),
-        std::multiplies<float64>() );
-
-    return out;
-}
-
-
-Vector operator * (const Vector & lhs, float64 rhs)
-{
-    Vector out(lhs);
-
-    for(auto & x : out)
-    {
-        x *= rhs;
-    }
-
-    return out;
-}
-
-
-Vector operator * (float64 lhs, const Vector & rhs)
-{
-    Vector out(rhs);
-
-    for(auto & x : out)
-    {
-        x *= lhs;
-    }
-
-    return out;
-}
-
-
 Shape shape(const Matrix2D & in)
 {
     uint32 m = in.size();
@@ -973,22 +927,6 @@ cas2dir(const Matrix2D & matrix)
     return out;
 }
 
-
-Vector
-convolve(const Vector & x, const Vector & h)
-{
-    Vector y(x.size() + h.size() - 1, 0.0);
-
-    for(auto i = 0u; i < x.size(); ++i)
-    {
-        for(auto j = 0u; j < h.size(); ++j)
-        {
-            y[i + j] += x[i] * h[j];
-        }
-    }
-
-    return y;
-}
 
 
 } // namespace

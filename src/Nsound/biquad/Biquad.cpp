@@ -33,7 +33,7 @@
 #include <Nsound/Plotter.h>
 
 #include <Nsound/biquad/Biquad.hpp>
-#include <Nsound/biquad/Design.h>
+#include <Nsound/biquad/Design.hpp>
 
 #define PICOJSON_USE_INT64
 
@@ -97,6 +97,8 @@ Biquad(
     _y_buf(_order, 0.0),
     _y_ptr(0)
 {
+    M_ASSERT_VALUE(sample_rate, >, 0);
+
     // range check some of these
     bw(_band_width);
     g0(_gain_db_at_fc);

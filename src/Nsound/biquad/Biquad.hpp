@@ -39,8 +39,8 @@
 #include <Nsound/CircularIterators.h>
 #include <Nsound/Interfaces.hpp>
 
-#include <Nsound/biquad/Design.h>
-#include <Nsound/biquad/Kernel.h>
+#include <Nsound/biquad/Design.hpp>
+#include <Nsound/biquad/Kernel.hpp>
 
 
 namespace Nsound
@@ -55,6 +55,8 @@ class Biquad : public RenderModal
 public:
 
     static Biquad from_json(const std::string & in);
+
+//~    Biquad(const Biquad &) = default;  // is this needed?
 
     Biquad(const BiquadKernel & bk);
 

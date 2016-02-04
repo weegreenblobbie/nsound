@@ -38,71 +38,46 @@
 #include <Nsound/CircularIterators.h>
 #include <Nsound/Interfaces.hpp>
 
+#include <memory>
+
+
 namespace Nsound
 {
 namespace biquad
 {
 
 
-class Biquad : public RenderModal
+class Biquad;
+
+typedef uint32 FilterId;
+
+
+class FilterBank : public RenderModal
 {
 
 public:
 
-    static Biquad from_json(const std::string & in);
+    static FilterBank from_json(const std::string & in);
 
-    Biquad(const BiquadKernel & bk);
-
-    Biquad(
-        float64 sample_rate,
-        float64 freq_center,
-        float64 bandwidth,
-        float64 gain_db_at_fc,         // g0
-        float64 gain_db_at_band_width, // g1
-        float64 gain_db_baseline,      // g2
-        uint32  order);
+    FilterBank(float64 sample_rate);
 
     std::string to_json() const;
 
-    void update_design();
+    FilterId add(const Biquad & bq);  // copies input filter
+    void     remove(FilterId id);
+    Biquad & get(FilterId id);
 
-    // QT style getters
-
-    BiquadKernel kernel() const { return _kernel; }
-
-    float64 sr() const    { M_ASSERT_VALUE(_design_mode, ==, OPEN); return _sample_rate; }
-    float64 bw() const    { M_ASSERT_VALUE(_design_mode, ==, OPEN); return _band_width; }
-    float64 fc() const    { M_ASSERT_VALUE(_design_mode, ==, OPEN); return _freq_center; }
-    float64 lo() const    { M_ASSERT_VALUE(_design_mode, ==, OPEN); return _band_edge._lo_hz; }
-    float64 hi() const    { M_ASSERT_VALUE(_design_mode, ==, OPEN); return _band_edge._hi_hz; }
-    float64 g0() const    { M_ASSERT_VALUE(_design_mode, ==, OPEN); return _gain_db_at_fc; }
-    float64 g1() const    { M_ASSERT_VALUE(_design_mode, ==, OPEN); return _gain_db_at_band_width; }
-    float64 g2() const    { M_ASSERT_VALUE(_design_mode, ==, OPEN); return _gain_db_baseline; }
-    uint32  order() const { M_ASSERT_VALUE(_design_mode, ==, OPEN); return _order; }
-
-    // QT style setters
-
-    void bw(float64 v);
-    void fc(float64 v);
-    void g0(float64 v);
-    void g1(float64 v);
-    void g2(float64 v);
-    void order(uint32 v);
+    BiquadKernel kernel() const; // combines all filters into one kernel.
 
     // interface methods
 
     RenderMode render_mode()        { return _render_mode; }
-    void render_mode(RenderMode rm) { _render_mode = rm; }
+    void render_mode(RenderMode rm);
 
     // filter methods
 
     float64 operator()(float64 in);
-    float64 operator()(float64 in, float64 fc_);
-    float64 operator()(float64 in, float64 fc_, float64 bw_);
-
     FloatVector operator()(Callable<float64> & in);
-    FloatVector operator()(Callable<float64> & in, Callable<float64> & fc_);
-    FloatVector operator()(Callable<float64> & in, Callable<float64> & fc_, Callable<float64> & bw_);
 
     void plot(boolean show_phase = false) const;
     void plot(float64 sample_rate, boolean show_phase = false) const;
@@ -119,83 +94,16 @@ private:
 
     // all filter calls eventually call this one:
 
-    float64 _filter(float64 in, float64 fc, float64 bw);
+    float64 _filter(float64 in);
 
-    float64 _sample_rate;
-    float64 _freq_center;
-    float64 _band_width;
-    BandEdge _band_edge;
-    float64 _gain_db_at_fc;
-    float64 _gain_db_at_band_width;
-    float64 _gain_db_baseline;
-    uint32  _order;
-
-    // Design Mode
-    //    closed = constructed with kernel, can not update the desgin
-    //    open = constructed from parameters, kernel can be redesigned
-    enum DesignMode { CLOSED, OPEN };
-
-    DesignMode _design_mode;
-
+    float64    _sample_rate;
     RenderMode _render_mode;
 
-    BiquadKernel _kernel;
+    typedef std::shared_ptr<Biquad> BiquadPtr;
 
-    // history buffers
-    std::vector<float64>_x_buf;
-    int32 _x_ptr;
+    std::vector<BiquadPtr> _filters;
 
-    std::vector<float64> _y_buf;
-    int32 _y_ptr;
 };
-
-
-//-----------------------------------------------------------------------------
-// inline implementation
-
-
-void Biquad::bw(float64 v)
-{
-    M_ASSERT_VALUE(_design_mode, ==, OPEN);
-    M_ASSERT_MSG(v > 0.0, "bandwidth must be > 0 (" << v << " <= 0)");
-    _band_width = v;
-}
-
-
-void Biquad::fc(float64 v)
-{
-    M_ASSERT_VALUE(_design_mode, ==, OPEN);
-    _freq_center = v;
-}
-
-
-void Biquad::g0(float64 v)
-{
-    M_ASSERT_VALUE(_design_mode, ==, OPEN);
-    _gain_db_at_fc = v;
-}
-
-
-void Biquad::g1(float64 v)
-{
-    M_ASSERT_VALUE(_design_mode, ==, OPEN);
-    _gain_db_at_band_width = v;
-}
-
-
-void Biquad::g2(float64 v)
-{
-    M_ASSERT_VALUE(_design_mode, ==, OPEN);
-    _gain_db_baseline = v;
-}
-
-
-void Biquad::order(uint32 v)
-{
-    M_ASSERT_VALUE(_design_mode, ==, OPEN);
-    M_ASSERT_MSG(v > 0, "order must be > 0 (" << v << " <= 0)");
-    _order = v;
-}
 
 
 } // namespace

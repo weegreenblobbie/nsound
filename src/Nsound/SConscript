@@ -22,8 +22,9 @@ lib_env = nsound_config.lib_env
 lib_env.AppendUnique(CPPPATH = [".."])
 
 libNsound_SRC_list = Split("""
-    biquad/Design.cc
+    biquad/Design.cpp
     biquad/Biquad.cpp
+    biquad/FilterBank.cpp
     AudioBackend.cc
     AudioPlayback.cc
     AudioPlaybackRt.cc

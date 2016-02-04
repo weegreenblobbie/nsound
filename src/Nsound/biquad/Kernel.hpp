@@ -30,10 +30,12 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_BIQUAD_KERNEL_H_
-#define _NSOUND_BIQUAD_KERNEL_H_
+#ifndef _NSOUND_BIQUAD_KERNEL_HPP_
+#define _NSOUND_BIQUAD_KERNEL_HPP_
 
 #include <Nsound/Nsound.h>
+
+#include <Nsound/biquad/Vector.hpp>
 
 namespace Nsound
 {
@@ -46,6 +48,20 @@ struct BiquadKernel
     std::vector<float64> _b;
     std::vector<float64> _a;
 };
+
+
+// cascade two filters into one direct form.
+BiquadKernel cas2dir(const BiquadKernel & lhs, const BiquadKernel & rhs);
+
+
+//-----------------------------------------------------------------------------
+// inline implementation
+
+BiquadKernel
+cas2dir(const BiquadKernel & lhs, const BiquadKernel & rhs)
+{
+    return {convolve(lhs._b, rhs._b), convolve(lhs._a, rhs._a)};
+}
 
 
 } // namespace
