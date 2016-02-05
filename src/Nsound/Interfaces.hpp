@@ -64,6 +64,7 @@ public:
 //-----------------------------------------------------------------------------
 // Inline implementation
 
+inline
 std::string to_string(const RenderMode rm)
 {
     switch(rm)
@@ -76,6 +77,7 @@ std::string to_string(const RenderMode rm)
 }
 
 
+inline
 std::ostream & operator << (std::ostream & out, const RenderMode & rm)
 {
     return out << to_string(rm);

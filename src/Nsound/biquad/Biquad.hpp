@@ -36,18 +36,22 @@
 #include <Nsound/Nsound.h>
 
 #include <Nsound/Callable.hpp>
-#include <Nsound/CircularIterators.h>
 #include <Nsound/Interfaces.hpp>
 
 #include <Nsound/biquad/Design.hpp>
 #include <Nsound/biquad/Kernel.hpp>
 
 
+// https://github.com/kazuho/picojson
+#define PICOJSON_USE_INT64
+#include <picojson.h>
+
+
+
 namespace Nsound
 {
 namespace biquad
 {
-
 
 class Biquad : public RenderModal
 {
@@ -70,6 +74,8 @@ public:
         uint32  order);
 
     std::string to_json() const;
+
+    void to_json(picojson::value &) const; // writes to object
 
     void update_design();
 
@@ -162,7 +168,7 @@ private:
 //-----------------------------------------------------------------------------
 // inline implementation
 
-
+inline
 void Biquad::bw(float64 v)
 {
     M_ASSERT_VALUE(_design_mode, ==, OPEN);
@@ -171,6 +177,7 @@ void Biquad::bw(float64 v)
 }
 
 
+inline
 void Biquad::fc(float64 v)
 {
     M_ASSERT_VALUE(_design_mode, ==, OPEN);
@@ -178,6 +185,7 @@ void Biquad::fc(float64 v)
 }
 
 
+inline
 void Biquad::g0(float64 v)
 {
     M_ASSERT_VALUE(_design_mode, ==, OPEN);
@@ -185,6 +193,7 @@ void Biquad::g0(float64 v)
 }
 
 
+inline
 void Biquad::g1(float64 v)
 {
     M_ASSERT_VALUE(_design_mode, ==, OPEN);
@@ -192,6 +201,7 @@ void Biquad::g1(float64 v)
 }
 
 
+inline
 void Biquad::g2(float64 v)
 {
     M_ASSERT_VALUE(_design_mode, ==, OPEN);
@@ -199,6 +209,7 @@ void Biquad::g2(float64 v)
 }
 
 
+inline
 void Biquad::order(uint32 v)
 {
     M_ASSERT_VALUE(_design_mode, ==, OPEN);
@@ -207,12 +218,14 @@ void Biquad::order(uint32 v)
 }
 
 
+inline
 float64 Biquad::operator()(float64 in)
 {
     return (*this)(in, _freq_center, _band_width);
 }
 
 
+inline
 float64 Biquad::operator()(float64 in, float64 fc_)
 {
     M_ASSERT_MSG(
@@ -223,6 +236,7 @@ float64 Biquad::operator()(float64 in, float64 fc_)
 }
 
 
+inline
 Buffer
 Biquad::
 operator()(const Iterate<float64> & in)
@@ -231,6 +245,7 @@ operator()(const Iterate<float64> & in)
 }
 
 
+inline
 Buffer
 Biquad::
 operator()(const Iterate<float64> & in, const Callable<float64> & fc_)

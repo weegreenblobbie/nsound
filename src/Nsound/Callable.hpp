@@ -35,6 +35,8 @@
 #define _NSOUND_CALLABLE_HPP_
 
 #include <Nsound/Nsound.h>
+
+#include <Nsound/Buffer.h>
 #include <Nsound/Interfaces.hpp>
 
 
@@ -54,6 +56,9 @@ public:
     auto begin() const -> decltype( _vector.cbegin() ) { return _vector.cbegin(); }
     auto end() const ->   decltype( _vector.cend() )   { return _vector.cend(); }
 };
+
+
+Buffer & operator<<(Buffer & lhs, const Iterate<float64> & rhs);
 
 
 template <class T>
@@ -100,13 +105,21 @@ Iterate(const std::vector<T> & v)
 {}
 
 
-//~template <class T>
-//~Iterate<T>::
-//~Iterate(const Buffer & b)
-//~    :
-//~    _vector(b.data()),
-//~    _itor(_vector.begin())
-//~{}
+inline
+Buffer &
+operator<<(Buffer & out, const Iterate<float64> & in)
+{
+//~    std::copy(in.begin(), in.end(), std::back_inserter(out.data()));
+//~    return out;
+
+    auto n = std::distance(in.begin(), in.end());
+
+    out.preallocate(n);
+
+    for(auto x : in) { out << x; }
+
+    return out;
+}
 
 
 template <class R, class T>

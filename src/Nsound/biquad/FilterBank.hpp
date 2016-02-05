@@ -41,6 +41,12 @@
 #include <memory>
 
 
+// https://github.com/kazuho/picojson
+#define PICOJSON_USE_INT64
+#include <picojson.h>
+
+
+
 namespace Nsound
 {
 namespace biquad
@@ -62,6 +68,7 @@ public:
     FilterBank(float64 sample_rate);
 
     std::string to_json() const;
+    void to_json(picojson::value & obj) const;
 
     FilterId add(const Biquad & bq);  // copies input filter
     void     remove(FilterId id);
@@ -77,10 +84,9 @@ public:
     // filter methods
 
     float64 operator()(float64 in);
-    FloatVector operator()(Callable<float64> & in);
+    Buffer operator()(const Iterate<float64> & in);
 
     void plot(boolean show_phase = false) const;
-    void plot(float64 sample_rate, boolean show_phase = false) const;
 
 private:
 

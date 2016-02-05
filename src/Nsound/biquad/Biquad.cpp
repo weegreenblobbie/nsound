@@ -35,10 +35,6 @@
 #include <Nsound/biquad/Biquad.hpp>
 #include <Nsound/biquad/Design.hpp>
 
-#define PICOJSON_USE_INT64
-
-#include <picojson.h>               // https://github.com/kazuho/picojson
-
 #include <cmath>
 
 
@@ -344,9 +340,21 @@ std::string
 Biquad::
 to_json() const
 {
-    typedef picojson::value::array Array;
-    typedef picojson::value::object Object;
-    typedef picojson::value Value;
+    picojson::value val;
+
+    to_json(val);
+
+    return val.serialize(true);
+}
+
+
+void
+Biquad::
+to_json(picojson::value & val) const
+{
+    using Array = picojson::value::array;
+    using Object = picojson::value::object;
+    using Value = picojson::value;
 
     Object obj;
 
@@ -386,7 +394,7 @@ to_json() const
         }
     }
 
-    return Value(obj).serialize(true);
+    val = picojson::value(obj);
 }
 
 
@@ -464,6 +472,8 @@ plot(float64 sample_rate, boolean show_phase) const
     }
 
     pylab.xlim(f_axis[0], f_axis[f_axis.getLength()-1]);
+
+    pylab.title("Nsound::biquad::Biquad");
 }
 
 

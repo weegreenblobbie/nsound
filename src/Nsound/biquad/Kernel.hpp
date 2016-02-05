@@ -57,6 +57,7 @@ BiquadKernel cas2dir(const BiquadKernel & lhs, const BiquadKernel & rhs);
 //-----------------------------------------------------------------------------
 // inline implementation
 
+inline
 BiquadKernel
 cas2dir(const BiquadKernel & lhs, const BiquadKernel & rhs)
 {

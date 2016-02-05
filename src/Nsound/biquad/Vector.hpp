@@ -57,7 +57,7 @@ Vector convolve(const Vector & x, const Vector & h);
 //-----------------------------------------------------------------------------
 // inline implementation
 
-
+inline
 Vector operator * (const Vector & lhs, const Vector & rhs)
 {
     M_ASSERT_MSG(
@@ -75,6 +75,7 @@ Vector operator * (const Vector & lhs, const Vector & rhs)
 }
 
 
+inline
 Vector operator * (const Vector & lhs, float64 rhs)
 {
     Vector out(lhs);
@@ -88,6 +89,7 @@ Vector operator * (const Vector & lhs, float64 rhs)
 }
 
 
+inline
 Vector operator * (float64 lhs, const Vector & rhs)
 {
     Vector out(rhs);
@@ -101,6 +103,7 @@ Vector operator * (float64 lhs, const Vector & rhs)
 }
 
 
+inline
 Vector
 convolve(const Vector & x, const Vector & h)
 {

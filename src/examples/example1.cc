@@ -5,8 +5,8 @@
 //-----------------------------------------------------------------------------
 
 #include <Nsound/NsoundAll.h>
-#include <Nsound/biquad/Design.h>
 #include <Nsound/biquad/Biquad.hpp>
+#include <Nsound/biquad/FilterBank.hpp>
 
 #include <iostream>
 
@@ -32,28 +32,46 @@ main(void)
     float64 gfc = 12;
     float64 gbw = gfc - 3;
 
-//~    hpeq_design(sr, N, fc, bw, g0, gfc, gbw);
+    //-------------------------------------------------------------------------
+    // individual biquad
 
     Biquad bq(sr, fc, bw, gfc, gbw, g0, N);
 
     cout
         << "-----------------------------------------------------------\n"
-        << bq.to_json() << "\n"
-        << "-----------------------------------------------------------\n";
+        << "Biquad: bq.to_json()\n"
+        << "-----------------------------------------------------------\n"
+        << bq.to_json() << "\n";
 
-//~    Biquad bq2(bq.kernel());
+    //-------------------------------------------------------------------------
+    // filterbank
 
-//~    std::string json_2 = bq2.to_json();
+    FilterBank fb(sr);
 
-//~    cout << "bq2.to_json(): " << bq2.to_json() << "\n";
+    Biquad bq_lo_cut(sr, 0, 1000, -6, -3, 0, 2);
 
-//~    Biquad bq3 = Biquad::from_json(json_2);
+    fb.add(bq_lo_cut);
 
-//~    cout << "bq3.to_json(): " << bq3.to_json() << "\n";
+    Biquad bq_boost(sr, sr/4, 4000, 2, 1, 0, 2);
 
-//~    bq3.plot(sr);
+    fb.add(bq_boost);
+
+    Biquad bq_hi_cut(sr, sr/2, 1000, -6, -3, 0, 2);
+
+    fb.add(bq_hi_cut);
+
+    cout
+        << "-----------------------------------------------------------\n"
+        << "FilterBank: fb.to_json()\n"
+        << "-----------------------------------------------------------\n"
+        << fb.to_json() << "\n";
+
+    //-------------------------------------------------------------------------
+    // plots
 
     bq.plot();
+
+    fb.plot();
 
     Plotter::show();
 
