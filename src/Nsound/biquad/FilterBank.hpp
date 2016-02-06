@@ -35,8 +35,9 @@
 
 #include <Nsound/Nsound.h>
 
-#include <Nsound/CircularIterators.h>
+//~#include <Nsound/CircularIterators.h>
 #include <Nsound/Interfaces.hpp>
+#include <Nsound/biquad/Biquad.hpp>
 
 #include <memory>
 
@@ -64,8 +65,10 @@ class FilterBank : public RenderModal
 public:
 
     static FilterBank from_json(const std::string & in);
+    static FilterBank from_json(const picojson::value & in);
 
-    FilterBank(float64 sample_rate);
+    FilterBank(float64 sample_rate = -1);
+    FilterBank(const FilterBank & copy);  // pointer require I do this right.
 
     std::string to_json() const;
     void to_json(picojson::value & obj) const;

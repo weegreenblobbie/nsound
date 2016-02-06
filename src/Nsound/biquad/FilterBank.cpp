@@ -57,24 +57,50 @@ FilterBank(float64 sample_rate)
 }
 
 
+FilterBank::
+FilterBank(const FilterBank & copy)
+    :
+    _sample_rate(copy._sample_rate),
+    _render_mode(copy._render_mode),
+    _filters()
+{
+    for(auto ptr : copy._filters)
+    {
+        if(ptr)
+        {
+            _filters.push_back(std::make_shared<Biquad>(*ptr));
+        }
+        else
+        {
+            _filters.push_back(nullptr);
+        }
+    }
+}
+
+
 FilterId
 FilterBank::
 add(const Biquad & bq)
 {
-    float64 sr = -1;
+    // try to enforce filters to be designed at same samplerate.
 
-    try
+    if(_sample_rate > 0)
     {
-        sr = bq.sr();
-    }
-    catch(...)
-    {
-        // pass
-    }
+        float64 sr = -1;
 
-    if(sr > 0 && std::abs(sr - _sample_rate) > 1.0)
-    {
-        M_THROW("Sample rates must agree (" << _sample_rate << " != " << sr << ")");
+        try
+        {
+            sr = bq.sr();
+        }
+        catch(...)
+        {
+            // pass
+        }
+
+        if(sr > 0 && std::abs(sr - _sample_rate) > 1.0)
+        {
+            M_THROW("Sample rates must agree (" << _sample_rate << " != " << sr << ")");
+        }
     }
 
     BiquadPtr bqp = std::make_shared<Biquad>(Biquad(bq));
@@ -221,7 +247,7 @@ plot(boolean show_phase) const
 
     // plot design parameters
 
-    std::vector<std::string> formats = {"r+", "c+", "m+"};
+    std::vector<std::string> formats = {"ro", "co", "mo", "go"};
 
     auto fmt = formats.begin();
 
@@ -234,9 +260,9 @@ plot(boolean show_phase) const
         {
             ymax = std::max(ymax, std::abs(ptr->g0()));
 
-            pylab.plot(ptr->lo(), ptr->g1(), *fmt, "ms=10,mew=2");
-            pylab.plot(ptr->hi(), ptr->g1(), *fmt, "ms=10,mew=2");
-            pylab.plot(ptr->fc(), ptr->g0(), *fmt, "ms=10,mew=2");
+            pylab.plot(ptr->lo(), ptr->g1(), *fmt, "mec='none',ms=5");
+            pylab.plot(ptr->hi(), ptr->g1(), *fmt, "mec='none',ms=5");
+            pylab.plot(ptr->fc(), ptr->g0(), *fmt, "mec='none',ms=5");
 
             ++fmt;
 
@@ -384,8 +410,13 @@ void
 FilterBank::
 to_json(picojson::value & val) const
 {
-    using Array = picojson::value::array;
+    using Object = picojson::object;
+    using Array = picojson::array;
     using Value = picojson::value;
+
+    Object obj;
+
+    obj["samplerate"] = Value(_sample_rate);
 
     Array array;
 
@@ -400,7 +431,81 @@ to_json(picojson::value & val) const
         array.push_back(v);
     }
 
-    val = Value(array);
+    obj["filters"] = Value(array);
+
+    val = Value(obj);
+}
+
+
+FilterBank
+FilterBank::
+from_json(const std::string & in)
+{
+    using Value = picojson::value;
+
+    Value v;
+
+    std::string err;
+
+    picojson::parse(v, in.begin(), in.end(), &err);
+
+    if(!err.empty())
+    {
+        M_THROW("JSON parser error: " << err);
+    }
+
+    return from_json(v);
+}
+
+
+std::string
+to_type_string(const picojson::value & v)
+{
+    if(v.is<bool>()) return "bool";
+    else
+    if(v.is<picojson::null>()) return "null";
+    else
+    if(v.is<int64_t>()) return "int";
+    else
+    if(v.is<float64>()) return "float";
+    else
+    if(v.is<std::string>()) return "string";
+    else
+    if(v.is<picojson::array>()) return "array";
+    else
+    if(v.is<picojson::object>()) return "object";
+    else
+    if(v.is<picojson::object>()) return "object";
+
+    return "unknown";
+}
+
+
+FilterBank
+FilterBank::
+from_json(const picojson::value & in)
+{
+    if (! in.is<picojson::object>())
+    {
+        M_THROW("Expecting a JSON object, got " << to_type_string(in));
+    }
+
+    M_ASSERT_MSG(in.contains("samplerate"), "Expecting key 'samplerate'");
+
+    float64 sr = in.get("samplerate").get<float64>();
+
+    FilterBank fb(sr);
+
+    M_ASSERT_MSG(in.contains("filters"), "Expecting key 'filters'");
+
+    const auto & array = in.get("filters").get<picojson::array>();
+
+    for(auto & obj : array)
+    {
+        fb.add(Biquad::from_json(obj));
+    }
+
+    return fb;
 }
 
 

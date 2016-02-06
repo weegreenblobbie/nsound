@@ -59,6 +59,7 @@ class Biquad : public RenderModal
 public:
 
     static Biquad from_json(const std::string & in);
+    static Biquad from_json(const picojson::value & in);
 
 //~    Biquad(const Biquad &) = default;  // is this needed?
 

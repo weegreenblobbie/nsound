@@ -273,9 +273,7 @@ Biquad
 Biquad::
 from_json(const std::string & in)
 {
-    typedef picojson::value::array Array;
-//~    typedef picojson::value::object Object;
-    typedef picojson::value Value;
+    using Value = picojson::value;
 
     Value v;
 
@@ -288,6 +286,14 @@ from_json(const std::string & in)
         M_THROW("JSON parser error: " << err);
     }
 
+    return from_json(v);
+}
+
+
+Biquad
+Biquad::
+from_json(const picojson::value & v)
+{
     // open design
 
     if(v.contains("samplerate"))
@@ -316,6 +322,8 @@ from_json(const std::string & in)
 
     M_ASSERT_MSG(v.contains("b"), "Error, expecting JSON to contian key 'b'");
     M_ASSERT_MSG(v.contains("a"), "Error, expecting JSON to contian key 'a'");
+
+    using Array = picojson::value::array;
 
     Array b = v.get("b").get<Array>();
     Array a = v.get("a").get<Array>();
@@ -453,9 +461,9 @@ plot(float64 sample_rate, boolean show_phase) const
 
     if(_design_mode == OPEN)
     {
-        pylab.plot(lo(), g1(), "r+", "ms=10,mew=2");
-        pylab.plot(hi(), g1(), "r+", "ms=10,mew=2");
-        pylab.plot(fc(), g0(), "r+", "ms=10,mew=2");
+        pylab.plot(lo(), g1(), "ro", "mec='none',ms=5");
+        pylab.plot(hi(), g1(), "ro", "mec='none',ms=5");
+        pylab.plot(fc(), g0(), "ro", "mec='none',ms=5");
     }
 
     // Phase response
@@ -489,7 +497,7 @@ _get_nfft(float64 sample_rate, float64 size_sec) const
 
     M_ASSERT_VALUE(n_fft, >, 0);
 
-    return n_fft;
+    return n_fft * 8;
 }
 
 
