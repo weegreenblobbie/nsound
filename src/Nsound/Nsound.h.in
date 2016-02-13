@@ -107,12 +107,18 @@
 #endif
 
 // C++ headers
+#include <algorithm>
+#include <chrono>
+#include <deque>
 #include <exception>
 #include <iostream>
+#include <iterator>
+#include <list>
+#include <memory>
+#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <set>
 
 // C header
 #include <math.h>

@@ -60,6 +60,7 @@ libNsound_SRC_list = Split("""
     FilterLowPassFIR.cc
     FilterLowPassIIR.cc
     FilterLowPassMoogVcf.cc
+    FilterMedian.cpp
     FilterMovingAverage.cc
     FilterParametricEqualizer.cc
     FilterPhaser.cc

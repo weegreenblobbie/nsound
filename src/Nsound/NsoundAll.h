@@ -68,6 +68,7 @@
 #include <Nsound/FilterLowPassFIR.h>
 #include <Nsound/FilterLowPassIIR.h>
 #include <Nsound/FilterLowPassMoogVcf.h>
+#include <Nsound/FilterMedian.hpp>
 #include <Nsound/FilterMovingAverage.h>
 #include <Nsound/FilterFlanger.h>
 #include <Nsound/FilterParametricEqualizer.h>
