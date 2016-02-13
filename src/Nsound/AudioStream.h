@@ -124,6 +124,13 @@ public:
         float64 offset_seconds,
         float64 duration_seconds = 0.0);
 
+
+    std::vector<Buffer *>::iterator begin() { return buffers_.begin(); }
+    std::vector<Buffer *>::iterator end() { return buffers_.end(); }
+
+    std::vector<Buffer *>::const_iterator begin() const { return buffers_.cbegin(); }
+    std::vector<Buffer *>::const_iterator end() const { return buffers_.cend(); }
+
     //! Convolves every channel in the AudioStream with the Buffer.
     void
     convolve(const Buffer & b);

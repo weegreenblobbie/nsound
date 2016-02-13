@@ -29,6 +29,7 @@ import glob
 import platform
 import os.path
 import sys
+import subprocess
 
 #-----------------------------------------------------------------------------
 # Setup Package Name and Version
@@ -37,14 +38,14 @@ PACKAGE_NAME = "Nsound"
 
 VERSION_A = "0"
 VERSION_B = "9"
-VERSION_C = "4"
+VERSION_C = "5"
 
-DEVELOPMENMT = False
+DEVELOPMENMT = True
 
 PACKAGE_VERSION = "%s.%s.%s" % (VERSION_A, VERSION_B, VERSION_C)
 
 if DEVELOPMENMT:
-    PACKAGE_VERSION += ".dev7"
+    PACKAGE_VERSION += ".dev1"
 
 PACKAGE_RELEASE = PACKAGE_NAME + "-" + PACKAGE_VERSION
 
@@ -164,6 +165,14 @@ AddOption(
     action = "store_true",
     help = "Rebuilds python module, then runs unit tests")
 
+AddOption(
+    "--unit-test",
+    dest = "unit_test",
+    default = False,
+    action = "store_true",
+    help = "Runs the c++ unit tests")
+
+
 if GetOption("pytest"):
 
     commands = [
@@ -173,12 +182,38 @@ if GetOption("pytest"):
         "python -m unittest discover"]
 
     for cmd in commands:
-        r = os.system(cmd)
 
-        if r:
+        try:
+            subprocess.check_output(cmd)
+
+        except:
             raise RuntimeError("FAILURE!\ncmd = %s" % cmd)
 
     Exit(0)
+
+
+if GetOption("unit_test"):
+
+    env = Environment()
+
+    target = "Main" + env['PROGSUFFIX']
+
+    os.chdir('src/test')
+
+    commands = [
+        "scons -u " + target,
+    ]
+
+    if "win32" not in sys.platform:
+        commands.append('./' + target)
+    else:
+        commands.append(target)
+
+    for cmd in commands:
+        subprocess.check_call(cmd, shell=True)
+
+    Exit(0)
+
 
 #------------------------------------------------------------------------------
 # Do parallel builds by default

@@ -121,6 +121,9 @@ class Buffer
     //! \endcode
     Buffer(const std::string & filename, uint32 chunk_size = 4096);
 
+    template <class T>
+    Buffer(std::initializer_list<T> c);
+
     //! Destroys the Buffer.
     ~Buffer();
 
@@ -1877,6 +1880,26 @@ protected:
 
 }; // class Buffer
 
+
+template <>
+inline
+Buffer::
+Buffer(std::initializer_list<float64> list) : data_(list.begin(), list.end()) {}
+
+template <>
+inline
+Buffer::
+Buffer(std::initializer_list<float32> list) : data_(list.begin(), list.end()) {}
+
+template <>
+inline
+Buffer::
+Buffer(std::initializer_list<int32> list) : data_(list.begin(), list.end()) {}
+
+template <>
+inline
+Buffer::
+Buffer(std::initializer_list<int64> list) : data_(list.begin(), list.end()) {}
 
 
 //-----------------------------------------------------------------------------

@@ -58,6 +58,8 @@ int main(int argc, char ** argv)
 
     FilterLeastSquaresFIR_UnitTest();
 
+    FilterMedian_UnitTest();
+
     FilterParametricEqualizer_UnitTest();
 
     Generator_UnitTest();

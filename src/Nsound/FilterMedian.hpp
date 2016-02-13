@@ -1,19 +1,19 @@
-//-----------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////
 //
-//  $Id: CircularBuffer.h 878 2014-11-23 04:51:23Z weegreenblobbie $
+//  $Id: FilterMedian.h 825 2014-02-22 03:39:23Z weegreenblobbie $
 //
 //  Nsound is a C++ library and Python module for audio synthesis featuring
 //  dynamic digital filters. Nsound lets you easily shape waveforms and write
 //  to disk or plot them. Nsound aims to be as powerful as Csound but easy to
 //  use.
 //
-//  Copyright (c) 2008-Present Nick Hilton
+//  Copyright (c) 2016 Nick Hilton
 //
 //  weegreenblobbie_yahoo_com (replace '_' with '@' and '.')
 //
-//-----------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////
 
-//-----------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////
 //
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -29,44 +29,46 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
-//-----------------------------------------------------------------------------
-#ifndef _NSOUND_CIRCULAR_BUFFER_H_
-#define _NSOUND_CIRCULAR_BUFFER_H_
+//////////////////////////////////////////////////////////////////////////////
+#ifndef _NSOUND_FILTER_MEDIAN_HPP_
+#define _NSOUND_FILTER_MEDIAN_HPP_
 
 #include <Nsound/Nsound.h>
-
-#include <memory>
 
 namespace Nsound
 {
 
+
+class AudioStream;
 class Buffer;
 
-class CircularBuffer
-{
 
+class FilterMedian
+{
 public:
 
-    CircularBuffer(uint32 n_samples);
+    FilterMedian(uint32 n_samples_in_pool);
 
-    Buffer read() const;
-    float64 read_head() const { return *(*itor_); }
+    AudioStream filter(const AudioStream & x);
 
-    void write(float64 d)     { *(*itor_) = d; ++(*itor_); }
+    Buffer filter(const Buffer & b);
 
-    void write(const AudioStream & as);
-    void write(const Buffer & b);
+    float64 filter(const float64 & x);
+
+    void fill(float64 x);
 
 protected:
 
-	CircularBuffer(const CircularBuffer & copy);
-	CircularBuffer & operator=(const CircularBuffer & rhs);
+    uint32               _h_ptr;
+    uint32               _median;
 
-    std::shared_ptr<Buffer> buffer_;
-    std::shared_ptr<Buffer::circular_iterator> itor_;
+    std::vector<float64> _history;
+    std::vector<float64> _pool;
 };
+
 
 } // namespace
 
 // :mode=c++: jEdit modeline
+
 #endif

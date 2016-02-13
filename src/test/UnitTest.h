@@ -59,6 +59,7 @@ void FilterHighPassIIR_UnitTest();
 void FilterLeastSquaresFIR_UnitTest();
 void FilterLowPassFIR_UnitTest();
 void FilterLowPassIIR_UnitTest();
+void FilterMedian_UnitTest();
 void FilterParametricEqualizer_UnitTest();
 void Generator_UnitTest();
 void Sine_UnitTest();

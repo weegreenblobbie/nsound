@@ -38,17 +38,11 @@ using std::endl;
 CircularBuffer::
 CircularBuffer(uint32 n_samples)
     :
-    buffer_(new Buffer(Buffer::zeros(n_samples))),
-    itor_(new Buffer::circular_iterator(buffer_->cbegin()))
+    buffer_(std::make_shared<Buffer>(Buffer::zeros(n_samples))),
+    itor_(std::make_shared<Buffer::circular_iterator>(buffer_->cbegin()))
 {
 }
 
-CircularBuffer::
-~CircularBuffer()
-{
-    delete buffer_;
-    delete itor_;
-};
 
 Buffer
 CircularBuffer::
@@ -69,13 +63,6 @@ read() const
     return b;
 }
 
-void
-CircularBuffer::
-write(float64 d)
-{
-    *(*itor_) = d;
-    ++(*itor_);
-}
 
 void
 CircularBuffer::
@@ -84,15 +71,13 @@ write(const AudioStream & as)
     write(as.getMono()[0]);
 }
 
+
 void
 CircularBuffer::
 write(const Buffer & src)
 {
-    const uint32 M = src.getLength();
-
-    for(uint32 i = 0; i < M; ++i)
+    for(auto x : src)
     {
-        *(*itor_) = src[i];
-        ++(*itor_);
+        write(x);
     }
 }
