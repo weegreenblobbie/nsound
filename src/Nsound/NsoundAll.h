@@ -42,6 +42,7 @@
 #include <Nsound/Buffer.h>
 #include <Nsound/BufferSelection.h>
 #include <Nsound/BufferWindowSearch.h>
+#include <Nsound/Callable.hpp>
 #include <Nsound/CircularBuffer.h>
 #include <Nsound/Clarinet.h>
 #include <Nsound/Cosine.h>
@@ -83,6 +84,7 @@
 #include <Nsound/GuitarBass.h>
 #include <Nsound/Hat.h>
 #include <Nsound/Instrument.h>
+#include <Nsound/Interfaces.hpp>
 #include <Nsound/Kernel.h>
 #include <Nsound/Mesh2D.h>
 #include <Nsound/MeshJunction.h>
@@ -106,6 +108,12 @@
 #include <Nsound/Vocoder.h>
 #include <Nsound/Wavefile.h>
 #include <Nsound/WindowType.h>
+
+#include <Nsound/biquad/Biquad.hpp>
+#include <Nsound/biquad/Design.hpp>
+#include <Nsound/biquad/FilterBank.hpp>
+#include <Nsound/biquad/Kernel.hpp>
+#include <Nsound/biquad/Vector.hpp>
 
 #endif
 

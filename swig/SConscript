@@ -12,14 +12,20 @@ Import("*")
 
 nsound_pymod_SRC = list(libNsound_SRC)
 
-nsound_config.env.AppendUnique(
+env = nsound_config.env.Clone()
+
+picojson_dir = Dir("../external/picojson")
+
+env.AppendUnique(
+    CPPPATH = [picojson_dir],
 	SWIGFLAGS = [
 		'-I"%s"' % Dir("../src"),
+		'-I"%s"' % picojson_dir,
 		'-python',
 		'-outdir', Dir("."),
 		'-c++'])
 
-nsound_wrap_cxx, nsound_py = nsound_config.env.SwigGen("nsound_wrap.cxx", "Nsound.i")
+nsound_wrap_cxx, nsound_py = env.SwigGen("nsound_wrap.cxx", "Nsound.i")
 
 nsound_pymod_SRC.insert(0, nsound_wrap_cxx)
 
@@ -31,12 +37,10 @@ for f in libNsound_SRC:
     if f.endswith(".cc"):
         f = f.replace(".cc", ".h")
         if os.path.isfile(f):
-            nsound_config.env.Depends(nsound_wrap_cxx, f)
+            env.Depends(nsound_wrap_cxx, f)
 
 #--------------------------------------------------------------------------
 # Setup dictionary for generating setup_builder.py
-
-env = nsound_config.env
 
 d = {}
 
@@ -66,9 +70,9 @@ d["NSOUND_PYMOD_CPPPATH"] = cpppath
 # LIBPATH
 libpath = '['
 
-libpaths = nsound_config.env["LIBPATH"]
+libpaths = env["LIBPATH"]
 
-for path in nsound_config.env["LIBPATH"]:
+for path in env["LIBPATH"]:
 
     path = str(path)
 

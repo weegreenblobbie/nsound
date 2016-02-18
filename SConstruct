@@ -577,6 +577,27 @@ if not nsound_config.env.GetOption("help"):
     env.Clean(libNsound, glob.glob("src/Nsound/CudaUtils.os"))
     env.Clean(libNsound, glob.glob("src/Nsound/StretcherCuda.os"))
 
+
+    def recusrsive_glob(path, ext):
+
+        import fnmatch
+        import os
+
+        matches = []
+        for root, dirnames, filenames in os.walk(path):
+            for filename in fnmatch.filter(filenames, ext):
+                matches.append(os.path.join(root, filename))
+
+        return matches
+
+    filelist = recusrsive_glob('.', '*.pyc')
+
+    env.Clean(libNsound, filelist)
+
+    filelist = recusrsive_glob('.', '*.pyo')
+
+    env.Clean(libNsound, filelist)
+
     #--------------------------------------------------------------------------
     # Aliases
 

@@ -39,6 +39,7 @@
 %ignore Nsound::circular_iterator::operator=;
 %ignore Nsound::circular_iterator::operator++;
 %ignore Nsound::circular_iterator::operator--;
+%ignore Nsound::CircularBuffer::operator=;
 %ignore Nsound::const_circular_iterator::operator=;
 %ignore Nsound::const_circular_iterator::operator++;
 %ignore Nsound::const_circular_iterator::operator--;

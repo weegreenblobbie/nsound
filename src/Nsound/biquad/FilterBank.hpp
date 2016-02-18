@@ -35,7 +35,6 @@
 
 #include <Nsound/Nsound.h>
 
-//~#include <Nsound/CircularIterators.h>
 #include <Nsound/Interfaces.hpp>
 #include <Nsound/biquad/Biquad.hpp>
 
@@ -64,8 +63,8 @@ class FilterBank : public RenderModal
 
 public:
 
-    static FilterBank from_json(const std::string & in);
-    static FilterBank from_json(const picojson::value & in);
+    static FilterBank from_json(const std::string & jstr);
+    static FilterBank from_json(const picojson::value & jval);
 
     FilterBank(float64 sample_rate = -1);
     FilterBank(const FilterBank & copy);  // pointer require I do this right.
@@ -86,10 +85,14 @@ public:
 
     // filter methods
 
-    float64 operator()(float64 in);
-    Buffer operator()(const Iterate<float64> & in);
+    float64 operator()(float64 x);
+    Buffer operator()(const Buffer & x);
+    AudioStream operator()(const AudioStream & x);
 
     void plot(boolean show_phase = false) const;
+
+    Buffer get_freq_axis(float64 window_size = 0.080) const;
+    Buffer get_freq_response(float64 window_size = 0.80) const;
 
 private:
 
@@ -103,7 +106,7 @@ private:
 
     // all filter calls eventually call this one:
 
-    float64 _filter(float64 in);
+    float64 _filter(float64 x);
 
     float64    _sample_rate;
     RenderMode _render_mode;

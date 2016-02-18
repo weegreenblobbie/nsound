@@ -58,6 +58,7 @@ class RenderModal
 public:
     virtual RenderMode render_mode() = 0;
     virtual void render_mode(RenderMode) = 0;
+    virtual ~RenderModal() {}
 };
 
 

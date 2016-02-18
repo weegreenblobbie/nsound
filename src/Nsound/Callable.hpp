@@ -36,29 +36,30 @@
 
 #include <Nsound/Nsound.h>
 
-#include <Nsound/Buffer.h>
+//~#include <Nsound/Buffer.h>
 #include <Nsound/Interfaces.hpp>
 
 
 namespace Nsound
 {
 
-template <class T>
-class Iterate
-{
 
-private:
-    const std::vector<T> & _vector;
-    typename std::vector<T>::const_iterator _itor;
+//~template <class T>
+//~class Iterate
+//~{
 
-public:
-    Iterate(const std::vector<T> & t);
-    auto begin() const -> decltype( _vector.cbegin() ) { return _vector.cbegin(); }
-    auto end() const ->   decltype( _vector.cend() )   { return _vector.cend(); }
-};
+//~private:
+//~    const std::vector<T> & _vector;
+//~    typename std::vector<T>::const_iterator _itor;
+
+//~public:
+//~    Iterate(const std::vector<T> & t);
+//~    auto begin() const -> decltype( _vector.cbegin() ) { return _vector.cbegin(); }
+//~    auto end() const ->   decltype( _vector.cend() )   { return _vector.cend(); }
+//~};
 
 
-Buffer & operator<<(Buffer & lhs, const Iterate<float64> & rhs);
+//~Buffer & operator<<(Buffer & lhs, const Iterate<float64> & rhs);
 
 
 template <class T>
@@ -66,6 +67,7 @@ class Callable
 {
 public:
     virtual T operator()() const = 0;
+    virtual ~Callable() {}
 };
 
 
@@ -75,6 +77,7 @@ class Constant : public Callable<T>
 public:
     Constant(T t) : _t(t) {}
     T operator()() const  {return _t;}
+    virtual ~Constant() {}
 private:
     const T _t;
 };
@@ -86,6 +89,7 @@ class Circular : public Callable<R>
 public:
     Circular(T & t);
     R operator()();
+    virtual ~Circular() {}
 private:
     T & _vector;
     typename T::iterator _itor;
@@ -96,30 +100,30 @@ private:
 //-----------------------------------------------------------------------------
 // inline implementation
 
-template <class T>
-Iterate<T>::
-Iterate(const std::vector<T> & v)
-    :
-    _vector(v),
-    _itor(v.begin())
-{}
+//~template <class T>
+//~Iterate<T>::
+//~Iterate(const std::vector<T> & v)
+//~    :
+//~    _vector(v),
+//~    _itor(v.begin())
+//~{}
 
 
-inline
-Buffer &
-operator<<(Buffer & out, const Iterate<float64> & in)
-{
-//~    std::copy(in.begin(), in.end(), std::back_inserter(out.data()));
-//~    return out;
-
-    auto n = std::distance(in.begin(), in.end());
-
-    out.preallocate(n);
-
-    for(auto x : in) { out << x; }
-
-    return out;
-}
+//~    inline
+//~    Buffer &
+//~    operator<<(Buffer & out, const Iterate<float64> & in)
+//~    {
+//~    //~    std::copy(in.begin(), in.end(), std::back_inserter(out.data()));
+//~    //~    return out;
+//~
+//~        auto n = std::distance(in.begin(), in.end());
+//~
+//~        out.preallocate(n);
+//~
+//~        for(auto x : in) { out << x; }
+//~
+//~        return out;
+//~    }
 
 
 template <class R, class T>

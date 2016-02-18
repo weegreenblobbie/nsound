@@ -28,6 +28,7 @@
 
 #include <Nsound/Nsound.h>
 
+#include <Nsound/AudioStream.h>
 #include <Nsound/Buffer.h>
 #include <Nsound/FFTransform.h>
 #include <Nsound/Plotter.h>
@@ -195,20 +196,52 @@ operator()(float64 x)
 
 Buffer
 FilterBank::
-operator()(const Iterate<float64> & in)
+operator()(const Buffer & in)
 {
-    Buffer out;
-    out << in;
+    Buffer out(in);
 
     for(auto ptr : _filters)
     {
         if(!ptr) continue;
 
-        out = (*ptr)(Iterate<float64>(out.data()));
+        out = (*ptr)(out);
     }
 
     return out;
 }
+
+
+AudioStream
+FilterBank::
+operator()(const AudioStream & in)
+{
+    auto sr = in.getSampleRate();
+    auto n_channels = in.getNChannels();
+
+    M_ASSERT_MSG(
+        sr == _sample_rate,
+        "sample rate mismatch! (" << _sample_rate << " != " << sr << ")"
+    );
+
+    AudioStream out(sr, n_channels);
+
+    for(uint32 i = 0; i < n_channels; ++i)
+    {
+        Buffer b = in[i];
+
+        for(auto ptr : _filters)
+        {
+            if(!ptr) continue;
+
+            b = (*ptr)(b);
+        }
+
+        out[i] = b;
+    }
+
+    return out;
+}
+
 
 
 void
@@ -298,6 +331,23 @@ plot(boolean show_phase) const
 
     pylab.title("Nsound::biquad::FilterBank");
 }
+
+
+Buffer
+FilterBank::
+get_freq_axis(float64 window_size) const
+{
+    return _get_freq_axis(_sample_rate, window_size);
+}
+
+
+Buffer
+FilterBank::
+get_freq_response(float64 window_size) const
+{
+    return _get_freq_response(_sample_rate, window_size);
+}
+
 
 
 uint32

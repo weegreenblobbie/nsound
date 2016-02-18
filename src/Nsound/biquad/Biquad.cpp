@@ -252,7 +252,7 @@ operator()(float64 in, float64 fc_, float64 bw_)
 
 Buffer
 Biquad::
-operator()(const Iterate<float64> & in, const Callable<float64> & fc_, const Callable<float64> & bw_)
+operator()(const Buffer & in, const Callable<float64> & fc_, const Callable<float64> & bw_)
 {
     M_ASSERT_MSG(_design_mode == OPEN, "Can't change freq center or bandwidth with 'CLOSED' design");
 

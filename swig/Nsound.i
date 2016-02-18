@@ -57,23 +57,33 @@ using std::vector;
 %include "ignored.i"
 
 %include "src/Nsound/Nsound.h"
+%include "src/Nsound/Callable.hpp"
 
 %include "Buffer.i"
 %include "AudioStream.i"
 %include "AudioPlaybackRt.i"
 %include "Plotter.i"
+%include "biquad.i"
 
 typedef vector<Nsound::FFTChunk> FFTChunkVectorT;
 
 namespace std
 {
-    %template(FloatVector)   vector<Nsound::float64>;
-    %template(BooleanVector) vector<Nsound::boolean>;
-    %template(Uint32Vector) vector<Nsound::uint32>;
+    %template(FloatVector)         vector<Nsound::float64>;
+    %template(BooleanVector)       vector<Nsound::boolean>;
+    %template(Uint32Vector)        vector<Nsound::uint32>;
     %template(BooleanVectorVector) vector<vector<Nsound::boolean> >;
-    %template(FFTChunkVectorT) vector<Nsound::FFTChunk>;
-    %template(StringVector) vector<std::string>;
+    %template(FFTChunkVectorT)      vector<Nsound::FFTChunk>;
+    %template(StringVector)        vector<std::string>;
 }
+
+namespace Nsound
+{
+    %template(CallableF64) Callable<float64>;
+    %template(ConstantF64) Constant<float64>;
+    %template(CircularF64) Circular<float64, std::vector<float64> >;
+}
+
 
 // Keep these above the others
 %include "src/Nsound/CircularIterators.h"
@@ -84,8 +94,15 @@ namespace std
 %include "src/Nsound/AudioStream.h"
 %include "src/Nsound/FFTChunk.h"
 %include "src/Nsound/WindowType.h"
+%include "src/Nsound/Interfaces.hpp"
 
 // The rest.
+%include "src/Nsound/Interfaces.hpp"
+    //~%include "src/Nsound/biquad/Vector.hpp"
+%include "src/Nsound/biquad/Kernel.hpp"
+%include "src/Nsound/biquad/Design.hpp"
+%include "src/Nsound/biquad/Biquad.hpp"
+%include "src/Nsound/biquad/FilterBank.hpp"
 %include "src/Nsound/AudioBackendType.h"
 %include "src/Nsound/AudioBackend.h"
 %include "src/Nsound/AudioPlayback.h"
@@ -152,11 +169,12 @@ namespace std
 %include "src/Nsound/Vocoder.h"
 %include "src/Nsound/Wavefile.h"
 
+
 %pythoncode
 %{
 
 #------------------------------------------------------------------------------
-# from nsound.i
+# BEGIN nsound.i
 
 # python modules
 import inspect
@@ -193,6 +211,12 @@ def rel_to_abs(path):
 
     return os.path.abspath(os.path.join(prefix, path))
 
+# END nsound.i
+#------------------------------------------------------------------------------
+
 %}
+
+%include "biquad_pycode.i"
+
 
 // :mode=c++:

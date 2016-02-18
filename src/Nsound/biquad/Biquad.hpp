@@ -58,8 +58,8 @@ class Biquad : public RenderModal
 
 public:
 
-    static Biquad from_json(const std::string & in);
-    static Biquad from_json(const picojson::value & in);
+    static Biquad from_json(const std::string & jstr);
+    static Biquad from_json(const picojson::value & jval);
 
 //~    Biquad(const Biquad &) = default;  // is this needed?
 
@@ -110,13 +110,13 @@ public:
 
     // filter methods
 
-    float64 operator()(float64 in);
-    float64 operator()(float64 in, float64 fc_);
-    float64 operator()(float64 in, float64 fc_, float64 bw_);
+    float64 operator()(float64 x);
+    float64 operator()(float64 x, float64 fc_);
+    float64 operator()(float64 x, float64 fc_, float64 bw_);
 
-    Buffer operator()(const Iterate<float64> & in);
-    Buffer operator()(const Iterate<float64> & in, const Callable<float64> & fc_);
-    Buffer operator()(const Iterate<float64> & in, const Callable<float64> & fc_, const Callable<float64> & bw_);
+    Buffer operator()(const Buffer & x);
+    Buffer operator()(const Buffer & x, const Callable<float64> & fc_);
+    Buffer operator()(const Buffer & x, const Callable<float64> & fc_, const Callable<float64> & bw_);
 
     void plot(boolean show_phase = false) const;
     void plot(float64 sample_rate, boolean show_phase = false) const;
@@ -133,7 +133,7 @@ private:
 
     // all filter calls eventually call this one:
 
-    float64 _filter(float64 in, float64 fc, float64 bw);
+    float64 _filter(float64 x, float64 fc, float64 bw);
 
     void _reset();
 
@@ -220,38 +220,38 @@ void Biquad::order(uint32 v)
 
 
 inline
-float64 Biquad::operator()(float64 in)
+float64 Biquad::operator()(float64 x)
 {
-    return (*this)(in, _freq_center, _band_width);
+    return (*this)(x, _freq_center, _band_width);
 }
 
 
 inline
-float64 Biquad::operator()(float64 in, float64 fc_)
+float64 Biquad::operator()(float64 x, float64 fc_)
 {
     M_ASSERT_MSG(
         _design_mode == OPEN,
         "Can't change freq center or bandwidth with 'CLOSED' design");
 
-    return (*this)(in, fc_, _band_width);
+    return (*this)(x, fc_, _band_width);
 }
 
 
 inline
 Buffer
 Biquad::
-operator()(const Iterate<float64> & in)
+operator()(const Buffer & x)
 {
-    return (*this)(in, Constant<float64>(_freq_center), Constant<float64>(_band_width));
+    return (*this)(x, Constant<float64>(_freq_center), Constant<float64>(_band_width));
 }
 
 
 inline
 Buffer
 Biquad::
-operator()(const Iterate<float64> & in, const Callable<float64> & fc_)
+operator()(const Buffer & x, const Callable<float64> & fc_)
 {
-    return (*this)(in, fc_, Constant<float64>(_band_width));
+    return (*this)(x, fc_, Constant<float64>(_band_width));
 }
 
 

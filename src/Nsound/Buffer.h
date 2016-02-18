@@ -336,7 +336,7 @@ class Buffer
     cbegin() const
     { return const_circular_iterator(data_); }
 
-    FloatVector data() { return data_; }
+    FloatVector & data() { return data_; }
     const FloatVector & data() const { return data_; }
 
     //! Retruns the itreator at the end of the Buffer.
