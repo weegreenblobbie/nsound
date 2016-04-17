@@ -52,6 +52,8 @@ public:
     Buffer read() const;
     float64 read_head() const { return *(*itor_); }
 
+    void read_rt(Buffer &); // real-time read, reads n samples into buffer
+
     void write(float64 d)     { *(*itor_) = d; ++(*itor_); }
 
     void write(const AudioStream & as);

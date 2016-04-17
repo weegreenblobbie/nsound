@@ -419,7 +419,7 @@ void
 Biquad::
 plot(float64 sample_rate, boolean show_phase) const
 {
-    float64 window_size = 0.080;
+    float64 window_size = 1.0 / 1.0; // 0.080;
 
     Biquad bq(kernel());
 
@@ -497,7 +497,7 @@ _get_nfft(float64 sample_rate, float64 size_sec) const
 
     M_ASSERT_VALUE(n_fft, >, 0);
 
-    return n_fft * 8;
+    return n_fft;
 }
 
 

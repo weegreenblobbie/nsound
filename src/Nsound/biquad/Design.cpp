@@ -246,6 +246,9 @@ hpeq_design(
     float64 gbw  = std::pow(10.0, gain_bandwidth_db / 20.0);
 
     // no filtering if gfc ~= gref
+
+    dout << "std::abs(gfc - gref) = " << std::abs(gfc - gref) << "\n";
+
     if(std::abs(gfc - gref) < 1e-7)
     {
         BiquadKernel bck =
@@ -297,6 +300,8 @@ hpeq_design(
     {
         e = std::sqrt(std::abs(numerator) / std::abs(denominator));
     }
+
+    dout << "std::abs(denominator) = " << std::abs(denominator) << "\n";
 
     // adjust gain
     gfc = std::pow(gfc, 1.0 / order);

@@ -48,19 +48,31 @@ Buffer
 CircularBuffer::
 read() const
 {
-    const uint32 N = buffer_->getLength();
+    uint32 n = buffer_->getLength();
 
     Buffer::circular_iterator ci(*itor_);
 
-    Buffer b(N);
+    Buffer b(n);
 
-    for(uint32 i = 0; i < N; ++i)
+    for(uint32 i = 0; i < n; ++i)
     {
         b << *ci;
         ++ci;
     }
 
     return b;
+}
+
+
+void
+CircularBuffer::
+read_rt(Buffer & b)
+{
+    for(uint32 i = 0; i < b.getLength(); ++i)
+    {
+        b[i] = *(*itor_);
+        ++(*itor_);
+    }
 }
 
 

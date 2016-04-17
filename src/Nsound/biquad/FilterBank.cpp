@@ -248,7 +248,19 @@ void
 FilterBank::
 plot(boolean show_phase) const
 {
-    float64 window_size = 0.080;
+    // compute windows size such that the minimum bandwidth is represented by
+    // at least 3 points.
+
+    float64 bw = 1000.0;
+
+    for(const auto & bq : _filters)
+    {
+        bw = std::min(bw, bq->bw());
+    }
+
+    bw /= 3.0;
+
+    float64 window_size = 1.0 / bw;
 
     FilterBank fb(*this);
 
@@ -422,6 +434,14 @@ _get_impulse_response(float64 sample_rate, float64 size_sec) const
     for(uint32 i = 1; i < n_fft; ++i)
     {
         resp << fb(0.0);
+    }
+
+    float64 peak = resp.subbuffer(1).getAbs().getMax();
+
+    if(peak > 1.0)
+    {
+        std::cout << "kernel is unstable: " << peak << "\n";
+        resp.plot("unstable impulse");
     }
 
     return resp;

@@ -121,8 +121,6 @@ public:
     void plot(boolean show_phase = false) const;
     void plot(float64 sample_rate, boolean show_phase = false) const;
 
-private:
-
     // plot support functions
 
     Buffer _get_freq_axis(float64 sample_rate, float64 size_sec) const;
@@ -130,6 +128,8 @@ private:
     Buffer _get_impulse_response(float64 sample_rate, float64 size_sec) const;
     Buffer _get_phase_response(float64 sample_rate, float64 size_sec) const;
     uint32 _get_nfft(float64 sample_rate, float64 size_sec) const;
+
+private:
 
     // all filter calls eventually call this one:
 
