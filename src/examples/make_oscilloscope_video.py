@@ -104,6 +104,7 @@ def main():
         '--fps',
         dest    = 'fps',
         default = 30,
+        type    = float,
         help    = "Frames-per-second to render")
 
     parser.add_argument(
@@ -265,7 +266,7 @@ def main():
 
     # Pass 1
     cmd = (
-        'ffmpeg -r {fps} -i {pngfiles} -r {sr} -i {audiofile} -pass 1 -vcodec libtheora '
+        'ffmpeg -r {fps} -i {pngfiles} -r {sr} -i "{audiofile}" -pass 1 -vcodec libtheora '
         '-b:v 6000k -bt 6000k -pix_fmt yuv444p -r {fps} -f rawvideo -y /dev/null')
 
     cmd = cmd.format(
@@ -280,7 +281,7 @@ def main():
     # Pass 2
 
     cmd = (
-        'ffmpeg -r {fps} -i {pngfiles} -r {sr} -i {audiofile} -pass 2 -vcodec libtheora '
+        'ffmpeg -r {fps} -i {pngfiles} -r {sr} -i "{audiofile}" -pass 2 -vcodec libtheora '
         '-b:v 6000k -bt 6000k -pix_fmt yuv444p -r {fps} movie.ogv -y'
         )
 
