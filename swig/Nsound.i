@@ -30,6 +30,7 @@
 
 %{
 #include "Nsound/NsoundAll.h"
+#include "SwigBufferProxy.hpp"
 %}
 
 %feature("autodoc", "1");
@@ -59,9 +60,13 @@ using std::vector;
 %include "src/Nsound/Nsound.h"
 
 %include "Buffer.i"
+
+%include "SwigBufferProxy.i"
+
 %include "AudioStream.i"
 %include "AudioPlaybackRt.i"
 %include "Plotter.i"
+
 
 typedef vector<Nsound::FFTChunk> FFTChunkVectorT;
 
@@ -84,6 +89,7 @@ namespace std
 %include "src/Nsound/AudioStream.h"
 %include "src/Nsound/FFTChunk.h"
 %include "src/Nsound/WindowType.h"
+%include "SwigBufferProxy.hpp"
 
 // The rest.
 %include "src/Nsound/AudioBackendType.h"

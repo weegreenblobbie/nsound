@@ -83,13 +83,18 @@
 }
 
 
-// Avoid deleting references
-%typemap(out) Nsound::Buffer &
+%typemap(out) Nsound::Buffer & operator<<
 {
-    // %typemap(out) Nsound::Buffer &
+    // Buffer.i
+    // $symname
 
-    $result = SWIG_NewPointerObj(
-        SWIG_as_voidptr(result), SWIGTYPE_p_Nsound__Buffer, 0);
+#~    $result = SWIG_NewPointerObj(
+#~        SWIG_as_voidptr(result), SWIGTYPE_p_Nsound__Buffer, 0);
+
+    if(result) {} // disable unsed warning
+
+    Py_INCREF($self);
+    $result = $self;
 }
 
 

@@ -176,6 +176,8 @@ public:
         return ss.str();
     }
 
+    circular_iterator() {} // invalid, used with SWIG
+
 private:
 
     FloatVector::const_iterator end_;
@@ -306,6 +308,8 @@ public:
     {
         return *itor_;
     }
+
+    const_circular_iterator() {} // invalid, used for swig
 
 private:
 

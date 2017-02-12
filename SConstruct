@@ -37,9 +37,9 @@ PACKAGE_NAME = "Nsound"
 
 VERSION_A = "0"
 VERSION_B = "9"
-VERSION_C = "4"
+VERSION_C = "5"
 
-DEVELOPMENMT = False
+DEVELOPMENMT = True
 
 PACKAGE_VERSION = "%s.%s.%s" % (VERSION_A, VERSION_B, VERSION_C)
 
@@ -170,7 +170,9 @@ if GetOption("pytest"):
         "scons -c",
         "scons setup_builder.py",
         "python setup_builder.py install --user",
-        "python -m unittest discover"]
+        "pith src/test/test_Buffer.py",
+        "pith src/test/test_AudioStream.Test.test_01",
+    ]
 
     for cmd in commands:
         r = os.system(cmd)
@@ -219,7 +221,7 @@ bits, name = platform.architecture()
 arch = "x86"
 
 if "64" in bits:
-	arch = "AMD64"
+    arch = "AMD64"
 
 if not GetOption("help"):
 

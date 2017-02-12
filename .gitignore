@@ -1,0 +1,17 @@
+*.o
+*.pyc
+*.pyo
+.sconf_temp/
+.sconsign.dblite
+Nsound.egg-info/
+build/
+config.log
+dist/
+portaudio.log
+setup_builder.py
+src/Nsound/Nsound.h
+src/test/test_wavefile1.wav
+src/test/test_wavefile2.wav
+swig/Nsound.py
+swig/nsound_wrap.cxx
+

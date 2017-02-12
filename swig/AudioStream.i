@@ -28,8 +28,8 @@
 
 
 %rename(__lshift__)    Nsound::AudioStream::operator<<;
-%rename(_get_at_index) Nsound::AudioStream::operator[];
 
+%ignore Nsound::AudioStream::operator[];
 
 %extend Nsound::AudioStream
 {
@@ -43,12 +43,52 @@
 
 
 // Avoid deleting references
-%typemap(out) Nsound::AudioStream &
+%typemap(out) Nsound::AudioStream & operator<<
 {
-    // %typemap(out) Nsound::AudioStream &
+    // AudioStream.i
+    // $symname
 
-    $result = SWIG_NewPointerObj(
-        SWIG_as_voidptr(result), SWIGTYPE_p_Nsound__AudioStream, 0);
+#~    $result = SWIG_NewPointerObj(
+#~        SWIG_as_voidptr(result), SWIGTYPE_p_Nsound__AudioStream, 0);
+
+    if(result) {} // disable unsed warning
+
+    Py_INCREF($self);
+    $result = $self;
+}
+
+
+%extend Nsound::AudioStream
+{
+
+    SwigBufferProxy * _get_at_index(unsigned int i)
+    {
+        Nsound::Buffer & b = $self->operator[](i);
+
+        return new SwigBufferProxy(b);
+    }
+
+    void _set_at_index(unsigned int i, SwigBufferProxy * proxy)
+    {
+        Buffer & b = proxy->_buf;
+
+        Buffer & this_b = $self->operator[](i);
+
+        if(&b == &this_b) return;
+
+        this_b = b;
+    }
+
+    void _set_at_index(unsigned int i, Buffer * buf)
+    {
+        Buffer & b = *buf;
+
+        Buffer & this_b = $self->operator[](i);
+
+        if(&b == &this_b) return;
+
+        this_b = b;
+    }
 }
 
 
@@ -171,11 +211,12 @@ def __rshift__(self, rhs):
 def __getitem__(self,i):
 
     if isinstance(i, int):
-        if abs(i) >= self.getNChannels():
-            raise StopIteration
 
         if i < 0:
             i += self.getNChannels()
+
+        if i >= self.getNChannels():
+            raise StopIteration
 
         return _Nsound.AudioStream__get_at_index(self, i)
 
@@ -205,12 +246,12 @@ def __setitem__(self, i, buf):
             raise IndexError("Error: Index out of bounds, %d >= %d" %(
                 i, self.getNChannels()))
 
-        if not isinstance(buf, Buffer):
+        if type(buf) not in [Buffer, SwigBufferProxy]:
             raise TypeError(
                 "Error: Input argument must be of class Buffer, not %s" %(
                     type(buf)))
 
-        self._set_at_index(i, buf)
+        _Nsound.AudioStream__set_at_index(self, i, buf)
 
     else:
         raise TypeError("Expecting index type int, but got %s" %(type(i)))

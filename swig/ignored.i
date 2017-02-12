@@ -39,9 +39,6 @@
 %ignore Nsound::circular_iterator::operator=;
 %ignore Nsound::circular_iterator::operator++;
 %ignore Nsound::circular_iterator::operator--;
-%ignore Nsound::const_circular_iterator::operator=;
-%ignore Nsound::const_circular_iterator::operator++;
-%ignore Nsound::const_circular_iterator::operator--;
 %ignore Nsound::EnvelopeAdsr::operator=;
 %ignore Nsound::FFTChunk::operator=;
 %ignore Nsound::FilterAllPass::operator=;
@@ -60,6 +57,9 @@
 %ignore Nsound::Plotter::show;
 %ignore Nsound::ReverberationRoom::operator=;
 %ignore Nsound::RngTausworthe::operator=;
+%ignore Nsound::const_circular_iterator::operator++;
+%ignore Nsound::const_circular_iterator::operator--;
+%ignore Nsound::const_circular_iterator::operator=;
 %ignore Nsound::Spectrogram::operator=;
 %ignore Nsound::Stretcher::operator=;
 
