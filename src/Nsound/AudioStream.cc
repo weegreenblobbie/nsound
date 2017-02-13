@@ -641,15 +641,17 @@ pan(const Buffer & pan)
 {
     M_ASSERT_VALUE(channels_, ==, 2);
 
-    uint32 length = std::min(getLength(), pan.getLength());
+    auto pan_itor = pan.cbegin();
 
     Buffer & left = *buffers_[0];
     Buffer & right = *buffers_[1];
 
-    for(uint32 i = 0; i < length; ++i)
+    for(uint32 i = 0; i < getLength(); ++i)
     {
-        float64 left_amplitude = (pan[i] + 1.0) * 0.5;
-        float64 right_amplitude = ((pan[i] * -1.0) + 1.0) * 0.5;
+        float64 f = *pan_itor++;
+
+        float64 left_amplitude = (f + 1.0) * 0.5;
+        float64 right_amplitude = ((f * -1.0) + 1.0) * 0.5;
 
         left[i] *= left_amplitude;
         right[i] *= right_amplitude;

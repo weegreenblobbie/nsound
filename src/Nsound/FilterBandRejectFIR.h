@@ -130,6 +130,8 @@ class FilterBandRejectFIR : public FilterHighPassFIR
 
     float64 frequency_2_Hz_;
 
+    #ifndef SWIG
+
     //! A class to store calculated kernels.
     struct Kernel
     {
@@ -146,6 +148,8 @@ class FilterBandRejectFIR : public FilterHighPassFIR
     typedef std::set<Kernel> KernelCache;
 
     KernelCache kernel_cache_;
+
+    #endif
 
     private:
 

@@ -23,7 +23,7 @@ carrier = gen.generate(voice_dur, 1500.0, 6, 40.0)
 
 vocod = Vocoder(sr, 0.020, 16, 8000)
 
-output = vocod.filter(voice[0], carrier)
+output = vocod.filter(voice[0].b, carrier)
 
 output.normalize()
 
@@ -46,7 +46,7 @@ pylab = Plotter()
 pylab.figure()
 ax1 = pylab.subplot(2, 1, 1)
 
-spec1 = Spectrogram(voice[0], sr, window, step, HANNING);
+spec1 = Spectrogram(voice[0].b, sr, window, step, HANNING);
 
 pylab.imagesc(
     spec1.getTimeAxis(),

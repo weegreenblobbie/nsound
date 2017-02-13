@@ -6,9 +6,6 @@
 
 using namespace Nsound;
 
-//~namespace Nsound
-//~{
-
 
 struct SwigBufferProxy
 {
@@ -16,7 +13,7 @@ struct SwigBufferProxy
 
     SwigBufferProxy(Buffer & b) : _buf(b) {}
 
-    ~SwigBufferProxy()             {}
+    ~SwigBufferProxy() {}
 
     void abs()
     {
@@ -500,6 +497,10 @@ struct SwigBufferProxy
 
     void _swig_shadow() {};
 
+    Buffer * _to_buffer()
+    {
+        return &_buf;
+    }
 };
 
 

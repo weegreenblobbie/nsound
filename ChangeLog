@@ -1,7 +1,5 @@
 #------------------------------------------------------------------------------
 #
-# $Id: ChangeLog 926 2015-08-23 17:36:20Z weegreenblobbie $
-#
 #  Nsound is a C++ library and Python module for audio synthesis featuring
 #  dynamic digital filters. Nsound lets you easily shape waveforms and write
 #  to disk or plot them. Nsound aims to be as powerful as Csound but easy to
@@ -12,6 +10,14 @@
 Key:
 + Finished item
 - Planned item
+
+2017-02-12 Nsound 0.9.5
+
+    + returning proxy object in the python module for AudioStream::operator[]
+        to avoid double pointer deletion, to get the Buffer out of the proxy
+        object, us the ".b" property, see example5.py
+    + fixed a bug in AudioStream::pan()
+
 
 2015-08-23 Nsound 0.9.4
 
@@ -214,7 +220,7 @@ Key:
 
     Minor interface changes:
     + Changed AudioStream::getMono(), now returns an AudioStream
-	+ Changed Buffer.toPythonList() to Buffer.toList()
+    + Changed Buffer.toPythonList() to Buffer.toList()
 
     + Added the first draft of the Nsound User's Guide!
 

@@ -48,9 +48,6 @@
     // AudioStream.i
     // $symname
 
-#~    $result = SWIG_NewPointerObj(
-#~        SWIG_as_voidptr(result), SWIGTYPE_p_Nsound__AudioStream, 0);
-
     if(result) {} // disable unsed warning
 
     Py_INCREF($self);

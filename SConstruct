@@ -44,7 +44,7 @@ DEVELOPMENMT = True
 PACKAGE_VERSION = "%s.%s.%s" % (VERSION_A, VERSION_B, VERSION_C)
 
 if DEVELOPMENMT:
-    PACKAGE_VERSION += ".dev7"
+    PACKAGE_VERSION += ".dev1"
 
 PACKAGE_RELEASE = PACKAGE_NAME + "-" + PACKAGE_VERSION
 
@@ -170,8 +170,7 @@ if GetOption("pytest"):
         "scons -c",
         "scons setup_builder.py",
         "python setup_builder.py install --user",
-        "pith src/test/test_Buffer.py",
-        "pith src/test/test_AudioStream.Test.test_01",
+        "python -m unittest discover",
     ]
 
     for cmd in commands:
@@ -230,9 +229,9 @@ if not GetOption("help"):
 
 Help Nsound, please submit bug reports if things aren't working for you.
 
-http://sourceforge.net/tracker/?atid=767640&group_id=147193&func=browse
+https://github.com/weegreenblobbie/nsound/issues
 
-Contact Nick for help: weegreenblobbie_yahoo_com
+Contact Nick for help: weegreenblobbie2_gmail_com
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 """

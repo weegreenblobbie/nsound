@@ -17,21 +17,6 @@
 }
 
 
-%typemap(out) SwigBufferProxy & operator<<
-{
-    // SwigBufferProxy.i
-    // $symname
-
-#~    $result = SWIG_NewPointerObj(
-#~        SWIG_as_voidptr(result), SWIGTYPE_p_Nsound__Buffer, 0);
-
-    if(result) {} // disable unsed warning
-
-    Py_INCREF($self);
-    $result = $self;
-}
-
-
 %rename(__add__) SwigBufferProxy::operator+;
 %rename(__sub__) SwigBufferProxy::operator-;
 %rename(__mul__) SwigBufferProxy::operator*;
@@ -159,6 +144,13 @@ def __setitem__(self,i, d):
     else:
         raise TypeError("Expecting index type int, but got %s" %(type(i)))
 
+
+@property
+def b(self):
+    "get the buffer from this proxy"
+    return _Nsound.SwigBufferProxy__to_buffer(self)
+
 %}
+
 
 # :mode=python:
