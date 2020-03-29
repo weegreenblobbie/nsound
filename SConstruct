@@ -29,6 +29,7 @@ import glob
 import platform
 import os.path
 import sys
+import subprocess
 
 #-----------------------------------------------------------------------------
 # Setup Package Name and Version
@@ -37,14 +38,14 @@ PACKAGE_NAME = "Nsound"
 
 VERSION_A = "0"
 VERSION_B = "9"
-VERSION_C = "4"
+VERSION_C = "5"
 
-DEVELOPMENMT = False
+DEVELOPMENMT = True
 
 PACKAGE_VERSION = "%s.%s.%s" % (VERSION_A, VERSION_B, VERSION_C)
 
 if DEVELOPMENMT:
-    PACKAGE_VERSION += ".dev7"
+    PACKAGE_VERSION += ".dev1"
 
 PACKAGE_RELEASE = PACKAGE_NAME + "-" + PACKAGE_VERSION
 
@@ -164,6 +165,14 @@ AddOption(
     action = "store_true",
     help = "Rebuilds python module, then runs unit tests")
 
+AddOption(
+    "--unit-test",
+    dest = "unit_test",
+    default = False,
+    action = "store_true",
+    help = "Runs the c++ unit tests")
+
+
 if GetOption("pytest"):
 
     commands = [
@@ -173,12 +182,38 @@ if GetOption("pytest"):
         "python -m unittest discover"]
 
     for cmd in commands:
-        r = os.system(cmd)
 
-        if r:
+        try:
+            subprocess.check_output(cmd)
+
+        except:
             raise RuntimeError("FAILURE!\ncmd = %s" % cmd)
 
     Exit(0)
+
+
+if GetOption("unit_test"):
+
+    env = Environment()
+
+    target = "Main" + env['PROGSUFFIX']
+
+    os.chdir('src/test')
+
+    commands = [
+        "scons -u " + target,
+    ]
+
+    if "win32" not in sys.platform:
+        commands.append('./' + target)
+    else:
+        commands.append(target)
+
+    for cmd in commands:
+        subprocess.check_call(cmd, shell=True)
+
+    Exit(0)
+
 
 #------------------------------------------------------------------------------
 # Do parallel builds by default
@@ -193,7 +228,7 @@ except:
 
 SetOption('num_jobs', n_jobs)
 
-print "Building with %d threads" % GetOption('num_jobs')
+print("Building with %d threads" % GetOption('num_jobs'))
 
 #------------------------------------------------------------------------------
 # Check if building the python module
@@ -223,23 +258,23 @@ if "64" in bits:
 
 if not GetOption("help"):
 
-    print """
+    print("""
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 Help Nsound, please submit bug reports if things aren't working for you.
 
-http://sourceforge.net/tracker/?atid=767640&group_id=147193&func=browse
+https://github.com/weegreenblobbie/nsound
 
-Contact Nick for help: weegreenblobbie_yahoo_com
+Contact Nick for help: weegreenblobbie2_gmail_com
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-"""
+""")
 
-    print "Using Python%s" % platform.python_version()
-    print ""
-    print "Building on %s, %s" % (sys.platform, arch)
+    print("Using Python%s" % platform.python_version())
+    print("")
+    print("Building on %s, %s" % (sys.platform, arch))
 
-if sys.platform in ["linux2", "linux3"]:
+if sys.platform in ["linux", "linux2", "linux3"]:
 
     from nsound_config_linux import NsoundConfigLinux
     nsound_config = NsoundConfigLinux()
@@ -260,10 +295,10 @@ elif sys.platform == "win32":
     nsound_config = NsoundConfigWindows()
 
 else:
-    print >>sys.stderr, ""
-    print >>sys.stderr, "ERROR: unsupported platform %s" % repr(sys.platform)
-    print >>sys.stderr, "Send email to the nsound develpers for help"
-    print >>sys.stderr, ""
+    sys.stderr.write("\n")
+    sys.stderr.write("ERROR: unsupported platform %s\n" % repr(sys.platform))
+    sys.stderr.write("Send email to the nsound develpers for help\n")
+    sys.stderr.write("\n")
     Exit()
 
 Export("nsound_config")
@@ -271,9 +306,9 @@ Export("nsound_config")
 nsound_config.add_to_rpath(nsound_config.env['NS_LIBDIR'])
 
 if not nsound_config.env.GetOption("help"):
-    print "bindir = %s" % nsound_config.env['NS_BINDIR']
-    print "libdir = %s" % nsound_config.env['NS_LIBDIR']
-    print ""
+    print("bindir = %s" % nsound_config.env['NS_BINDIR'])
+    print("libdir = %s" % nsound_config.env['NS_LIBDIR'])
+    print("")
 
 nsound_h = "src/Nsound/Nsound.h"
 doxyfile = "docs/reference/Doxyfile"

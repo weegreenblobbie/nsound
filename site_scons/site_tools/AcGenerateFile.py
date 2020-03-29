@@ -46,24 +46,14 @@ def do_subst_in_file(targetfile, sourcefile, sub_dict):
 	then all instances of @VERSION@ in the file will be replaced with
 	1.2345 etc.
 	"""
-	try:
-		f = open(sourcefile, 'rb')
-		contents = f.read()
-		f.close()
-
-	except:
-		raise SCons.Errors.UserError, "Can't read source file %s" % sourcefile
+	with open(sourcefile, 'r') as fd:
+		contents = fd.read()
 
 	for k, v in sub_dict.items():
 		contents = re.sub("@" + k + "@", r'%s' % v, contents)
 
-	try:
-		f = open(targetfile, 'wb')
-		f.write(contents)
-		f.close()
-
-	except:
-		raise SCons.Errors.UserError, "Can't write target file %s" % targetfile
+	with open(targetfile, 'w') as fd:
+		fd.write(contents)
 
 	return 0 # success
 
@@ -71,7 +61,7 @@ def do_subst_in_file(targetfile, sourcefile, sub_dict):
 def subst_in_file(target, source, env):
 
 	if not env.has_key('AC_GEN_DICT'):
-		raise SCons.Errors.UserError, "AcGenerateFile requires AC_GEN_DICT to be set."
+		raise SCons.Errors.UserError("AcGenerateFile requires AC_GEN_DICT to be set.")
 
 	d = dict(env['AC_GEN_DICT']) # copy it
 
@@ -84,7 +74,7 @@ def subst_in_file(target, source, env):
 			d[k]=env.subst(v)
 
 		else:
-			raise SCons.Errors.UserError, "AcGenerateFile: key %s: %s must be a string or callable"%(k, repr(v))
+			raise SCons.Errors.UserError("AcGenerateFile: key %s: %s must be a string or callable"%(k, repr(v)))
 
 	for (t,s) in zip(target, source):
 		return do_subst_in_file(str(t), str(s), d)

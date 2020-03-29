@@ -137,13 +137,13 @@ class NsoundConfig(SConfBase):
             env['SWIGGENCOMSTR']     = "Generating SWIG interface $TARGET"
 
         else:
-            print ""
-            print "CXXFLAGS = %s" % env['CXXFLAGS']
-            print "LINKFLAGS = %s" % env['LINKFLAGS']
-            print "LIBPATH = %s" % env['LIBPATH']
-            print "LIBS = %s" % env['LIBS']
-            print "LINKFLAGS = %s" % env['LINKFLAGS']
-            print ""
+            print("")
+            print("CXXFLAGS = %s" % env['CXXFLAGS'])
+            print("LINKFLAGS = %s" % env['LINKFLAGS'])
+            print("LIBPATH = %s" % env['LIBPATH'])
+            print("LIBS = %s" % env['LIBS'])
+            print("LINKFLAGS = %s" % env['LINKFLAGS'])
+            print("")
 
         self.env = env
         self._orig_env = env
@@ -283,7 +283,7 @@ class NsoundConfig(SConfBase):
 
         import struct
 
-        array = struct.pack('cccc', '\x01', '\x02', '\x03', '\x04')
+        array = struct.pack('cccc', b'\x01', b'\x02', b'\x03', b'\x04')
 
         i = struct.unpack('i', array)
 

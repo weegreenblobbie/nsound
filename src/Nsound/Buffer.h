@@ -9,7 +9,7 @@
 //
 //  Copyright (c) 2004-Present Nick Hilton
 //
-//  weegreenblobbie_yahoo_com (replace '_' with '@' and '.')
+//  weegreenblobbie2_gmail_com (replace '_' with '@' and '.')
 //
 //-----------------------------------------------------------------------------
 
@@ -120,6 +120,9 @@ class Buffer
     //! b = Buffer("california.wav")
     //! \endcode
     Buffer(const std::string & filename, uint32 chunk_size = 4096);
+
+    template <class T>
+    Buffer(std::initializer_list<T> c);
 
     //! Destroys the Buffer.
     ~Buffer();
@@ -1877,6 +1880,26 @@ protected:
 
 }; // class Buffer
 
+
+template <>
+inline
+Buffer::
+Buffer(std::initializer_list<float64> list) : data_(list.begin(), list.end()) {}
+
+template <>
+inline
+Buffer::
+Buffer(std::initializer_list<float32> list) : data_(list.begin(), list.end()) {}
+
+template <>
+inline
+Buffer::
+Buffer(std::initializer_list<int32> list) : data_(list.begin(), list.end()) {}
+
+template <>
+inline
+Buffer::
+Buffer(std::initializer_list<int64> list) : data_(list.begin(), list.end()) {}
 
 
 //-----------------------------------------------------------------------------

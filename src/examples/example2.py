@@ -4,20 +4,19 @@
 #
 ###############################################################################
 
-# Include the Nsound headers
-from Nsound import *
+import Nsound as ns
 
 sr = 44100.0
 
 # Create a new instance of the Sine Generator
-sine = Sine(sr)
+sine = ns.Sine(sr)
 
-pan = Buffer()
+pan = ns.Buffer()
 
-pan << sine.generate(1.0, 3.0)
+pan << sine.generate(4.9, 3.0)
 
 # Create a stereo AudioStream.
-a = AudioStream(sr, 2)
+a = ns.AudioStream(sr, 2)
 
 # Fill it with a 220 Hz sine wave.
 a << 0.5 * sine.generate(4.9, 220)
@@ -28,6 +27,5 @@ a.pan(pan)
 # Write the AudioStream to a wave file
 a >> "example2.wav";
 
-pb = AudioPlayback(sr, 2, 16);
+a >> ns.AudioPlayback(sr, 2, 16);
 
-a >> pb

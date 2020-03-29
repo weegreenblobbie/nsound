@@ -32,6 +32,7 @@ source_list = Split(
     FilterCombLowPassFeedback_UnitTest.cc
     FilterDelay_UnitTest.cc
     FilterLeastSquaresFIR_UnitTest.cc
+    FilterMedian_UnitTest.cc
     FilterParametricEqualizer_UnitTest.cc
     Generator_UnitTest.cc
     Main.cc

@@ -198,7 +198,7 @@ new_descriptor()
     descriptor->Label = "Nsound";
     descriptor->Properties = LADSPA_PROPERTY_HARD_RT_CAPABLE;
     descriptor->Name = "Nsound Guitar Bass";
-    descriptor->Maker = "Nick Hilton <weegreenblobbie_yahoo_com>";
+    descriptor->Maker = "Nick Hilton <weegreenblobbie2_gmail_com>";
     descriptor->Copyright = "GPL";
     descriptor->PortCount = MAX_PORT;
 

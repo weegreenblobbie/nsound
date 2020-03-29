@@ -39,7 +39,7 @@ def dbg_print(env, filename, message, basename = True):
     if basename:
         filename = os.path.basename(filename)
 
-    print "%s: %s" % (filename, message)
+    print("%s: %s" % (filename, message))
 
 
 def run_command(command, env):

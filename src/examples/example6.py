@@ -65,14 +65,14 @@ out << softTones(sr, 0.25, 261.63, 523.25, 0.30) \
     << softTones(sr, 0.25, 523.25, 261.63, 0.30) \
     << sine.silence(0.25)
 
-out *= 0.5
+out *= 0.25
 
 out >> "example6.wav"
 
 # ReverberationRoom(sample_rate, room_feedback, wet_percent, dry_percent, low_pass_freq)
 room = ReverberationRoom(sr, 0.50, 1.0, 1.0, 100.0)
 
-out2 = 0.5 * room.filter(out)
+out2 = 0.25 * room.filter(out)
 
 out2 >> "example6_reverb.wav"
 

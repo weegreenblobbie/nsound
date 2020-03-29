@@ -4,7 +4,7 @@
 //
 //  Copyright (c) 2008 Nick Hilton
 //
-//  weegreenblobbie_yahoo_com (replace '_' with '@' and '.')
+//  weegreenblobbie2_gmail_com (replace '_' with '@' and '.')
 //
 //-----------------------------------------------------------------------------
 
@@ -59,6 +59,7 @@ void FilterHighPassIIR_UnitTest();
 void FilterLeastSquaresFIR_UnitTest();
 void FilterLowPassFIR_UnitTest();
 void FilterLowPassIIR_UnitTest();
+void FilterMedian_UnitTest();
 void FilterParametricEqualizer_UnitTest();
 void Generator_UnitTest();
 void Sine_UnitTest();

@@ -9,7 +9,7 @@
 //
 //  Copyright (c) 2008-Present Nick Hilton
 //
-//  weegreenblobbie_yahoo_com (replace '_' with '@' and '.')
+//  weegreenblobbie2_gmail_com (replace '_' with '@' and '.')
 //
 //   Based on Brook Eaton's Waveguide Mesh Drum project.
 //   http://www-ccrma.stanford.edu/~be/drum/drum.htm

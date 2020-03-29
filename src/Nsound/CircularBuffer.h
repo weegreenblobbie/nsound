@@ -9,7 +9,7 @@
 //
 //  Copyright (c) 2008-Present Nick Hilton
 //
-//  weegreenblobbie_yahoo_com (replace '_' with '@' and '.')
+//  weegreenblobbie2_gmail_com (replace '_' with '@' and '.')
 //
 //-----------------------------------------------------------------------------
 
@@ -33,6 +33,10 @@
 #ifndef _NSOUND_CIRCULAR_BUFFER_H_
 #define _NSOUND_CIRCULAR_BUFFER_H_
 
+#include <Nsound/Nsound.h>
+
+#include <memory>
+
 namespace Nsound
 {
 
@@ -40,29 +44,26 @@ class Buffer;
 
 class CircularBuffer
 {
-    public:
+
+public:
 
     CircularBuffer(uint32 n_samples);
-    ~CircularBuffer();
 
     Buffer read() const;
+    float64 read_head() const { return *(*itor_); }
 
-    void write(float64 d);
+    void write(float64 d)     { *(*itor_) = d; ++(*itor_); }
+
     void write(const AudioStream & as);
     void write(const Buffer & b);
 
-    protected:
+protected:
 
-    Buffer * buffer_;
-    Buffer::circular_iterator * itor_;
+	CircularBuffer(const CircularBuffer & copy);
+	CircularBuffer & operator=(const CircularBuffer & rhs);
 
-    private:
-
-    // FIXME: currently Buffer::circular_iterator isn't copyable
-
-    CircularBuffer(const CircularBuffer & copy);
-    CircularBuffer & operator=(const CircularBuffer & rhs);
-
+    std::shared_ptr<Buffer> buffer_;
+    std::shared_ptr<Buffer::circular_iterator> itor_;
 };
 
 } // namespace

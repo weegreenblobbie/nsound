@@ -116,6 +116,7 @@ namespace std
 %include "src/Nsound/FilterBandRejectIIR.h"
 %include "src/Nsound/FilterBandPassFIR.h"
 %include "src/Nsound/FilterBandPassIIR.h"
+%include "src/Nsound/FilterMedian.hpp"
 %include "src/Nsound/FilterMovingAverage.h"
 %include "src/Nsound/FilterFlanger.h"
 %include "src/Nsound/FilterParametricEqualizer.h"

@@ -4,7 +4,7 @@ $Id: test_Buffer.py 916 2015-08-22 16:31:39Z weegreenblobbie $
 
 Copyright (c) 2009 to Present Nick Hilton
 
-weegreenblobbie_yahoo_com (replace '_' with '@' and '.')
+weegreenblobbie2_gmail_com (replace '_' with '@' and '.')
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

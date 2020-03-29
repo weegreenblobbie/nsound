@@ -470,7 +470,7 @@ def detect_boost(*args):
     env, _, _ = args
 
     if VERBOSE:
-        print env['DETECTBOOSTCOM']
+        print(env['DETECTBOOSTCOM'])
 
     env['HAVE_BOOST'] = False
     env[KEY] = {}
@@ -482,8 +482,8 @@ def detect_boost(*args):
 
         if VERBOSE:
             for k, v in env[KEY].iteritems():
-                print '    env["{KEY}"]["{k}"] = {v}'.format(
-                    KEY = KEY, k = k, v = v)
+                print('    env["{KEY}"]["{k}"] = {v}'.format(
+                    KEY = KEY, k = k, v = v))
 
 
 def generate(env):

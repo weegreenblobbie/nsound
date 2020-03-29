@@ -4,7 +4,7 @@
 //
 //  Copyright (c) 2005-2006 Nick Hilton
 //
-//  weegreenblobbie_yahoo_com (replace '_' with '@' and '.')
+//  weegreenblobbie2_gmail_com (replace '_' with '@' and '.')
 //
 //-----------------------------------------------------------------------------
 
@@ -57,6 +57,8 @@ int main(int argc, char ** argv)
     FilterCombLowPassFeedback_UnitTest();
 
     FilterLeastSquaresFIR_UnitTest();
+
+    FilterMedian_UnitTest();
 
     FilterParametricEqualizer_UnitTest();
 

@@ -9,7 +9,7 @@
 //
 //  Copyright (c) 2006 Nick Hilton
 //
-//  weegreenblobbie_yahoo_com (replace '_' with '@' and '.')
+//  weegreenblobbie2_gmail_com (replace '_' with '@' and '.')
 //
 //-----------------------------------------------------------------------------
 
