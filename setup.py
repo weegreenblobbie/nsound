@@ -85,7 +85,7 @@ def tool_check():
         tool = which(t)
 
         if tool:
-            print " %s" % tool
+            print(" %s" % tool)
 
         else:
             raise RuntimeError(
@@ -121,7 +121,7 @@ def configure():
         raise RuntimeError(
             "FAILURE!\ncmd = %s\n%s\n%s" % (repr(cmd), out, err))
 
-    print " done"
+    print(" done")
 
 
 def process_nsound_h():
@@ -184,13 +184,13 @@ def process_nsound_h():
 
     fmt = "    %-16s: %s"
 
-    print fmt  % ('release', release)
+    print( fmt  % ('release', release))
 
     keys = d.keys()
     keys.sort()
 
     for k in keys:
-        print fmt % (k, d[k])
+        print(fmt % (k, d[k]))
 
 
 if __name__ == "__main__": main()

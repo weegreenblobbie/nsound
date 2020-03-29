@@ -3,7 +3,7 @@ $Id: test_Wavefile.py 831 2014-04-27 20:28:44Z weegreenblobbie $
 
 Copyright (c) 2009 to Present Nick Hilton
 
-weegreenblobbie_yahoo_com (replace '_' with '@' and '.')
+weegreenblobbie2_gmail_com (replace '_' with '@' and '.')
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

@@ -11,7 +11,7 @@
 #
 #  Copyright (c) 2010 to Present Nick Hilton
 #
-#  weegreenblobbie_yahoo_com (replace '_' with '@' and '.')
+#  weegreenblobbie2_gmail_com (replace '_' with '@' and '.')
 #
 ###############################################################################
 

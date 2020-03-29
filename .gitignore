@@ -28,6 +28,7 @@ src/examples/example4
 src/examples/example5
 src/examples/example6
 src/examples/mynameis
+src/examples/interstellar
 src/examples/stretcher
 src/test/Main
 swig/Nsound.py

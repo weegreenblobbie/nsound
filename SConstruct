@@ -228,7 +228,7 @@ except:
 
 SetOption('num_jobs', n_jobs)
 
-print "Building with %d threads" % GetOption('num_jobs')
+print("Building with %d threads" % GetOption('num_jobs'))
 
 #------------------------------------------------------------------------------
 # Check if building the python module
@@ -258,23 +258,23 @@ if "64" in bits:
 
 if not GetOption("help"):
 
-    print """
+    print("""
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 Help Nsound, please submit bug reports if things aren't working for you.
 
-http://sourceforge.net/tracker/?atid=767640&group_id=147193&func=browse
+https://github.com/weegreenblobbie/nsound
 
-Contact Nick for help: weegreenblobbie_yahoo_com
+Contact Nick for help: weegreenblobbie2_gmail_com
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-"""
+""")
 
-    print "Using Python%s" % platform.python_version()
-    print ""
-    print "Building on %s, %s" % (sys.platform, arch)
+    print("Using Python%s" % platform.python_version())
+    print("")
+    print("Building on %s, %s" % (sys.platform, arch))
 
-if sys.platform in ["linux2", "linux3"]:
+if sys.platform in ["linux", "linux2", "linux3"]:
 
     from nsound_config_linux import NsoundConfigLinux
     nsound_config = NsoundConfigLinux()
@@ -295,10 +295,10 @@ elif sys.platform == "win32":
     nsound_config = NsoundConfigWindows()
 
 else:
-    print >>sys.stderr, ""
-    print >>sys.stderr, "ERROR: unsupported platform %s" % repr(sys.platform)
-    print >>sys.stderr, "Send email to the nsound develpers for help"
-    print >>sys.stderr, ""
+    sys.stderr.write("\n")
+    sys.stderr.write("ERROR: unsupported platform %s\n" % repr(sys.platform))
+    sys.stderr.write("Send email to the nsound develpers for help\n")
+    sys.stderr.write("\n")
     Exit()
 
 Export("nsound_config")
@@ -306,9 +306,9 @@ Export("nsound_config")
 nsound_config.add_to_rpath(nsound_config.env['NS_LIBDIR'])
 
 if not nsound_config.env.GetOption("help"):
-    print "bindir = %s" % nsound_config.env['NS_BINDIR']
-    print "libdir = %s" % nsound_config.env['NS_LIBDIR']
-    print ""
+    print("bindir = %s" % nsound_config.env['NS_BINDIR'])
+    print("libdir = %s" % nsound_config.env['NS_LIBDIR'])
+    print("")
 
 nsound_h = "src/Nsound/Nsound.h"
 doxyfile = "docs/reference/Doxyfile"

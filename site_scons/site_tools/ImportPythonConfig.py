@@ -82,7 +82,7 @@ def generate(env):
         libname = "python%s.lib" % libversion
 
     elif on_mac:
-	libname = "python%s.dylib" % libversion
+        libname = "python%s.dylib" % libversion
 
     if libname is None:
         warnings.warn(
@@ -124,7 +124,7 @@ def generate(env):
 
     for path in lib_search_paths:
 
-	name = libname
+        name = libname
 
         if on_mac:
             name = "lib" + libname
@@ -153,7 +153,7 @@ def generate(env):
 
     if not os.path.isfile(python_h):
         message = "Can't find Python.h: %s\n" % python_h
-        message += "\nDo yo uhave the python-dev package installed?\n"
+        message += "\nDo you have the python-dev package installed?\n"
         warnings.warn(message)
         return
 
