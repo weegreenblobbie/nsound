@@ -46,14 +46,14 @@ def do_subst_in_file(targetfile, sourcefile, sub_dict):
 	then all instances of @VERSION@ in the file will be replaced with
 	1.2345 etc.
 	"""
-	with open(sourcefile, 'r') as fd:
-		contents = fd.read()
+	with open(sourcefile, 'r') as fin:
+		contents = fin.read()
 
 	for k, v in sub_dict.items():
-		contents = re.sub("@" + k + "@", r'%s' % v, contents)
+		contents = re.sub("@" + k + "@", str(v), contents)
 
-	with open(targetfile, 'w') as fd:
-		fd.write(contents)
+	with open(targetfile, 'w') as fout:
+		fout.write(contents)
 
 	return 0 # success
 

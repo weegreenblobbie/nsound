@@ -53,7 +53,7 @@ my_main(void)
         AudioPlayback pb(sr, 2, 16);
         output >> pb;
     }
-    catch(Exception e)
+    catch(Exception & e)
     {
         cerr << "Could not play audio: " << e.what() << endl;
     }

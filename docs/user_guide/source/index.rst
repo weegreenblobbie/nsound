@@ -22,7 +22,7 @@ website.
    Nsound is open source software, the developers continually work on improving
    the library and documentation and encourage others interested to contribute.
    For information on how to do so, please contact Nick Hilton at
-   weegreenblobbie_yahoo_com. Thanks!
+   weegreenblobbie2_gmail_com. Thanks!
 
 .. toctree::
     :maxdepth: 2

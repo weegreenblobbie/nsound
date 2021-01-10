@@ -189,7 +189,7 @@ class NsoundConfig(SConfBase):
 
     def _get_result(self, results, split = True):
 
-#~        print "results = ", results
+#~        print("results = %s" % results)
 
         if results is None or results == 0:
             return BUILD_FAILED, ''

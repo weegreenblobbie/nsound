@@ -633,6 +633,11 @@ private:
 //-----------------------------------------------------------------------------
 // Non class methods
 
+#ifndef SWIG
+std::ostream &
+operator<<(std::ostream & out, const AudioStream & rhs);
+#endif
+
 inline AudioStream operator+(const AudioStream & lhs, const AudioStream & rhs)
 {
     AudioStream temp(lhs);
