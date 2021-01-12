@@ -686,7 +686,7 @@ Key:
     + Replaced legacy NsoundSystem::LinkList class with std::vector
     + Added example3.cc
 
-2005-08 Nick Hilton <weegreenblobbie_yahoo_com>
+2005-08 Nick Hilton <weegreenblobbie2_gmail_com>
 
     * Nsound-0.1.0 released under GPL
 

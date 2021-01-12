@@ -51,7 +51,7 @@ main(void)
         AudioPlayback pb(sr, 1, 16);
         pac_man >> pb;
     }
-    catch(Exception e)
+    catch(Exception & e)
     {
         cerr << "Could not play audio: " << e.what() << endl;
     }

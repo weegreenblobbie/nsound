@@ -193,7 +193,7 @@ def generate(env):
     env['PYTHON_CONFIG'] = python_config
 
     s = ""
-    for k, v in python_config.iteritems():
+    for k, v in python_config.items():
         s += "\t%-10s: %s\n" %(k, repr(v))
 
     nu.dbg_print(env, __file__, "\nPYTHON_CONFIG = \n%s" % s)

@@ -22,7 +22,7 @@ main(void)
 
     Buffer pan;
 
-    pan << sine.generate(1.0, 3.0);
+    pan << sine.generate(4.9, 3.0);
 
     // Create a stereo AudioStream.
     AudioStream as(sr, 2);
@@ -43,7 +43,7 @@ main(void)
         AudioPlayback pb(sr, 2, 16);
         as >> pb;
     }
-    catch(Exception e)
+    catch(Exception & e)
     {
         cerr << "Could not play audio: " << e.what() << endl;
     }
