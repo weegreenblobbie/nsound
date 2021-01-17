@@ -1,3 +1,7 @@
+.. image:: https://github.com/weegreenblobbie/nsound/workflows/C%2B%2B%20CI/badge.svg
+   :target: https://github.com/weegreenblobbie/nsound/actions?query=workflow%3A%22C%2B%2B+CI%22
+   :alt: Github Actions
+
 Nsound, a C++ framework for synthesizing sound
 ==============================================
 
