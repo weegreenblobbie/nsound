@@ -254,7 +254,7 @@ bits, name = platform.architecture()
 arch = "x86"
 
 if "64" in bits:
-	arch = "AMD64"
+    arch = "AMD64"
 
 if not GetOption("help"):
 
