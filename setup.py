@@ -187,7 +187,7 @@ def process_nsound_h():
     print( fmt  % ('release', release))
 
     keys = d.keys()
-    keys.sort()
+    sorted(keys)
 
     for k in keys:
         print(fmt % (k, d[k]))
