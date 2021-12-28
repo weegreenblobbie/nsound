@@ -207,7 +207,7 @@ def worker(q, signal, sig_dur, t):
 
         temp = ns.Buffer(dur_samples)
 
-        for i in xrange(dur_samples):
+        for i in range(dur_samples):
 
             x = float(circ)
 

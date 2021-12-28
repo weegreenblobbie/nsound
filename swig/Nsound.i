@@ -48,12 +48,13 @@ using std::vector;
     try {
         $action
     }
-    catch (Nsound::Exception e) {
+    catch (const Nsound::Exception & e) {
         PyErr_SetString(PyExc_RuntimeError, e.what());
         return NULL;
     }
 }
 
+%include "typemaps.i"
 %include "ignored.i"
 
 %include "src/Nsound/Nsound.h"
@@ -70,7 +71,7 @@ namespace std
     %template(FloatVector)   vector<Nsound::float64>;
     %template(BooleanVector) vector<Nsound::boolean>;
     %template(Uint32Vector) vector<Nsound::uint32>;
-    %template(BooleanVectorVector) vector<vector<Nsound::boolean> >;
+    %template(BooleanVectorVector) vector<vector<Nsound::boolean>>;
     %template(FFTChunkVectorT) vector<Nsound::FFTChunk>;
     %template(StringVector) vector<std::string>;
 }
@@ -165,7 +166,11 @@ import types
 import sys
 import warnings
 
-import matplotlib.pylab
+try:
+    import matplotlib
+    import matplotlib.pyplot
+except ImportError:
+    warnings.warn("Nsound couldn't import matplotlib, plotting will be disabled")
 
 __package__ = "%s" % PACKAGE_RELEASE
 __version__ = "%s" % PACKAGE_VERSION
@@ -192,6 +197,9 @@ def rel_to_abs(path):
     prefix = os.path.dirname(caller)
 
     return os.path.abspath(os.path.join(prefix, path))
+
+# The one and only plotter.
+_plotter = Plotter()
 
 %}
 

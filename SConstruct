@@ -175,19 +175,22 @@ AddOption(
 
 if GetOption("pytest"):
 
+    #assert os.environ.get("VIRTUAL_ENV"), "No virtualenv detected, please activate one."
+
+    build_cmd = sys.argv.copy()
+    build_cmd.remove('--pytest')
+    build_cmd += ['setup_builder.py']
+
     commands = [
-        "scons -c",
-        "scons setup_builder.py",
-        "python setup_builder.py install --user",
-        "python -m unittest discover"]
+        ["scons", "-c"],
+        build_cmd,
+        ["python", "setup_builder.py", "install"],
+        ["python", "-m", "unittest", "discover"],
+    ]
 
     for cmd in commands:
-
-        try:
-            subprocess.check_output(cmd)
-
-        except:
-            raise RuntimeError("FAILURE!\ncmd = %s" % cmd)
+        print("    " + str(cmd))
+        subprocess.check_call(cmd)
 
     Exit(0)
 
@@ -200,8 +203,12 @@ if GetOption("unit_test"):
 
     os.chdir('src/test')
 
+    build_cmd = sys.argv.copy()
+    build_cmd.remove('--unit-test')
+    build_cmd += ['-u', target]
+
     commands = [
-        "scons -u " + target,
+        build_cmd,
     ]
 
     if "win32" not in sys.platform:
@@ -210,7 +217,8 @@ if GetOption("unit_test"):
         commands.append(target)
 
     for cmd in commands:
-        subprocess.check_call(cmd, shell=True)
+        print("    " + str(cmd))
+        subprocess.check_call(cmd)
 
     Exit(0)
 
@@ -241,7 +249,7 @@ if "setup_builder.py" in COMMAND_LINE_TARGETS:
 
 Export("build_py_module")
 
-# Determin the platform to build on
+# Determine the platform to build on.
 
 encode_lib_path = 1
 use_disttar = 1
@@ -305,7 +313,7 @@ Export("nsound_config")
 
 nsound_config.add_to_rpath(nsound_config.env['NS_LIBDIR'])
 
-if not nsound_config.env.GetOption("help"):
+if not GetOption("help"):
     print("bindir = %s" % nsound_config.env['NS_BINDIR'])
     print("libdir = %s" % nsound_config.env['NS_LIBDIR'])
     print("")
@@ -384,7 +392,6 @@ the compiler statements and errors.
     #--------------------------------------------------------------------------
     # Generate Nsound.h
 
-    env = nsound_config.env
     d = {}
 
     d["PACKAGE_NAME"]      = PACKAGE_NAME
@@ -399,33 +406,34 @@ the compiler statements and errors.
     else:
         d["NSOUND_IN_PYTHON_MODULE"] = "// no"
 
-    if env['NS_HAVE_OPENMP']:
+    if nsound_config.env['NS_HAVE_OPENMP']:
         d["NSOUND_OPENMP"] = "#define NSOUND_OPENMP 1"
         d["NSOUND_HAVE_OPENMP"] = "True"
     else:
         d["NSOUND_OPENMP"] = "#undef NSOUND_OPENMP // disabled"
         d["NSOUND_HAVE_OPENMP"] = "False"
 
-    if env['NS_HAVE_CPP11']:
+    if nsound_config.env['NS_HAVE_CPP11']:
         d["NSOUND_CPP11"] = "#define NSOUND_CPP11 1"
         d["NSOUND_HAVE_CPP11"] = "True"
     else:
         d["NSOUND_CPP11"] = "#undef NSOUND_CPP11 // disabled"
         d["NSOUND_HAVE_CPP11"] = "False"
 
-    if env['NS_HAVE_CUDA']:
+    if nsound_config.env['NS_HAVE_CUDA']:
         d["NSOUND_CUDA"] = "#define NSOUND_CUDA 1"
         d["NSOUND_HAVE_CUDA"] = "True"
     else:
         d["NSOUND_CUDA"] = "#undef NSOUND_CUDA // disabled"
         d["NSOUND_HAVE_CUDA"] = "False"
 
-    if env['NS_HAVE_MATPLOTLIB_C_API']:
+    if nsound_config.env['NS_HAVE_MATPLOTLIB_C_API']:
         d["NSOUND_C_PYLAB"] = "#define NSOUND_C_PYLAB 1"
+
     else:
         d["NSOUND_C_PYLAB"] = "#undef NSOUND_C_PYLAB  // disabled"
 
-    d["NSOUND_PLATFORM_OS"] = env['NSOUND_PLATFORM_OS']
+    d["NSOUND_PLATFORM_OS"] = nsound_config.env['NSOUND_PLATFORM_OS']
     d["NSOUND_BOOLEAN"] = "bool"
 
     if nsound_config.CheckTypeSize("char", expect = 1, language = "C++"):
@@ -472,7 +480,7 @@ the compiler statements and errors.
 
     d["NSOUND_64_32_BIT"] = "#define NSOUND_64_BIT 1"
 
-    if env['NS_DISABLE_64']:
+    if nsound_config.env['NS_DISABLE_64']:
 
         d["NSOUND_64_32_BIT"] = "#define NSOUND_32_BIT 1"
 
@@ -480,25 +488,25 @@ the compiler statements and errors.
         d["NSOUND_U_INT_64"] = d["NSOUND_U_INT_32"]
         d["NSOUND_FLOAT_64"] = d["NSOUND_FLOAT_32"]
 
-    if env['NS_ENDIAN_IS_LITTLE']:
+    if nsound_config.env['NS_ENDIAN_IS_LITTLE']:
         d["NSOUND_ENDIAN"] = "NSOUND_LITTLE_ENDIAN"
 
     else:
         d["NSOUND_ENDIAN"] = "NSOUND_BIG_ENDIAN"
 
-    if env['NS_HAVE_M_PI']:
+    if nsound_config.env['NS_HAVE_M_PI']:
         d["NSOUND_M_PI"] = "// M_PI is defined in math.h"
 
     else:
         d["NSOUND_M_PI"] = "// M_PI is _NOT_ defined in math.h\n"
         d["NSOUND_M_PI"] += "#define M_PI 3.1415926535897932846"
 
-    if env['NS_HAVE_LIBPORTAUDIO']:
+    if nsound_config.env['NS_HAVE_LIBPORTAUDIO']:
         d["NSOUND_LIBPORTAUDIO"] = "#define NSOUND_LIBPORTAUDIO 1"
     else:
         d["NSOUND_LIBPORTAUDIO"] = "#undef NSOUND_LIBPORTAUDIO // disabled"
 
-    if env['NS_HAVE_LIBAO']:
+    if nsound_config.env['NS_HAVE_LIBAO']:
         d["NSOUND_LIBAO"] = "#define NSOUND_LIBAO 1"
     else:
         d["NSOUND_LIBAO"] = "#undef NSOUND_LIBAO // disabled"
@@ -507,17 +515,17 @@ the compiler statements and errors.
 
     # Generate Nsound.h and Doxyfile.
 
-    nsound_h = env.AcGenerateFile(
+    nsound_h = nsound_config.env.AcGenerateFile(
         'src/Nsound/Nsound.h',
         'src/Nsound/Nsound.h.in',
         AC_GEN_DICT = d)
 
-    doxyfile = env.AcGenerateFile(
+    doxyfile = nsound_config.env.AcGenerateFile(
         'docs/reference/Doxyfile',
         'docs/reference/Doxyfile.in',
         AC_GEN_DICT = d)
 
-    env.Default(nsound_h)
+    nsound_config.env.Default(nsound_h)
 
 #-----------------------------------------------------------------------------
 # include libNsound sources
@@ -541,55 +549,54 @@ if not nsound_config.env.GetOption("help"):
     #--------------------------------------------------------------------------
     # Extra Cleaning
 
-    env = nsound_config.env
-
-    env.Clean(libNsound, "Nsound.py")
-    env.Clean(libNsound, "swig/Nsound.py")
-    env.Clean(libNsound, "bin")
-    env.Clean(libNsound, "build")
-    env.Clean(libNsound, "dist")
-    env.Clean(libNsound, "docs/user_guide/build/doctrees")
-    env.Clean(libNsound, "docs/user_guide/build/html")
-    env.Clean(libNsound, "docs/user_guide/build/plot_directive")
-    env.Clean(libNsound, "lib")
-    env.Clean(libNsound, "swig/nsound_wrap.cxx")
-    env.Clean(libNsound, "swig/nsound_wrap.os")
-    env.Clean(libNsound, doxyfile)
-    env.Clean(libNsound, glob.glob("docs/user_guide/source/_static/*.mp3"))
-    env.Clean(libNsound, glob.glob("docs/user_guide/source/_static/*.wav"))
-    env.Clean(libNsound, glob.glob("example*.wav"))
-    env.Clean(libNsound, glob.glob("nsound-*.tar.gz"))
-    env.Clean(libNsound, glob.glob("nsound-*.zip"))
-    env.Clean(libNsound, glob.glob("src/examples/Temperature_*_Shifted_*.wav"))
-    env.Clean(libNsound, glob.glob("src/examples/Temperature_out.wav"))
-    env.Clean(libNsound, glob.glob("src/examples/example*.wav"))
-    env.Clean(libNsound, glob.glob("src/examples/mynameis-*.wav"))
-    env.Clean(libNsound, glob.glob("src/test/*.wav"))
-    env.Clean(libNsound, nsound_h)
-    env.Clean(libNsound, setup_builder_py)
-    env.Clean(libNsound, unit_tests)
+    nsound_config.env.Clean(libNsound, "Nsound.py")
+    nsound_config.env.Clean(libNsound, "swig/Nsound.py")
+    nsound_config.env.Clean(libNsound, "bin")
+    nsound_config.env.Clean(libNsound, "build")
+    nsound_config.env.Clean(libNsound, "dist")
+    nsound_config.env.Clean(libNsound, "docs/user_guide/build/doctrees")
+    nsound_config.env.Clean(libNsound, "docs/user_guide/build/html")
+    nsound_config.env.Clean(libNsound, "docs/user_guide/build/plot_directive")
+    nsound_config.env.Clean(libNsound, "lib")
+    nsound_config.env.Clean(libNsound, "swig/nsound_wrap.cxx")
+    nsound_config.env.Clean(libNsound, "swig/nsound_wrap.os")
+    nsound_config.env.Clean(libNsound, doxyfile)
+    nsound_config.env.Clean(libNsound, glob.glob("docs/user_guide/source/_static/*.mp3"))
+    nsound_config.env.Clean(libNsound, glob.glob("docs/user_guide/source/_static/*.wav"))
+    nsound_config.env.Clean(libNsound, glob.glob("example*.wav"))
+    nsound_config.env.Clean(libNsound, glob.glob("nsound-*.tar.gz"))
+    nsound_config.env.Clean(libNsound, glob.glob("nsound-*.zip"))
+    nsound_config.env.Clean(libNsound, glob.glob("src/examples/Temperature_*_Shifted_*.wav"))
+    nsound_config.env.Clean(libNsound, glob.glob("src/examples/Temperature_out.wav"))
+    nsound_config.env.Clean(libNsound, glob.glob("src/examples/example*.wav"))
+    nsound_config.env.Clean(libNsound, glob.glob("src/examples/mynameis-*.wav"))
+    nsound_config.env.Clean(libNsound, glob.glob("src/test/*.wav"))
+    nsound_config.env.Clean(libNsound, glob.glob("src/test/*.obj"))
+    nsound_config.env.Clean(libNsound, nsound_h)
+    nsound_config.env.Clean(libNsound, setup_builder_py)
+    nsound_config.env.Clean(libNsound, unit_tests)
 
     # The conditional compiled objects aren't cleaned by default, I'll have to
     # fix this in the future.
 
-    env.Clean(libNsound, glob.glob("src/Nsound/AudioBackendLibao.os"))
-    env.Clean(libNsound, glob.glob("src/Nsound/AudioBackendLibportaudio.os"))
-    env.Clean(libNsound, glob.glob("src/Nsound/CudaUtils.os"))
-    env.Clean(libNsound, glob.glob("src/Nsound/StretcherCuda.os"))
+    nsound_config.env.Clean(libNsound, glob.glob("src/Nsound/AudioBackendLibao.os"))
+    nsound_config.env.Clean(libNsound, glob.glob("src/Nsound/AudioBackendLibportaudio.os"))
+    nsound_config.env.Clean(libNsound, glob.glob("src/Nsound/CudaUtils.os"))
+    nsound_config.env.Clean(libNsound, glob.glob("src/Nsound/StretcherCuda.os"))
 
     #--------------------------------------------------------------------------
     # Aliases
 
-    env.Alias("reference", nsound_h)
-    env.Alias("reference", doxyfile)
+    nsound_config.env.Alias("reference", nsound_h)
+    nsound_config.env.Alias("reference", doxyfile)
 
-    env.Alias("lib", nsound_h)
-    env.Alias("lib", libNsound)
+    nsound_config.env.Alias("lib", nsound_h)
+    nsound_config.env.Alias("lib", libNsound)
 
-    env.Alias("test", nsound_h)
-    env.Alias("test", unit_tests)
+    nsound_config.env.Alias("test", nsound_h)
+    nsound_config.env.Alias("test", unit_tests)
 
-    env.Alias("install", [env['NS_BINDIR'], env['NS_LIBDIR']])
+    nsound_config.env.Alias("install", [nsound_config.env['NS_BINDIR'], nsound_config.env['NS_LIBDIR']])
 
     #--------------------------------------------------------------------------
     # Setup Tar and Zip
@@ -627,15 +634,15 @@ if not nsound_config.env.GetOption("help"):
 
     if 'release' in COMMAND_LINE_TARGETS:
         if(use_disttar):
-            env['DISTTAR_FORMAT']='gz'
+            nsound_config.env['DISTTAR_FORMAT']='gz'
 
-            env.Append(\
+            nsound_config.env.Append(\
                 DISTTAR_EXCLUDE_EXTS = EXCLUDE_EXTENSIONS,
                 DISTTAR_EXCLUDE_DIRS = EXCLUDE_DIRS)
 
-            tar = env.DistTar(PACKAGE_RELEASE + ".tar.gz", [env.Dir(".")])
+            tar = env.DistTar(PACKAGE_RELEASE + ".tar.gz", [nsound_config.env.Dir(".")])
 
-            env.Alias("release", tar)
+            nsound_config.env.Alias("release", tar)
 
 
 # :mode=python:

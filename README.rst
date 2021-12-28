@@ -1,5 +1,13 @@
-.. image:: https://github.com/weegreenblobbie/nsound/workflows/C%2B%2B%20CI/badge.svg
-   :target: https://github.com/weegreenblobbie/nsound/actions?query=workflow%3A%22C%2B%2B+CI%22
+.. image:: https://github.com/weegreenblobbie/nsound/workflows/linux/badge.svg
+   :target: https://github.com/weegreenblobbie/nsound/actions?query=workflow%3Alinux
+   :alt: Github Actions
+
+.. image:: https://github.com/weegreenblobbie/nsound/workflows/macos/badge.svg
+   :target: https://github.com/weegreenblobbie/nsound/actions?query=workflow%3Amacos
+   :alt: Github Actions
+
+.. image:: https://github.com/weegreenblobbie/nsound/workflows/windows/badge.svg
+   :target: https://github.com/weegreenblobbie/nsound/actions?query=workflow%3Awindows
    :alt: Github Actions
 
 Nsound, a C++ framework for synthesizing sound

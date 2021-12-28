@@ -198,7 +198,7 @@ def main():
     if len(data) < width:
         # pad with zeros
         n = width - len(data)
-        for i in xrange(n):
+        for i in range(n):
             data << 0
 
     # frame 0

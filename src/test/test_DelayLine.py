@@ -40,7 +40,7 @@ class Test(unittest.TestCase):
 
         data = []
 
-        for i in xrange(10):
+        for i in range(10):
 
             x = dl.read()
 

@@ -63,8 +63,7 @@ class Test(unittest.TestCase):
         self.assertEqual(False, info.is_streaming)
 
         # write 1/2 buffer size to pb
-
-        for i in xrange(N / 2):
+        for i in range(N // 2):
             pb.play(0)
 
         info = pb.get_debug_info()
@@ -77,7 +76,7 @@ class Test(unittest.TestCase):
 
         # write 2/2 buffer size to pb
 
-        for i in xrange(N / 2):
+        for i in range(N // 2):
             pb.play(0)
 
         time.sleep(0.2)
@@ -103,7 +102,7 @@ class Test(unittest.TestCase):
         self.assertEqual(1, info.n_ready)
         self.assertEqual(False, info.is_streaming)
 
-        for i in xrange(N - 2):
+        for i in range(N - 2):
             pb.play(0)
 
         time.sleep(0.2)
@@ -142,7 +141,7 @@ class Test(unittest.TestCase):
         self.assertEqual(2, info.n_ready)
         self.assertEqual(False, info.is_streaming)
 
-        for i in xrange(N):
+        for i in range(N):
             pb.play(0)
 
         time.sleep(0.2)
@@ -157,7 +156,7 @@ class Test(unittest.TestCase):
 
         # playing starts
 
-        for i in xrange(N):
+        for i in range(N):
             pb.play(0)
 
         time.sleep(0.4)
@@ -213,7 +212,7 @@ class Test(unittest.TestCase):
 
         # Play some samples
 
-        for i in xrange( 10 * N):
+        for i in range( 10 * N):
             pb.play(0)
 
         # Note: not sleepping, trying to capture n_ready from 10 to 0
@@ -225,7 +224,7 @@ class Test(unittest.TestCase):
 
         x = set()
 
-        for i in xrange(1 << 10):
+        for i in range(1 << 10):
             pb.play(0)
             info = pb.get_debug_info()
             if info.is_streaming: break

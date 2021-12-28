@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-import cPickle as pickle
+import pickle
 import os
 import unittest
 
@@ -96,7 +96,7 @@ class Test(unittest.TestCase):
         a1 = ns.AudioStream(100, 1)
         b1 = ns.Buffer()
 
-        for i in xrange(10):
+        for i in range(10):
             a1 << i
             b1 << i
 
@@ -117,7 +117,7 @@ class Test(unittest.TestCase):
 
         a1 = ns.AudioStream(100, 1)
 
-        for i in xrange(10):
+        for i in range(10):
             a1 << i
 
         a2 = ns.AudioStream(a1)
@@ -138,14 +138,14 @@ class Test(unittest.TestCase):
         a1 = ns.AudioStream(100, 1)
         a2 = ns.AudioStream(100, 1)
 
-        for i in xrange(10):
+        for i in range(10):
             a1 << i
             a2 << i
 
         size = a1[0].getLength()
 
         try:
-            for i in xrange(size):
+            for i in range(size):
                 self.assertAlmostEqual(a1[0][i], a2[0][i], self.GAMMA)
 
         except:
@@ -158,7 +158,7 @@ class Test(unittest.TestCase):
         a1 = ns.AudioStream(100, 1)
         a2 = ns.AudioStream(100, 1)
 
-        for i in xrange(10):
+        for i in range(10):
             a1 << i + 1
             a2 << i + 1
 
@@ -168,7 +168,7 @@ class Test(unittest.TestCase):
         t1 = 2.0 / a1
         t2 = 4.0 * (0.5 / a2)
 
-        for i in xrange(t1[0].getLength()):
+        for i in range(t1[0].getLength()):
             self.assertAlmostEqual(t1[0][i], t2[0][i], self.GAMMA)
 
         a1 = -1.0 * a2
@@ -187,7 +187,7 @@ class Test(unittest.TestCase):
 
         neg = -1.0
         sum_ = 1.0
-        for i in xrange(100):
+        for i in range(100):
             sum_ *= neg
             a1 << sum_
 
@@ -200,14 +200,14 @@ class Test(unittest.TestCase):
 
         a1 = ns.AudioStream(100, 2)
 
-        for f in xrange(100):
+        for f in range(100):
             a1 << f
 
         a1.reverse()
 
         for buf in a1:
             index = 0;
-            for f in xrange(99, -1, -1):
+            for f in range(99, -1, -1):
                 self.assertAlmostEqual(float(f), buf[index], self.GAMMA)
                 index += 1
 
@@ -241,7 +241,7 @@ class Test(unittest.TestCase):
 
         test_size = (chunk + 10) / 100.0
 
-        for i in xrange(10):
+        for i in range(10):
 
             substream = a1.substream(i/100.0, test_size)
 
@@ -249,12 +249,12 @@ class Test(unittest.TestCase):
 
         substream = a1.substream(0, 0.10)
 
-        for i in xrange(10):
+        for i in range(10):
             self.assertAlmostEqual(i, substream[0][i], self.GAMMA)
 
         substream = a1.substream(0.031, 0.031)
 
-        for i in xrange(3):
+        for i in range(3):
             self.assertAlmostEqual(i + 3, substream[0][i])
 
         substream = a1.substream(3.1/100.0)
@@ -265,7 +265,7 @@ class Test(unittest.TestCase):
 
         self.assertEqual(a1[0].getLength(), substream[0].getLength())
 
-        for i in xrange(10):
+        for i in range(10):
             self.assertAlmostEqual(i, substream[0][i], self.GAMMA)
 
         substream = a1.substream(5.1/100.0,5.1/100.0)
@@ -294,16 +294,16 @@ class Test(unittest.TestCase):
 
         self.assertEqual(a2[0].getLength(), result[0].getLength())
 
-        for i in xrange(a1[0].getLength()):
+        for i in range(a1[0].getLength()):
             self.assertAlmostEqual(6.0, result[0][i])
 
-        for i in xrange(a1[0].getLength(), result[0].getLength()):
+        for i in range(a1[0].getLength(), result[0].getLength()):
             self.assertAlmostEqual(3.0, result[0][i], self.GAMMA)
 
     def test_11(self):
         "AudioStream slices ..."
 
-        print "\n"
+        print("\n")
 
         sine = ns.Sine(100)
 
@@ -346,16 +346,16 @@ class Test(unittest.TestCase):
 
         fn = 'audio_stream.pkl'
 
-        with open(fn, 'w') as fd:
+        with open(fn, 'wb') as fd:
             pickle.dump(as1, fd)
 
-        with open(fn, 'r') as fd:
+        with open(fn, 'rb') as fd:
             obj = pickle.load(fd)
 
         self.assertEqual(2, int(obj.getSampleRate()))
         self.assertEqual(2, obj.getNChannels())
 
-        for i in xrange(2):
+        for i in range(2):
             data = obj[i].toList()
             np.testing.assert_almost_equal(gold, data)
 

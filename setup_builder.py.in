@@ -83,12 +83,12 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
-description = """\
-    Nsound is a C++ library and Python module for audio synthesis
-    featuring dynamic digital filters. Nsound lets you easily shape
-    waveforms and write to disk or plot them. Nsound aims to be as
-    powerful as Csound but easy to use.
-"""
+description = (
+    "Nsound is a C++ library and Python module for audio synthesis featuring "
+    "dynamic digital filters. Nsound lets you easily shape waveforms and write "
+    "to disk or plot them. Nsound aims to be as powerful as Csound but easy to "
+    "use."
+)
 
 nsound_module = Extension(
     '_Nsound',

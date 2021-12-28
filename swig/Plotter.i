@@ -30,40 +30,16 @@
 %feature("shadow") Nsound::Plotter::_swig_shadow()
 %{
 
+#------------------------------------------------------------------------------
+# from swig/Plotter.i
+#
 def show():
     try:
         matplotlib.pylab.show()
     except:
-
-        # If NSOUND_C_PYLAB doesn't exist, then matplotlib wasn't compiled in
-        if not 'NSOUND_C_PYLAB' in dir():
-            warnings.warn("Nsound wan't compiled with matplotlib")
-
         pass
 
 show = staticmethod(show)
-%}
-
-//-----------------------------------------------------------------------------
-// Injected AudioPlaybackRt python code
-
-%feature("shadow") Nsound::AudioPlaybackRt::swig_hook()
-%{
-
-#------------------------------------------------------------------------------
-# from swig/shadowed.i
-#
-def __lshift__(self, rhs):
-    self.play(rhs)
-
-def __rshift__(self, rhs):
-    self.play(rhs)
-
-def __str__(self):
-    return "Nsound.AudioPlaybackRt(): %s\n%s" % (self.getInfo(), self.debug_print())
-
-__repr__ = __str__
-
 #
 #------------------------------------------------------------------------------
 

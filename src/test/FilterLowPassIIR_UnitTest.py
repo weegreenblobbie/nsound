@@ -47,9 +47,9 @@ def plot_diff(b1, b2, title1, title2):
 ###############################################################################
 def FilterLowPassIIR_UnitTest():
 
-    print ""
-    print "%s" % THIS_FILE
-    print ""
+    print("")
+    print("%s" % THIS_FILE)
+    print("")
 
     Wavefile.setDefaultSampleSize(48)
 
@@ -82,7 +82,7 @@ def FilterLowPassIIR_UnitTest():
 
         raise ValueError
 
-    print " SUCCESS"
+    print(" SUCCESS")
 
     ###########################################################################
     sys.stdout.write("Testing FilterLowPassIIR::filter(input, freqs) ...")
@@ -109,7 +109,7 @@ def FilterLowPassIIR_UnitTest():
 
         raise ValueError
 
-    print " SUCCESS"
+    print(" SUCCESS")
 
     ###########################################################################
     # Repeat to test that reset() is being called.
@@ -133,7 +133,7 @@ def FilterLowPassIIR_UnitTest():
 
         raise ValueError
 
-    print " SUCCESS"
+    print(" SUCCESS")
 
     ###########################################################################
     # Repeat to test that reset() is being called.
@@ -159,5 +159,5 @@ def FilterLowPassIIR_UnitTest():
 
         raise ValueError
 
-    print " SUCCESS"
+    print(" SUCCESS")
 

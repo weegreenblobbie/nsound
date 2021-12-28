@@ -60,12 +60,12 @@ def do_subst_in_file(targetfile, sourcefile, sub_dict):
 
 def subst_in_file(target, source, env):
 
-	if not env.has_key('AC_GEN_DICT'):
+	if 'AC_GEN_DICT' not in env:
 		raise SCons.Errors.UserError("AcGenerateFile requires AC_GEN_DICT to be set.")
 
 	d = dict(env['AC_GEN_DICT']) # copy it
 
-	for (k,v) in d.items():
+	for k, v in d.items():
 
 		if callable(v):
 			d[k] = env.subst(v())
@@ -76,7 +76,7 @@ def subst_in_file(target, source, env):
 		else:
 			raise SCons.Errors.UserError("AcGenerateFile: key %s: %s must be a string or callable"%(k, repr(v)))
 
-	for (t,s) in zip(target, source):
+	for t, s in zip(target, source):
 		return do_subst_in_file(str(t), str(s), d)
 
 
@@ -85,7 +85,7 @@ def subst_in_file_string(target, source, env):
 	This is what gets printed on the console.
 	"""
 	return '\n'.join(['Generating %s from %s' % (str(t), str(s))
-		for (t,s) in zip(target, source)])
+		for t, s in zip(target, source)])
 
 
 def emitter(target, source, env):
@@ -96,7 +96,7 @@ def emitter(target, source, env):
 
 	d = env['AC_GEN_DICT'].copy() # copy it
 
-	for (k,v) in d.items():
+	for k, v in d.items():
 
 		if callable(v):
 			d[k] = env.subst(v())

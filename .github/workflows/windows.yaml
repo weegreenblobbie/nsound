@@ -1,4 +1,4 @@
-name: C++ CI
+name: windows
 
 on:
   push:
@@ -7,19 +7,25 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
 
-    runs-on: ubuntu-latest
+  windows:
+
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v2
       name: Checkout source
+    - uses: actions/setup-python@v2
+      name: Install Python
     - name: Install dependencies
       run: |
-        sudo apt-get update && sudo apt-get -y install scons portaudio19-dev libao-dev
+        pip3 install matplotlib scons 
     - name: Build nsound
       run: |
         scons
     - name: Run unit tests
       run: |
         scons --unit-test
+    - name: Run python tests
+      run: |
+        scons --pytest --disable-libportaudio --config=force

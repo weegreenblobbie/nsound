@@ -52,21 +52,24 @@
         {
             for(std::size_t i = 0; i < size; ++i)
             {
-                ss << $self->operator[](i) << ", ";
+                auto index = static_cast<int>(i);
+                ss << $self->operator[](index) << ", ";
             }
         }
         else
         {
             for(std::size_t i = 0; i < N; ++i)
             {
-                ss << $self->operator[](i) << ", ";
+                auto index = static_cast<int>(i);
+                ss << $self->operator[](index) << ", ";
             }
 
             ss << "... ";
 
             for(std::size_t i = size - N; i < size; ++i)
             {
-                ss << $self->operator[](i) << ", ";
+                auto index = static_cast<int>(i);
+                ss << $self->operator[](index) << ", ";
             }
         }
 
@@ -105,36 +108,16 @@ def __add__(self, rhs):
     temp += rhs
     return temp
 
-
-def __sub__(self, rhs):
-    temp = Buffer(self)
-    temp -= rhs
-    return temp
-
-
-def __div__(self, rhs):
-    temp = Buffer(self)
-    temp /= rhs
-    return temp
-
-
-def __mul__(self, rhs):
-    temp = Buffer(self)
-    temp *= rhs
-    return temp
-
-
 def __radd__(self, lhs):
     temp = Buffer(self)
     temp += lhs
     return temp
 
 
-def __rmul__(self, lhs):
+def __sub__(self, rhs):
     temp = Buffer(self)
-    temp *= lhs
+    temp -= rhs
     return temp
-
 
 def __rsub__(self, lhs):
     temp = Buffer(self) * -1.0
@@ -142,16 +125,30 @@ def __rsub__(self, lhs):
     return temp
 
 
-def __rdiv__(self, lhs):
+def __truediv__(self, rhs):
+    return _Nsound.__truediv__(self, rhs)
+
+def __rtruediv__(self, lhs):
+    return _Nsound.__truediv__(lhs, self)
+
+
+def __mul__(self, rhs):
     temp = Buffer(self)
-    for i in range(temp.getLength()):
-
-        if abs(self[i]) > 0.0:
-            temp[i] = lhs / self[i]
-        else:
-            temp[i] = lhs / 1e-20
-
+    temp *= rhs
     return temp
+
+def __rmul__(self, lhs):
+    temp = Buffer(self)
+    temp *= lhs
+    return temp
+
+
+def __pow__(self, power):
+    return _Nsound.__xor__(self, power)
+
+def __ipow__(self, power):
+    self = _Nsound.__xor__(self, power)
+    return self
 
 
 def __ilshift__(self, rhs):
@@ -230,7 +227,7 @@ def __getitem__(self,i):
 
         b = Buffer()
 
-        for index in xrange(*i.indices(_Nsound.Buffer_getLength(self))):
+        for index in range(*i.indices(_Nsound.Buffer_getLength(self))):
             b << _Nsound.Buffer__get_at_index(self, index)
 
         return b
@@ -259,16 +256,6 @@ def __setitem__(self,i, d):
     else:
         raise TypeError("Expecting index type int, but got %s" %(type(i)))
 
-
-def __pow__(self, power):
-    return _Nsound.__xor__(self, power)
-
-
-def __ipow__(self, power):
-    self = _Nsound.__xor__(self, power)
-    return self
-
-
 def __repr__(self):
     return "Nsound.Buffer holding %d samples" % self.getLength()
 
@@ -285,11 +272,11 @@ def __getstate__(self):
     '''
     return _Nsound.Buffer_write(self)
 
+
 def __setstate__(self, s):
     '''
-    Reads the binary string.
+    Reads the binary string and returns a Buffer.
     '''
-
     self.__init__()
     _Nsound.Buffer_read(self, s)
 

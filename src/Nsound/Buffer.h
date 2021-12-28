@@ -1614,29 +1614,27 @@ class Buffer
     BufferSelection
     select(const uint32 start_index, const uint32 stop_index);
 
-    #ifndef SWIG
     //! Serializes the Buffer to output stream, no endian checks.
     //
     //! \param out the std::ostream to write bytes to
     //
     std::ostream &
     write(std::ostream & out) const;
-    #endif
 
-    std::string
+    bytearray
     write() const;
 
     #ifndef SWIG
-    //! Constructs a Buffer from seralized data in the inputstream.
-    //
-    //! \param in the std::istream to read bytes from
-    //
-    std::istream &
-    read(std::istream & stream_in);
+        //! Constructs a Buffer from seralized data in the inputstream.
+        //
+        //! \param in the std::istream to read bytes from
+        //
+        std::istream &
+        read(std::istream & stream_in);
     #endif
 
     void
-    read(const std::string & string_in);
+    read(const void * data, std::size_t size);
 
     //! Applies a moving average filter to smooth this Buffer.
     //
@@ -1889,17 +1887,29 @@ Buffer(std::initializer_list<float64> list) : data_(list.begin(), list.end()) {}
 template <>
 inline
 Buffer::
-Buffer(std::initializer_list<float32> list) : data_(list.begin(), list.end()) {}
+Buffer(std::initializer_list<float32> list)
+{
+    data_.reserve(list.size());
+    for (auto & x : list) data_.push_back(static_cast<float64>(x));
+}
 
 template <>
 inline
 Buffer::
-Buffer(std::initializer_list<int32> list) : data_(list.begin(), list.end()) {}
+Buffer(std::initializer_list<int32> list)
+{
+    data_.reserve(list.size());
+    for (auto & x : list) data_.push_back(static_cast<float64>(x));
+}
 
 template <>
 inline
 Buffer::
-Buffer(std::initializer_list<int64> list) : data_(list.begin(), list.end()) {}
+Buffer(std::initializer_list<int64> list)
+{
+    data_.reserve(list.size());
+    for (auto & x : list) data_.push_back(static_cast<float64>(x));
+}
 
 
 //-----------------------------------------------------------------------------

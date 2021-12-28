@@ -16,7 +16,7 @@ main(void)
     AudioStream input("Temperature_in.wav");
 
     // Grab the duration in seconds.
-    float32 duration = input.getDuration();
+    float64 duration = input.getDuration();
 
     // Create a low pass filter with a kernel of 256 terms.
     FilterLowPassFIR lpf(input.getSampleRate(), 256, 100);

@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-import cPickle as pickle
+import pickle
 import os
 import unittest
 
@@ -106,7 +106,7 @@ class Test(unittest.TestCase):
 
         size = b4.getLength()
 
-        for i in xrange(size):
+        for i in range(size):
 
             try:
                 self.assertAlmostEqual(b4[i], b3[i], self.GAMMA)
@@ -123,7 +123,7 @@ class Test(unittest.TestCase):
 
         b4 += b3
 
-        for i in xrange(b4.getLength()):
+        for i in range(b4.getLength()):
             self.assertAlmostEqual(b4[i], 0.0, self.GAMMA)
 
     def test_03(self):
@@ -135,7 +135,7 @@ class Test(unittest.TestCase):
 
         neg = -1.0
         sum_ = 1.0
-        for i in xrange(100):
+        for i in range(100):
             sum_ *= neg
             b << sum_
 
@@ -153,7 +153,7 @@ class Test(unittest.TestCase):
         gold = ns.Buffer()
         gold << 4.4 << 3.3 << 2.2 << 1.1
 
-        for i in xrange(b.getLength()):
+        for i in range(b.getLength()):
             self.assertAlmostEqual(gold[i], b[i], self.GAMMA)
 
     def test_05(self):
@@ -163,7 +163,7 @@ class Test(unittest.TestCase):
 
         chunk = 100
 
-        for i in xrange(chunk * 2 + 1):
+        for i in range(chunk * 2 + 1):
             b << i
 
         test_size = 99
@@ -196,7 +196,7 @@ class Test(unittest.TestCase):
 
         test_size = chunk + 10
 
-        for i in xrange(10):
+        for i in range(10):
 
             subbuf = b.subbuffer(i, test_size)
 
@@ -208,22 +208,22 @@ class Test(unittest.TestCase):
 
         subbuf = b.subbuffer(0,10)
 
-        for i in xrange(10):
+        for i in range(10):
             self.assertEqual(i, int(subbuf[i]))
 
         subbuf = b[0:10]
 
-        for i in xrange(10):
+        for i in range(10):
             self.assertEqual(i, int(subbuf[i]))
 
         subbuf = b.subbuffer(3,3)
 
-        for i in xrange(3):
+        for i in range(3):
             self.assertEqual(i + 3, int(subbuf[i]))
 
         subbuf = b[3:6]
 
-        for i in xrange(3):
+        for i in range(3):
             self.assertEqual(i + 3, int(subbuf[i]))
 
         subbuf = b.subbuffer(3)
@@ -234,7 +234,7 @@ class Test(unittest.TestCase):
 
         self.assertEqual(b.getLength(), subbuf.getLength())
 
-        for i in xrange(10):
+        for i in range(10):
             self.assertEqual(i, int(subbuf[i]))
 
         subbuf = b.subbuffer(5,5)
@@ -245,7 +245,7 @@ class Test(unittest.TestCase):
 
         self.assertEqual(5, subbuf.getLength())
 
-        for i in xrange(5):
+        for i in range(5):
             self.assertEqual(i + 5, int(subbuf[i]))
 
     def test_06(self):
@@ -270,10 +270,10 @@ class Test(unittest.TestCase):
 
         self.assertEqual(b2.getLength(), result.getLength())
 
-        for i in xrange(b1.getLength()):
+        for i in range(b1.getLength()):
             self.assertAlmostEqual(6.0, result[i], self.GAMMA)
 
-        for i in xrange(b1.getLength(), result.getLength()):
+        for i in range(b1.getLength(), result.getLength()):
             self.assertAlmostEqual(3.0, result[i], self.GAMMA)
 
     def test_07(self):
@@ -365,10 +365,10 @@ class Test(unittest.TestCase):
 
         fn = 'buffer.pkl'
 
-        with open(fn, 'w') as fd:
+        with open(fn, 'wb') as fd:
             pickle.dump(b1, fd)
 
-        with open(fn, 'r') as fd:
+        with open(fn, 'rb') as fd:
             obj = pickle.load(fd)
 
         data = obj.toList()
@@ -388,7 +388,7 @@ class Test(unittest.TestCase):
 
         b2 = ns.Buffer()
 
-        for i in xrange(10):
+        for i in range(10):
             b2 << float(c)
             c += 1
 
@@ -406,7 +406,7 @@ class Test(unittest.TestCase):
 
         b2 = ns.Buffer()
 
-        for i in xrange(10):
+        for i in range(10):
             c -= 1
 
             b2 << float(c)

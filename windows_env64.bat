@@ -7,10 +7,12 @@
 ::
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-set VS_DIR=C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC
-set PYTHON_DIR=C:\Python27
+set VS_DIR=C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build
+set PYTHON_DIR=C:\Python310
+set PYTHON_DLL_DIR=C:\Python310
 set SCONS_DIR=%PYTHON_DIR%\Scripts
-set SWIG_DIR=C:\swigwin-2.0.11
+set SWIG_DIR=C:\Users\weegr\bin
+set NSOUND_DIR=C:\Users\weegr\code\nsound
 
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :: Vistual Studio setup
@@ -47,23 +49,41 @@ set SWIG_DIR=C:\swigwin-2.0.11
 
 :PYTHON_SETUP
 
-    :: If you are using VS11+ (2012+), fool Python distutils and scons into
-    :: using it.
-
-    set VS110COMNTOOLS=%VS110COMNTOOLS%
-    set VS100COMNTOOLS=%VS110COMNTOOLS%
-    set VS90COMNTOOLS=%VS110COMNTOOLS%
-
     pushd "%PYTHON_DIR%"
 
     if %ERRORLEVEL% neq 0 goto PYTHON_DIR_NOT_FOUND
 
     if not exist python.exe goto PYTHON_EXE_NOT_FOUND
 
+    popd
+
+    pushd "%PYTHON_DLL_DIR%"
+
+    if %ERRORLEVEL% neq 0 goto PYTHON_DLL_DIR_NOT_FOUND
+
+    if not exist python*.dll goto PYTHON_DLL_NOT_FOUND
+
+:PYTHON_OK
+
     echo Adding %PYTHON_DIR% to the path
-    set PATH=%PYTHON_DIR%;%PATH%
+    set PATH=%PYTHON_DIR%;%PYTHON_DLL_DIR%;%PATH%
+    echo Adding %PYTHON_DIR%\Scripts to the path
+    set PATH=%PYTHON_DIR%\Scripts;%PATH%
 
     popd
+
+    pushd "%PYTHON_DIR%"
+
+    if not exist Scripts\activate.bat goto SCONS_SETUP
+
+    call Scripts\activate.bat
+
+    popd
+
+    echo Setting PYTHONPATH="%VIRTUAL_ENV%\Lib\site-packages"
+
+    set PYTHONPATH=%VIRTUAL_ENV%\Lib\site-packages
+    set PATH=%PYTHON_DIR%;%PYTHON_DLL_DIR%;%PATH%
 
     goto SCONS_SETUP
 
@@ -75,8 +95,19 @@ set SWIG_DIR=C:\swigwin-2.0.11
 
 :PYTHON_EXE_NOT_FOUND
 
+    pushd "%PYTHON_DIR%\Scripts"
+
+    if %ERRORLEVEL% equ 0 goto PYTHON_OK
+
     echo.
     echo ERROR: Could not find python.exe in %PYTHON_DIR%
+    echo WTF?
+    goto FAILURE
+
+:PYTHON_DLL_NOT_FOUND
+
+    echo.
+    echo ERROR: Could not find python*.dll in %PYTHON_DLL_DIR%
     echo WTF?
     goto FAILURE
 
@@ -90,6 +121,8 @@ set SWIG_DIR=C:\swigwin-2.0.11
     if %ERRORLEVEL% neq 0 goto SCONS_DIR_NOT_FOUND
 
     if not exist scons.bat goto SCONS_BAT_NOT_FOUND
+
+:SCONS_OK
 
     echo Adding %SCONS_DIR% to path
     set PATH=%SCONS_DIR%;%PATH%
@@ -105,8 +138,10 @@ set SWIG_DIR=C:\swigwin-2.0.11
 
 :SCONS_BAT_NOT_FOUND
 
+    if exist scons.exe goto SCONS_OK
+
     echo.
-    echo ERROR: Could not find scons.bat in %SCONS_DIR%
+    echo ERROR: Could not find scons.bat or scons.exe in %SCONS_DIR%
     echo WTF?
     goto FAILURE
 
@@ -152,4 +187,5 @@ set SWIG_DIR=C:\swigwin-2.0.11
     popd
 
 :ALL_DONE
+    cd %NSOUND_DIR%
 

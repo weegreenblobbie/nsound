@@ -1,0 +1,34 @@
+name: linux
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      name: Checkout source
+    - name: Install dependencies
+      run: |
+        sudo apt-get update && sudo apt-get -y install portaudio19-dev libao-dev python3-virtualenv
+        python3 -m venv venv
+        . venv/bin/activate
+        pip install matplotlib scons
+    - name: Build nsound
+      run: |
+        . venv/bin/activate
+        scons
+    - name: Run unit tests
+      run: |
+        . venv/bin/activate
+        scons --unit-test
+    - name: Run python tests
+      run: |
+        . venv/bin/activate
+        scons --disable-libportaudio --pytest
