@@ -32,8 +32,15 @@
 #include <Nsound/FFTransform.h>
 #include <Nsound/Generator.h>
 #include <Nsound/Plotter.h>
-
-//#include <numpy/arrayobject.h>
+#ifdef NSOUND_C_PYLAB
+    // Reference:
+    //     https://github.com/pa12g10/ImpliedVolatilityEngine/blob/017c832cc47fe8ef7c11ca451184a540aecb5cee/boost_1_69_0/boost/python/numpy/internal.hpp#L27
+    #define PY_ARRAY_UNIQUE_SYMBOL NSOUND_NUMPY_ARRAY_API
+    #define PY_UFUNC_UNIQUE_SYMBOL NSOUND_UFUNC_ARRAY_API
+    #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+    #include <numpy/arrayobject.h>
+    #include <numpy/ufuncobject.h>
+#endif
 
 #include <iostream>
 #include <sstream>
@@ -43,7 +50,7 @@ using namespace Nsound;
 using std::cout;
 using std::cerr;
 
-Plotter::PylabTable Plotter::table_;
+Plotter::PyPlotTable Plotter::table_;
 
 #define PRINT_LINE __FILE__ << ":" << __LINE__ << ": "
 
@@ -51,7 +58,6 @@ Plotter::PylabTable Plotter::table_;
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 Plotter::PlotterState Nsound::Plotter::state_ = Plotter::BOOTING;
-boolean Plotter::hold_is_on_ = false;
 boolean Plotter::grid_is_on_ = true;
 
 float64 Plotter::xmin_ =  1e300;
@@ -61,11 +67,8 @@ float64 Plotter::ymax_ = -1e300;
 
 int32 Plotter::count_ = 0;
 
-// Statically allocate one plotter object so show() works propperly.
-static Plotter g_plotter;
-
 #ifndef NSOUND_PLATFORM_OS_WINDOWS
-	#pragma GCC diagnostic ignored "-Wold-style-cast"
+    #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
 //-----------------------------------------------------------------------------
@@ -94,20 +97,36 @@ operator=(const Axes & rhs)
     return *this;
 }
 
-#define M_CHECK_PY_PTR_RETURN( a, msg ) \
-	if( PyErr_Occurred() || (a) == NULL) \
-	{                                   \
-		PyErr_Print();                  \
-		M_THROW( msg );                 \
-		return;                         \
-	}
+#define M_CHECK_PY_PTR_RETURN( a, msg )     \
+    if( PyErr_Occurred() || (a) == nullptr) \
+    {                                       \
+        PyErr_Print();                      \
+        PyErr_SetString(                    \
+            PyExc_ImportError,              \
+            std::string(msg).c_str()        \
+        );                                  \
+        return;                             \
+    }
 
-#define M_CHECK_PY_PTR( a, msg ) \
-	if( PyErr_Occurred() || (a) == NULL) \
-	{                            \
-		PyErr_Print();           \
-		M_THROW( msg );          \
-	}
+#define M_CHECK_PY_PTR( a, msg )            \
+    if( PyErr_Occurred() || (a) == nullptr) \
+    {                                       \
+        PyErr_Print();                      \
+        PyErr_SetString(                    \
+            PyExc_ImportError,              \
+            std::string(msg).c_str()        \
+        );                                  \
+    }
+
+bool import_numpy_success()
+{
+    // Reference:
+    //     https://github.com/pa12g10/ImpliedVolatilityEngine/blob/017c832cc47fe8ef7c11ca451184a540aecb5cee/boost_1_69_0/libs/python/src/numpy/numpy.cpp#L29
+    import_array1(false);
+    import_ufunc();
+    return true;
+}
+
 
 //-----------------------------------------------------------------------------
 Plotter::
@@ -122,93 +141,98 @@ Plotter()
             return;
         }
 
-        #ifndef NSOUND_IN_PYTHON_MODULE
+        Py_Initialize();
 
-            Py_Initialize();
+        M_CHECK_PY_PTR_RETURN(this, "Py_Initialize() failed");
 
-            // Initialize/import the Numeric::arrayobject module
-//            import_array();
-
-            if(PyErr_Occurred())
-            {
-                PyErr_Print();
-                M_THROW("Py_Initialize() failed");
-                return;
-            }
-
-        #endif
+        //---------------------------------------------------------------------
+        // Initialize numpy.
+        //     https://docs.scipy.org/doc/numpy-1.10.1/reference/c-api.array.html#miscellaneous
+        if (! import_numpy_success()) return;
 
         //---------------------------------------------------------------------
         // importing modules
 
         PyObject * matplotlib = PyImport_ImportModule("matplotlib");
 
+        // Try to handle virtual env if PYTHONPATH isn't set.
+        if (PyErr_Occurred() || matplotlib == nullptr)
+        {
+            // Try to read VIRTUAL_ENV if it exists.
+            if (const char * venv_ptr = std::getenv("VIRTUAL_ENV"))
+            {
+                fprintf(
+                    stderr,
+                    "Failed to import matplotlib, try setting PYTHONPATH="
+                    "%%VIRTUAL_ENV%%\\Lib\\site-packages\n"
+                );
+                fflush(stderr);
+            }
+        }
+
         M_CHECK_PY_PTR_RETURN( matplotlib, "import matplotlib failed." );
 
-        PyObject * pylab = PyImport_ImportModule("matplotlib.pylab");
+        PyObject * pyplot = PyImport_ImportModule("matplotlib.pyplot");
 
-        M_CHECK_PY_PTR_RETURN( pylab, "import matplotlib.pylab failed." );
+        M_CHECK_PY_PTR_RETURN( pyplot, "import matplotlib.pyplot failed." );
 
         Py_DECREF(matplotlib);
 
         //---------------------------------------------------------------------
-        // Grabbing pylab's funciton dictionary
+        // Grabbing pyplot's funciton dictionary
 
-        PyObject * pylab_dict = PyModule_GetDict(pylab);
+        PyObject * pyplot_dict = PyModule_GetDict(pyplot);
 
-        M_CHECK_PY_PTR_RETURN( pylab_dict, "dir(pylab) failed" );
+        M_CHECK_PY_PTR_RETURN( pyplot_dict, "dir(pyplot) failed" );
 
-        table_.insert(StringPyObjectPair("pylab", pylab_dict));
+        table_.insert(StringPyObjectPair("pyplot", pyplot_dict));
 
-        Py_DECREF(pylab);
+        Py_DECREF(pyplot);
 
-        std::vector< std::string > functions;
+        const std::vector<std::string> functions = {
+            "axhline",
+            "axis",
+            "axvline",
+            "close",
+            "figure",
+            "gca",
+            "imshow",
+            "legend",
+            "plot",
+            "show",
+            "subplot",
+            "text",
+            "title",
+            "xlabel",
+            "xlim",
+            "ylabel",
+            "ylim",
+        };
 
-        functions.push_back("axhline");
-        functions.push_back("axis");
-        functions.push_back("axvline");
-        functions.push_back("close");
-        functions.push_back("detrend");
-        functions.push_back("figure");
-        functions.push_back("gca");
-        functions.push_back("hold");
-        functions.push_back("imshow");
-        functions.push_back("legend");
-        functions.push_back("plot");
-        functions.push_back("show");
-        functions.push_back("subplot");
-        functions.push_back("text");
-        functions.push_back("title");
-        functions.push_back("window_hanning");
-        functions.push_back("xlabel");
-        functions.push_back("xlim");
-        functions.push_back("ylabel");
-        functions.push_back("ylim");
+        const auto N_FUNCTIONS = functions.size();
 
-        const uint32 N_FUNCTIONS = static_cast<uint32>(functions.size());
-
-        for(uint32 i = 0; i < N_FUNCTIONS; ++i)
+        for(auto i = 0; i < N_FUNCTIONS; ++i)
         {
             PyObject * func = PyDict_GetItemString(
-            	pylab_dict, functions[i].c_str());
+                pyplot_dict, functions[i].c_str());
 
             M_CHECK_PY_PTR_RETURN(
-                func, "PyDict_GetItemString('" << functions[i] << "') failed");
+                func, "PyDict_GetItemString('" + functions[i] + "') failed");
 
             if(! PyCallable_Check(func))
             {
-                M_THROW("pylab." << functions[i] << " isn't callable?!");
+                M_THROW("pyplot." + functions[i] + " isn't callable?!");
             }
 
             table_.insert(
-                StringPyObjectPair("pylab." + functions[i], func));
+                StringPyObjectPair("pyplot." + functions[i], func));
         }
 
         // Globals
 
         PyObject * __main__ = PyImport_ImportModule("__main__");
 
-        M_CHECK_PY_PTR_RETURN(__main__, "PyImport_ImportModule() failed");
+        M_CHECK_PY_PTR_RETURN(__main__, "PyImport_ImportModule(__main__) failed");
 
         PyObject * globals = PyModule_GetDict(__main__);
 
@@ -218,10 +242,9 @@ Plotter()
 
         Py_DECREF(__main__);
 
-        run_string("import matplotlib.pylab as _pylab_nsound_");
+        run_string("import matplotlib.pyplot as _pyplot_nsound_");
 
         Plotter::state_ = INITALIZED;
-
     #endif
 }
 
@@ -258,17 +281,17 @@ show()
             return;
         }
 
-        // Call pylab.show()
+        // Call pyplot.show()
 
-        PyObject * ret = PyObject_CallObject(table_["pylab.show"], NULL);
+        PyObject * ret = PyObject_CallObject(table_["pyplot.show"], nullptr);
 
-        M_CHECK_PY_PTR_RETURN(ret, "pylab.show() failed");
+        M_CHECK_PY_PTR_RETURN(ret, "pyplot.show() failed");
 
         Py_DECREF(ret);
 
     #else
-        // This function is overwridden in the Python module,
-        // See the file shadowed.i for how this is implemented in Python module
+        // This function is overwridden in the Python module, see the file
+        // swig\plotter.i for how this is implemented in Python module.
 
         #ifndef NSOUND_IN_PYTHON_MODULE
 
@@ -299,7 +322,7 @@ _make_kwargs(const std::string & kwargs) const
 
         ss << "dict(" << kwargs << ")\n";
 
-        PyCodeObject * code = (PyCodeObject*) Py_CompileString(
+        PyObject * code = Py_CompileString(
             ss.str().c_str(), "Plotter.cc", Py_eval_input);
 
         M_CHECK_PY_PTR(code, "Py_CompileString() failed");
@@ -315,11 +338,11 @@ _make_kwargs(const std::string & kwargs) const
         Py_DECREF(code);
         Py_DECREF(locals);
 
-		return kwdict;
+        return kwdict;
 
     #endif
 
-    return NULL;
+    return nullptr;
 }
 
 void
@@ -341,12 +364,12 @@ axhline(
 
         PyObject * kw_args = _make_kwargs(kwargs);
 
-        PyObject * ret = PyObject_Call(table_["pylab.axhline"], args, kw_args);
+        PyObject * ret = PyObject_Call(table_["pyplot.axhline"], args, kw_args);
 
         Py_DECREF(args);
         Py_XDECREF(kw_args);
 
-        M_CHECK_PY_PTR_RETURN(ret, "pylab.axhline() failed");
+        M_CHECK_PY_PTR_RETURN(ret, "pyplot.axhline() failed");
 
         Py_DECREF(ret);
 
@@ -372,12 +395,12 @@ axvline(
 
         PyObject * kw_args = _make_kwargs(kwargs);
 
-        PyObject * ret = PyObject_Call(table_["pylab.axvline"], args, kw_args);
+        PyObject * ret = PyObject_Call(table_["pyplot.axvline"], args, kw_args);
 
         Py_DECREF(args);
         Py_XDECREF(kw_args);
 
-        M_CHECK_PY_PTR_RETURN(ret, "pylab.axvline() failed");
+        M_CHECK_PY_PTR_RETURN(ret, "pyplot.axvline() failed");
 
         Py_DECREF(ret);
 
@@ -403,14 +426,14 @@ xlim(
 
         M_CHECK_PY_PTR_RETURN(args, "Py_BuildValue() failed");
 
-        PyObject * kw_args = NULL; //_make_kwargs(kwargs);
+        PyObject * kw_args = nullptr; //_make_kwargs(kwargs);
 
-        PyObject * ret = PyObject_Call(table_["pylab.xlim"], args, kw_args);
+        PyObject * ret = PyObject_Call(table_["pyplot.xlim"], args, kw_args);
 
         Py_DECREF(args);
         Py_XDECREF(kw_args);
 
-        M_CHECK_PY_PTR_RETURN(ret, "pylab.xlim() failed");
+        M_CHECK_PY_PTR_RETURN(ret, "pyplot.xlim() failed");
 
         Py_DECREF(ret);
 
@@ -436,14 +459,14 @@ ylim(
 
         M_CHECK_PY_PTR_RETURN(args, "Py_BuildValue() failed");
 
-        PyObject * kw_args = NULL; //_make_kwargs(kwargs);
+        PyObject * kw_args = nullptr; //_make_kwargs(kwargs);
 
-        PyObject * ret = PyObject_Call(table_["pylab.ylim"], args, kw_args);
+        PyObject * ret = PyObject_Call(table_["pyplot.ylim"], args, kw_args);
 
         Py_DECREF(args);
         Py_XDECREF(kw_args);
 
-        M_CHECK_PY_PTR_RETURN(ret, "pylab.ylim() failed");
+        M_CHECK_PY_PTR_RETURN(ret, "pyplot.ylim() failed");
 
         Py_DECREF(ret);
 
@@ -473,12 +496,12 @@ figure(const std::string & kwargs) const
 
         PyObject * kw_args = _make_kwargs(kwargs);
 
-        PyObject * ret = PyObject_Call(table_["pylab.figure"], args, kw_args);
+        PyObject * ret = PyObject_Call(table_["pyplot.figure"], args, kw_args);
 
         Py_DECREF(args);
         Py_XDECREF(kw_args);
 
-        M_CHECK_PY_PTR_RETURN(ret, "pylab.figure() failed");
+        M_CHECK_PY_PTR_RETURN(ret, "pyplot.figure() failed");
 
         Py_DECREF(ret);
 
@@ -501,7 +524,7 @@ grid(boolean flag)
         {
             run_string(
                 "try:\n"
-                "    ax__ = _pylab_nsound_.gca();\n"
+                "    ax__ = _pyplot_nsound_.gca();\n"
                 "    ax__.grid(True);\n"
                 "except:\n"
                 "    pass\n\n");
@@ -511,7 +534,7 @@ grid(boolean flag)
         {
             run_string(
                 "try:\n"
-                "    ax__ = _pylab_nsound_.gca();\n"
+                "    ax__ = _pyplot_nsound_.gca();\n"
                 "    ax__.grid(False);\n"
                 "except:\n"
                 "    pass\n\n");
@@ -535,14 +558,14 @@ hide()
 
         M_CHECK_PY_PTR_RETURN(args, "Py_BuildValue() failed");
 
-        PyObject * kw_args = NULL; //_make_kwargs(kwargs);
+        PyObject * kw_args = nullptr; //_make_kwargs(kwargs);
 
-        PyObject * ret = PyObject_Call(table_["pylab.close"], args, kw_args);
+        PyObject * ret = PyObject_Call(table_["pyplot.close"], args, kw_args);
 
         Py_DECREF(args);
         Py_XDECREF(kw_args);
 
-        M_CHECK_PY_PTR_RETURN(ret, "pylab.close() failed");
+        M_CHECK_PY_PTR_RETURN(ret, "pyplot.close() failed");
 
         Py_DECREF(ret);
 
@@ -551,57 +574,18 @@ hide()
 
 void
 Plotter::
-hold(boolean flag)
-{
-    #ifdef NSOUND_C_PYLAB
-
-        hold_is_on_ = flag;
-
-        if(Plotter::state_ != INITALIZED)
-        {
-            return;
-        }
-
-        // Put the list in a tuple.
-        PyObject * args = NULL;
-
-        if(hold_is_on_)
-        {
-            args = PyTuple_Pack(1, Py_True);
-        }
-        else
-        {
-            args = PyTuple_Pack(1, Py_False);
-        }
-
-        PyObject * ret = PyObject_CallObject(table_["pylab.hold"], args);
-
-        Py_DECREF(args);
-
-        M_CHECK_PY_PTR_RETURN(ret, "pylab.hold() failed");
-
-        if(hold_is_on_)
-        {
-            grid(false);
-        }
-
-    #endif
-}
-
-void
-Plotter::
 imagesc(const AudioStream & Z, const std::string & kwargs)
 {
-	imagesc(Buffer(), Buffer(), Z, kwargs);
+    imagesc(Buffer(), Buffer(), Z, kwargs);
 }
 
 void
 Plotter::
 imagesc(
-	const Buffer & x_axis,
-	const Buffer & y_axis,
-	const AudioStream & Z,
-	const std::string & kwargs)
+    const Buffer & x_axis,
+    const Buffer & y_axis,
+    const AudioStream & Z,
+    const std::string & kwargs)
 {
     #ifdef NSOUND_C_PYLAB
 
@@ -707,13 +691,13 @@ imagesc(
 
         PyObject * kw_args = _make_kwargs(ss.str());
 
-        // Call pylab.plot().
-        PyObject * ret = PyObject_Call(table_["pylab.imshow"], args, kw_args);
+        // Call pyplot.plot().
+        PyObject * ret = PyObject_Call(table_["pyplot.imshow"], args, kw_args);
 
         Py_DECREF(args);
         Py_XDECREF(kw_args);
 
-        M_CHECK_PY_PTR_RETURN(ret, "pylab.imshow() failed");
+        M_CHECK_PY_PTR_RETURN(ret, "pyplot.imshow() failed");
 
         Py_DECREF(ret);
 
@@ -722,7 +706,7 @@ imagesc(
 
         run_string(
             "try:\n"
-            "    ax__ = _pylab_nsound_.gca();\n"
+            "    ax__ = _pyplot_nsound_.gca();\n"
             "    trash__ = ax__.axis('tight');\n"
             "except:\n"
             "    pass\n\n");
@@ -731,7 +715,7 @@ imagesc(
         {
             run_string(
                 "try:\n"
-                "    ax__ = _pylab_nsound_.gca();\n"
+                "    ax__ = _pyplot_nsound_.gca();\n"
                 "    ax__.grid(True);\n"
                 "except:\n"
                 "    pass\n\n");
@@ -750,9 +734,9 @@ legend(const std::string & kwargs)
         PyObject * args = Py_BuildValue("()");
         PyObject * kw_args = _make_kwargs(kwargs);
 
-        PyObject * ret = PyObject_Call(table_["pylab.legend"], args, kw_args);
+        PyObject * ret = PyObject_Call(table_["pyplot.legend"], args, kw_args);
 
-        M_CHECK_PY_PTR_RETURN(ret, "pylab.legend() failed");
+        M_CHECK_PY_PTR_RETURN(ret, "pyplot.legend() failed");
 
         Py_DECREF(args);
         Py_DECREF(kw_args);
@@ -787,7 +771,7 @@ plot(
 
         M_ASSERT_VALUE(y.getLength(), >, 0);
 
-        PyObject * x_list = NULL;
+        PyObject * x_list = nullptr;
 
         // X may be empty here.
         if(x.getLength() > 0)
@@ -800,12 +784,12 @@ plot(
         PyObject * y_list = makePyListFromBuffer(y);
 
         // Put the list in a tuple.
-        PyObject * args = NULL;
+        PyObject * args = nullptr;
 
         // Count how many items are going into args.
         uint32 n_args = 1;
 
-        if(x_list != NULL) ++n_args;
+        if(x_list != nullptr) ++n_args;
         if(fmt != "") ++n_args;
 
         args = PyTuple_New(n_args);
@@ -814,7 +798,7 @@ plot(
 
         Py_ssize_t pos = 0;
 
-        if(x_list != NULL)
+        if(x_list != nullptr)
         {
             PyTuple_SetItem(args, pos, x_list);
             pos += 1;
@@ -823,25 +807,25 @@ plot(
         PyTuple_SetItem(args, pos, y_list);
         pos += 1;
 
-        PyObject * fmt_str = NULL;
+        PyObject * fmt_str = nullptr;
 
         if(fmt != "")
         {
-            fmt_str = PyString_FromString(fmt.c_str());
+            fmt_str = PyUnicode_FromString(fmt.c_str());
             M_CHECK_PY_PTR_RETURN(
-                fmt_str, "PyString_FromString('" << fmt << "') failed");
+                fmt_str, "PyString_FromString('" + fmt + "') failed");
             PyTuple_SetItem(args, pos, fmt_str);
         }
 
         PyObject * kw_args = _make_kwargs(kwargs);
 
-        // Call pylab.plot().
-        PyObject * ret = PyObject_Call(table_["pylab.plot"], args, kw_args);
+        // Call pyplot.plot().
+        PyObject * ret = PyObject_Call(table_["pyplot.plot"], args, kw_args);
 
         Py_DECREF(kw_args);
         Py_DECREF(args);
 
-        M_CHECK_PY_PTR_RETURN(ret, "pylab.plot() failed");
+        M_CHECK_PY_PTR_RETURN(ret, "pyplot.plot() failed");
 
         Py_DECREF(ret);
 
@@ -882,8 +866,8 @@ plot(
 
 //~        args = PyTuple_Pack(1, limits);
 
-//~        // Call pylab.axis().
-//~        ret = PyObject_CallObject(table_["pylab.axis"], args);
+//~        // Call pyplot.axis().
+//~        ret = PyObject_CallObject(table_["pyplot.axis"], args);
 
 //~        Py_DECREF(args);
 //~        Py_DECREF(limits);
@@ -892,7 +876,7 @@ plot(
 //~        {
 //~            PyErr_Print();
 //~            cerr << PRINT_LINE
-//~                 << "failed to call python pylab.axis()"
+//~                 << "failed to call python pyplot.axis()"
 //~                 << "\n";
 //~            return;
 //~        }
@@ -901,7 +885,7 @@ plot(
         {
             run_string(
                 "try:\n"
-                "    ax__ = _pylab_nsound_.gca();\n"
+                "    ax__ = _pyplot_nsound_.gca();\n"
                 "    ax__.grid(True);\n"
                 "except:\n"
                 "    pass\n\n");
@@ -937,7 +921,7 @@ run_string(const std::string & command) const
         std::string str = command + "\n";
 
         PyObject * ret = PyRun_String(
-            str.c_str(), Py_file_input, table_["globals"], NULL);
+            str.c_str(), Py_file_input, table_["globals"], nullptr);
 
         M_CHECK_PY_PTR_RETURN(ret, "run_string() failed");
 
@@ -974,7 +958,7 @@ savefig(const std::string & filename, const std::string & kwargs)
 
 //~        std::string command(ss.str());
 
-//~        PyObject * ret = PyRun_String(command.c_str(), Py_eval_input, table_["pylab"], NULL);
+//~        PyObject * ret = PyRun_String(command.c_str(), Py_eval_input, table_["pyplot"], nullptr);
 
 //~        if(!ret)
 //~        {
@@ -1000,7 +984,7 @@ set_xscale(const std::string & s)
 
     ss
         << "try:\n"
-        << "    ax = _pylab_nsound_.gca();\n"
+        << "    ax = _pyplot_nsound_.gca();\n"
         << "    ax.set_xscale('" << s << "')\n"
         << "except:\n"
         << "    pass\n\n";
@@ -1018,7 +1002,7 @@ set_yscale(const std::string & s)
 
     ss
         << "try:\n"
-        << "    ax = _pylab_nsound_.gca();\n"
+        << "    ax = _pyplot_nsound_.gca();\n"
         << "    ax.set_yscale('" << s << "')\n"
         << "except:\n"
         << "    pass\n\n";
@@ -1040,7 +1024,7 @@ subplot(
 
         if(Plotter::state_ != INITALIZED)
         {
-            return Axes(NULL);
+            return Axes(nullptr);
         }
 
         // args
@@ -1050,31 +1034,31 @@ subplot(
         PyObject * kw_args = _make_kwargs(kwargs);
 
         // Stick in sharex & sharey
-        if(sharex != NULL)
+        if(sharex != nullptr)
         {
-            PyObject * key = PyString_FromString("sharex");
+            PyObject * key = PyUnicode_FromString("sharex");
             PyDict_SetItem(kw_args, key, sharex->get_axes());
         }
 
-        if(sharey != NULL)
+        if(sharey != nullptr)
         {
-            PyObject * key = PyString_FromString("sharey");
+            PyObject * key = PyUnicode_FromString("sharey");
             PyDict_SetItem(kw_args, key, sharey->get_axes());
         }
 
-        // Call pylab.subplot()
-        PyObject * ret = PyObject_Call(table_["pylab.subplot"], args, kw_args);
+        // Call pyplot.subplot()
+        PyObject * ret = PyObject_Call(table_["pyplot.subplot"], args, kw_args);
 
         Py_DECREF(args);
         Py_DECREF(kw_args);
 
-        M_CHECK_PY_PTR(ret, "pylab.subplot() failed");
+        M_CHECK_PY_PTR(ret, "pyplot.subplot() failed");
 
         if(grid_is_on_)
         {
             run_string(
                 "try:\n"
-                "    ax = _pylab_nsound_.gca();\n"
+                "    ax = _pyplot_nsound_.gca();\n"
                 "    ax.grid(True);\n"
                 "except:\n"
                 "    pass\n\n");
@@ -1084,7 +1068,7 @@ subplot(
 
     #endif
 
-    return Axes(NULL);
+    return Axes(nullptr);
 }
 
 void
@@ -1109,13 +1093,13 @@ text(
 
         PyObject * kw_args = _make_kwargs(kwargs);
 
-        // Call pylab.title()
-        PyObject * ret = PyObject_Call(table_["pylab.text"], args, kw_args);
+        // Call pyplot.title()
+        PyObject * ret = PyObject_Call(table_["pyplot.text"], args, kw_args);
 
         Py_DECREF(kw_args);
         Py_DECREF(args);
 
-        M_CHECK_PY_PTR_RETURN(ret, "pylab.text() failed");
+        M_CHECK_PY_PTR_RETURN(ret, "pyplot.text() failed");
 
         Py_DECREF(ret);
 
@@ -1136,13 +1120,13 @@ title(const std::string & title, const std::string & kwargs)
         PyObject * args = Py_BuildValue("(s)", title.c_str());
         PyObject * kw_args = _make_kwargs(kwargs);
 
-        // Call pylab.title()
-        PyObject * ret = PyObject_Call(table_["pylab.title"], args, kw_args);
+        // Call pyplot.title()
+        PyObject * ret = PyObject_Call(table_["pyplot.title"], args, kw_args);
 
         Py_DECREF(kw_args);
         Py_DECREF(args);
 
-        M_CHECK_PY_PTR_RETURN(ret, "pylab.title() failed");
+        M_CHECK_PY_PTR_RETURN(ret, "pyplot.title() failed");
 
         Py_DECREF(ret);
 
@@ -1163,12 +1147,12 @@ xlabel(const std::string & label, const std::string & kwargs)
         PyObject * args = Py_BuildValue("(s)", label.c_str());
         PyObject * kw_args = _make_kwargs(kwargs);
 
-        PyObject * ret = PyObject_Call(table_["pylab.xlabel"], args, kw_args);
+        PyObject * ret = PyObject_Call(table_["pyplot.xlabel"], args, kw_args);
 
         Py_DECREF(kw_args);
         Py_DECREF(args);
 
-        M_CHECK_PY_PTR_RETURN(ret, "pylab.xlabel() failed");
+        M_CHECK_PY_PTR_RETURN(ret, "pyplot.xlabel() failed");
 
         Py_DECREF(ret);
 
@@ -1189,12 +1173,12 @@ ylabel(const std::string & label, const std::string & kwargs)
         PyObject * args = Py_BuildValue("(s)", label.c_str());
         PyObject * kw_args = _make_kwargs(kwargs);
 
-        PyObject * ret = PyObject_Call(table_["pylab.ylabel"], args, kw_args);
+        PyObject * ret = PyObject_Call(table_["pyplot.ylabel"], args, kw_args);
 
         Py_DECREF(kw_args);
         Py_DECREF(args);
 
-        M_CHECK_PY_PTR_RETURN(ret, "pylab.ylabel() failed");
+        M_CHECK_PY_PTR_RETURN(ret, "pyplot.ylabel() failed");
 
         Py_DECREF(ret);
 
@@ -1225,11 +1209,11 @@ ylabel(const std::string & label, const std::string & kwargs)
     Plotter::
     makePyIntFromUint32(const uint32 & i) const
     {
-        PyObject * py_int = PyInt_FromLong(i);
+        PyObject * py_long = PyLong_FromLong(i);
 
-        M_CHECK_PY_PTR(py_int, "PyInt_FromLong() failed");
+        M_CHECK_PY_PTR(py_long, "PyLong_FromLong() failed");
 
-        return py_int;
+        return py_long;
     }
 
 #endif

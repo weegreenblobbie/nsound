@@ -179,6 +179,10 @@ struct Exception : public std::exception
 	std::string _message;
 };
 
+// Alias std::string for the SWIG interface to use a custom typemap to convert
+// a binary string to Python bytearray.
+using bytearray = std::string;
+
 }; // namespace
 
 

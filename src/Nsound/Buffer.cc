@@ -1969,8 +1969,9 @@ read(std::istream & in)
 
 void
 Buffer::
-read(const std::string & in)
+read(const void * data, std::size_t size)
 {
+    std::string in(reinterpret_cast<const char *>(data), size);
     std::stringstream ss(in);
 
     read(ss);

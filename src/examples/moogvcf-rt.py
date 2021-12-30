@@ -228,7 +228,7 @@ def worker(q, plot, disp_q, signal, sig_dur, t):
 
         temp = ns.Buffer(len(cut))
 
-        for i in xrange(len(cut)):
+        for i in range(len(cut)):
 
             x = float(circ)
             circ += 1

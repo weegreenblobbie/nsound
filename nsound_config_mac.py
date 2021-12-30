@@ -17,9 +17,6 @@ from nsound_config import NsoundConfig
 
 class NsoundConfigMac(NsoundConfig):
 
-    def __init__(self):
-        NsoundConfig.__init__(self)
-
     def _customize_environment(self):
 
         self.env['NS_ON_MAC'] = True
@@ -31,9 +28,8 @@ class NsoundConfigMac(NsoundConfig):
         else:
             self.env.AppendUnique(CXXFLAGS = ["-O2"])
 
-
-	# if using G++, enbale c++11
-	self.env.AppendUnique(CXXFLAGS = ['-std=c++11'])
+        # Enbale c++11.
+        self.env.AppendUnique(CXXFLAGS = ['-std=c++11'])
 
         #---------------------------------------------------------
         # rpath Hack, g++ on OSX doesn't use -Wl,-rpath=somepath

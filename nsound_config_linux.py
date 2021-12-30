@@ -11,9 +11,6 @@ from nsound_config import NsoundConfig
 
 class NsoundConfigLinux(NsoundConfig):
 
-    def __init__(self):
-        NsoundConfig.__init__(self)
-
     def _customize_environment(self):
 
         self.env['NS_ON_LINUX'] = True

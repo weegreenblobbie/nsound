@@ -186,7 +186,6 @@ Vocoder(
         Plotter pylab;
 
         pylab.figure();
-        pylab.hold(true);
 
         for(size_t i = 0; i < filters_input_.size(); ++i)
         {

@@ -155,7 +155,7 @@ def worker(q, generator, n_harmonics, chorus):
         if state == WAITING:
             continue
 
-        for i in xrange(N_SAMPLES):
+        for i in range(N_SAMPLES):
             sample = env.shape(0.333 * gen.generate(freq), key_on)
             playback.play(sample)
 
@@ -253,7 +253,7 @@ running, you will get undefined behavior""")
     q_idle = set()
     p_pool = []
 
-    for i in xrange(N_THREADS):
+    for i in range(N_THREADS):
 
         q = multiprocessing.Queue(maxsize = 1)
         p = multiprocessing.Process(

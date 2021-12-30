@@ -100,11 +100,8 @@ class Plotter
     //! Sets the grid state.
     void grid(boolean flag);
 
-    //! Hides all plots, prevents any plot window being rendered to the screen.  Usefull if only saveing plots to disk.
+    //! Hides all plots, prevents any plot window being rendered to the screen.  Useful if only saving plots to disk.
     void hide();
-
-    //! Sets the hold state.
-    void hold(boolean flag);
 
     //! Plots the AudioStream like a 2D matrix.
     void imagesc(
@@ -170,8 +167,8 @@ class Plotter
         const uint32 n_cols,
         const uint32 n,
         const std::string & kwargs = "",
-        Axes * sharex = NULL,
-        Axes * sharey = NULL);
+        Axes * sharex = nullptr,
+        Axes * sharey = nullptr);
 
     //! Adds text at the x, y data point
     void text(
@@ -189,7 +186,7 @@ class Plotter
     //! Add a label y axis
     void ylabel(const std::string & label, const std::string & kwargs="");
 
-    //! Acutally draw the plots to the screen
+    //! Actually draw the plots to the screen
     static
     void
     show();
@@ -200,13 +197,13 @@ class Plotter
     protected:
 
     typedef std::pair < std::string, PyObject * > StringPyObjectPair;
-    typedef std::map  < std::string, PyObject * > PylabTable;
+    typedef std::map  < std::string, PyObject * > PyPlotTable;
 
     PyObject * _make_kwargs(const std::string & kwargs) const;
 
     static int32 count_;
 
-    static PylabTable table_;
+    static PyPlotTable table_;
 
     enum PlotterState
     {
@@ -218,7 +215,6 @@ class Plotter
     static PlotterState state_;
 
     static boolean grid_is_on_;
-    static boolean hold_is_on_;
 
     static float64 xmin_;
     static float64 xmax_;
@@ -228,10 +224,10 @@ class Plotter
     // disable these
     private:
 
-    //! Copy constructor disabled
+    //! Copy constructor disabled.
     Plotter(const Plotter & rhs);
 
-    //! Asignment disabled
+    //! Assignment disabled.
     Plotter & operator=(const Plotter & rhs);
 
     //! Create a PyList object from a buffer!

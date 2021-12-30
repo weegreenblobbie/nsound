@@ -50,7 +50,7 @@ class Test(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-    	ns.Wavefile.setIEEEFloat(False)
+        ns.Wavefile.setIEEEFloat(False)
         ns.Plotter.show()
 
     def _plot_diff(self, b1, b2, title1, title2):
@@ -77,7 +77,7 @@ class Test(unittest.TestCase):
     def _compare_buffers(self, gold_fn, data, save_gold = False):
 
         if save_gold:
-            print "SAVING GOLD FILE: %s" % gold_fn
+            print("SAVING GOLD FILE: %s" % gold_fn)
             data >> gold_fn
 
         gold = ns.Buffer(gold_fn)

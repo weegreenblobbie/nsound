@@ -1,0 +1,31 @@
+name: macos
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  macos:
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      name: Checkout source
+    - uses: actions/setup-python@v2
+      name: Install Python
+    - name: Install dependencies
+      run: |
+        pip3 install matplotlib scons
+    - name: Build nsound
+      run: |
+        scons
+    - name: Run unit tests
+      run: |
+        scons --unit-test
+    - name: Run python tests
+      run: |
+        scons --pytest --disable-libportaudio --config=force

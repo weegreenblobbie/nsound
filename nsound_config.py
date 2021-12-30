@@ -401,9 +401,9 @@ class NsoundConfig(SConfBase):
                 #if defined(__clang__)
 
                     printf("clang %d %d %d\n",
-                        __GNUC__,
-                        __GNUC_MINOR__,
-                        __GNUC_PATCHLEVEL__);
+                        __clang_major__,
+                        __clang_minor__,
+                        __clang_patchlevel__);
 
                 //-------------------------------------------------------------
                 // GCC
@@ -590,7 +590,7 @@ class NsoundConfig(SConfBase):
     def check_for_matplotlib(self):
         context = self._make_check_context()
 
-        context.Message("checking for matplotlib.pylab ... ")
+        context.Message("checking for matplotlib.pyplot ... ")
 
         key = 'NS_HAVE_MATPLOTLIB'
 
@@ -607,10 +607,10 @@ class NsoundConfig(SConfBase):
             return False
 
         try:
-            import matplotlib.pylab
+            import matplotlib.pyplot
         except ImportError:
             context.Result(
-                'no, matplotlib.pylab is missing, no plotting is possible')
+                'no, matplotlib.pyplot is missing, no plotting is possible')
             self.env[key] = False
             return False
 
@@ -637,7 +637,7 @@ class NsoundConfig(SConfBase):
             return False
 
         elif not self.env['NS_HAVE_MATPLOTLIB']:
-            context.Result("no, missing matplotlib.pylab module")
+            context.Result("no, missing matplotlib.pyplot module")
             self.env[key] = False
             return False
 
@@ -650,8 +650,16 @@ class NsoundConfig(SConfBase):
 
         context = self._make_check_context()
 
+        cpppath = self.env['PYTHON_CONFIG']['CPPPATH']
+        
+        try:
+            import numpy as np
+            cpppath.append(np.get_include())
+        except:
+            pass
+
         kwargs = {
-            'CPPPATH' : self.env['PYTHON_CONFIG']['CPPPATH'],
+            'CPPPATH' : cpppath,
             'LIBPATH' : self.env['PYTHON_CONFIG']['LIBPATH'],
             'LIBS'    : self.env['PYTHON_CONFIG']['LIBS'],
             }
@@ -660,17 +668,28 @@ class NsoundConfig(SConfBase):
 
         r = context.TryRun(text = """
             #include <Python.h>
+            #include <numpy/arrayobject.h>
             #include <stdio.h>
 
             int main(void)
             {
-                PyObject * ptr;
+                PyObject * ptr = nullptr;
 
                 Py_Initialize();
+                
+                if(PyErr_Occurred())
+                {
+                    printf("no");
+                    PyErr_Print();
+                    PyErr_Clear();
+                    return 1;
+                }
+                
+                import_array1(1);
 
                 ptr = PyImport_ImportModule("matplotlib");
 
-                if(ptr == NULL)
+                if(ptr == nullptr)
                 {
                     printf("no");
                     PyErr_Print();
@@ -678,7 +697,7 @@ class NsoundConfig(SConfBase):
                 }
                 else
                 {
-                    ptr = PyImport_ImportModule("matplotlib.pylab");
+                    ptr = PyImport_ImportModule("matplotlib.pyplot");
 
                     if(ptr == NULL)
                     {

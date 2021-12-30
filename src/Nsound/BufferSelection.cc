@@ -165,7 +165,7 @@ operator^=(const float64 & rhs)
 
     while(b != b_end && bv != bv_end)
     {
-        if(*bv) std::pow(*b, rhs);
+        if(*bv) *b = std::pow(*b, rhs);
         ++b;
         ++bv;
     }

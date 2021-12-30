@@ -1,15 +1,5 @@
 //-----------------------------------------------------------------------------
 //
-//  $Id: AudioPlaybackRt.i 912 2015-07-26 00:50:29Z weegreenblobbie $
-//
-//  Copyright (c) 2009 to Present Nick Hilton
-//
-//  weegreenblobbie2_gmail_com (replace '_' with '@' and '.')
-//
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-//
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
 //  the Free Software Foundation; either version 2 of the License, or
@@ -26,27 +16,21 @@
 //
 //-----------------------------------------------------------------------------
 
+// Return a bytearry from binary string.
+%typemap(out) Nsound::bytearray
+{
+    // %typemap(out) Nsound::bytearray (C++ to Python)
 
-%feature("shadow") Nsound::AudioPlaybackRt::_swig_shadow()
-%{
+    $result = PyByteArray_FromStringAndSize($1.c_str(), $1.size());
+}
 
-#------------------------------------------------------------------------------
-# from swig/AudioPlaybackRt.i
-#
-def __lshift__(self, rhs):
-    self.play(rhs)
 
-def __rshift__(self, rhs):
-    self.play(rhs)
-
-def __str__(self):
-    return "Nsound.AudioPlaybackRt(): %s\n%s" % (self.getInfo(), self.debug_print())
-
-__repr__ = __str__
-
-#
-#------------------------------------------------------------------------------
-
-%}
+// Return a binary string from bytearray.
+%typemap(in) (const void * data, std::size_t size)
+{
+    // %typemap(in) (const void * data, std::size_t size) (Python to C++)
+    $1 = PyByteArray_AsString($input);
+    $2 = PyByteArray_Size($input);
+}
 
 // :mode=python:

@@ -64,9 +64,10 @@ def __add__(self, other):
     temp += other
     return temp
 
-
-def __len__(self):
-    return self.getLength()
+def __radd__(self, other):
+    temp = AudioStream(self)
+    temp += other
+    return temp
 
 
 def __sub__(self, other):
@@ -74,11 +75,17 @@ def __sub__(self, other):
     temp -= other
     return temp
 
-
-def __div__(self, other):
-    temp = AudioStream(self)
-    temp /= other
+def __rsub__(self, other):
+    temp = AudioStream(self) * -1.0
+    temp += other
     return temp
+
+
+def __truediv__(self, other):
+    return _Nsound.__truediv__(self, other)
+
+def __rtruediv__(self, other):
+    return _Nsound.__truediv__(other, self)
 
 
 def __mul__(self, other):
@@ -86,32 +93,14 @@ def __mul__(self, other):
     temp *= other
     return temp
 
-
-def __radd__(self, other):
-    temp = AudioStream(self)
-    temp += other
-    return temp
-
-
 def __rmul__(self, other):
     temp = AudioStream(self)
     temp *= other
     return temp
 
 
-def __rsub__(self, other):
-    temp = AudioStream(self) * -1.0
-    temp += other
-    return temp
-
-
-def __rdiv__(self, other):
-    temp = AudioStream(self)
-    for i in range(temp.getNChannels()):
-
-        temp[i] = other / temp[i];
-
-    return temp
+def __len__(self):
+    return self.getLength()
 
 
 def __ilshift__(self, rhs):

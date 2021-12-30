@@ -16,7 +16,7 @@ use.
 
 Copyright (c) 2004 to Present Nick Hilton
 
-weegreenblobbie_at_yahoo_com
+weegreenblobbie2_at_gmail_com
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -99,10 +99,9 @@ def generate(env):
 
     # Collect search paths
 
-    lib_keys = [x for x in distutils.sysconfig.get_config_vars()
-        if x.startswith("LIB")]
+    lib_keys = [x for x in distutils.sysconfig.get_config_vars()]
 
-    lib_search_paths = []
+    lib_search_paths = set()
 
     for key in lib_keys:
 
@@ -110,14 +109,19 @@ def generate(env):
 
         if os.path.isdir(path):
             path = os.path.realpath(path)
-            lib_search_paths.append(path)
+            lib_search_paths.add(path)
 
     # If on windows, add PYTHON\libs
     if on_windows:
+        for path in list(lib_search_paths):
+            if path.endswith("Lib"):
+                path = path.replace("Lib", "libs")
+                if os.path.isdir(path):
+                    lib_search_paths.add(path)
         prefix = os.path.realpath(os.path.dirname(sys.executable))
         path = os.path.join(prefix, "libs")
         if os.path.isdir(path):
-            lib_search_paths.append(path)
+            lib_search_paths.add(path)
 
     # Search for the library in each path
     lib_dir = None
@@ -180,8 +184,30 @@ def generate(env):
     CPPPATH = [include_dir]
 
     # LIBPATH
-
     LIBPATH = [lib_dir]
+    
+    if on_windows:
+        python_dll = lib.replace('.lib', '.dll')
+        found = False
+        paths_to_search = [lib_dir, distutils.sysconfig.BASE_EXEC_PREFIX] 
+        for dir_ in paths_to_search:
+            full_path_dll = os.path.join(dir_, python_dll)
+            if os.path.isfile(full_path_dll):
+                found = True
+                if dir_ not in os.environ['PATH']:
+                    warnings.warn(f"{dir_} is not in the system PATH variable, {python_dll} might not be found!")        
+        if not found:
+            warnings.warn(f"Could not find {python_dll} after looking in {paths_to_search}")
+
+        # Check that PYTHONPATH includes VIRTUAL_ENV\Lib\site-pakcages.
+        found = True
+        if os.environ.get("VIRTUAL_ENV"):
+            if "PYTHONPATH" not in os.environ:
+                warnings.warn('VIRTUAL_ENV is set but not PYTHONPATH, this may result in not finding matplotlib from the C runtime.')
+            else:
+                site_packages = os.path.join(os.environ["VIRTUAL_ENV"], "Lib", "site-packages")
+                if site_packages not in os.environ['PYTHONPATH']:
+                    warnings.warn(r'Could not find VIRTUAL_ENV\Lib\site-packages in PYTHONPATH, thsi may result in not finding matplotlib from the C runtime.')
 
     python_config = {
         'CPPPATH' : CPPPATH,

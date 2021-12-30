@@ -465,18 +465,20 @@ public:
     std::ostream &
     write(std::ostream & out) const;
 
-    std::string
+    bytearray
     write() const;
 
-    //! Constructs an AudioStream from seralized data in the inputstream.
-    //
-    //! \param in the std::istream to read bytes from
-    //
-    std::istream &
-    read(std::istream & stream_in);
+    #ifndef SWIG
+        //! Constructs an AudioStream from seralized data in the inputstream.
+        //
+        //! \param in the std::istream to read bytes from
+        //
+        std::istream &
+        read(std::istream & stream_in);
+    #endif
 
     void
-    read(const std::string & string_in);
+    read(const void * data, std::size_t size);
 
     //  setNChannels()
     // DOXME
