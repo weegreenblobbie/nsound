@@ -13,6 +13,14 @@ Key:
 + Finished item
 - Planned item
 
+2021-12-30 Nsound 0.9.5
+    + Lots of updates for building and linking with Python3
+    + Added github Actions to build on Linux, MacOs and Windows
+    + Added FilterMedian
+    + Updated Plotter to use latest matplotlib.pyplot
+    + Added an Intersteller inspired example: src/examples/interstellar.cc
+
+
 2015-08-23 Nsound 0.9.4
 
     + C++11 now required for compiling Nsound

@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import argparse
 import sys
-import Queue as queue
+import queue as queue
 import multiprocessing
 import datetime
 now = datetime.datetime.now
@@ -197,7 +197,7 @@ def worker(q, disp_q, t):
                     fn = "bebot-%02d.wav" % aid
                     aout >> fn
 
-                    print "Wrote %s" % fn
+                    print("Wrote %s" % fn)
 
                     aout = ns.AudioStream(SR, 1)
                     aid += 1
@@ -333,7 +333,7 @@ def display(q):
         if not have_d: continue
 
         if d == "QUIT":
-            print "dcount = ", dcount
+            print("dcount = ", dcount)
             return
 
         elif d == "RESET":
@@ -428,17 +428,17 @@ running, you will get undefined behavior""")
     # Low latency
 
     if args.use_jack:
-        print "Will try to use JACK (known to work on Linux)"
+        print("Will try to use JACK (known to work on Linux)")
         ns.AudioPlaybackRt.use_jack(True)
         t = LO_T
 
     # High latency
     else:
-        print "Using High Latency"
+        print("Using High Latency")
         t = HI_T
 
-    print "Hello Bebot!"
-    print "Press ESC to quit."
+    print("Hello Bebot!")
+    print("Press ESC to quit.")
 
     q = multiprocessing.Queue(maxsize = 1)
     disp_q = multiprocessing.Queue()
@@ -495,13 +495,13 @@ running, you will get undefined behavior""")
 
             # Break out of loop
             if event.key == pygame.K_ESCAPE:
-                print "Quitting main loop"
+                print("Quitting main loop")
                 sys.stdout.flush()
                 main_loop = False
                 break
 
         elif event.type == pygame.QUIT:
-            print "Quitting main loop"
+            print("Quitting main loop")
             sys.stdout.flush()
             main_loop = False
             break
@@ -511,7 +511,7 @@ running, you will get undefined behavior""")
     disp_q.put("QUIT")
     disp_p.join()
     pygame.display.quit()
-    print "Goodbye!"
+    print("Goodbye!")
 
 
 if __name__ == "__main__":

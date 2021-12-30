@@ -2,9 +2,13 @@ name: linux
 
 on:
   push:
-    branches: [ master ]
+    branches:
+    - master
+    - 'release/**'
   pull_request:
-    branches: [ master ]
+    branches:
+    - master
+    - 'release/**'
 
 jobs:
   build:
@@ -19,7 +23,7 @@ jobs:
         sudo apt-get update && sudo apt-get -y install portaudio19-dev libao-dev python3-virtualenv
         python3 -m venv venv
         . venv/bin/activate
-        pip install matplotlib scons
+        pip install matplotlib scons wheel
     - name: Build nsound
       run: |
         . venv/bin/activate
@@ -31,4 +35,4 @@ jobs:
     - name: Run python tests
       run: |
         . venv/bin/activate
-        scons --disable-libportaudio --pytest
+        scons --pytest --disable-libportaudio --config=force

@@ -13,9 +13,9 @@ Nsound User's Guide
 This guide is intended as an introductory overview of Nsound and
 explains how to install and make use of the most important features of
 Nsound. For detailed reference documentation of the functions and
-classes contained in the package, see the Doxygen documentation on the
-`nsound.sourceforge.net <http://nsound.sourceforge.net/doxygen/index.html>`__
-website.
+classes contained in the package, see the Doxygen documentation from
+`weegreenblobbie.come/nsound <https://weegreenblobbie.com/nsound/doxygen/index.html>`__
+.
 
 .. Note::
 

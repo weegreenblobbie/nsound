@@ -105,21 +105,9 @@ def configure():
 
     os.chdir(NSOUND_DIR)
 
-    scons = which('scons')
+    cmd = ["scons", SETUP_BUILDER_PY]
 
-    cmd = [scons, SETUP_BUILDER_PY]
-
-    p = subprocess.Popen(
-        cmd,
-        env = os.environ,
-        stdout = subprocess.PIPE,
-        stderr = subprocess.PIPE)
-
-    out, err = p.communicate()
-
-    if p.returncode:
-        raise RuntimeError(
-            "FAILURE!\ncmd = %s\n%s\n%s" % (repr(cmd), out, err))
+    subprocess.check_call(cmd)
 
     print(" done")
 

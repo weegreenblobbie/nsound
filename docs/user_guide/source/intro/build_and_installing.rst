@@ -21,7 +21,7 @@ Prerequisites
 
 Building Nsound requires the following software installed:
 
-1) Python 2.7.x
+1) Python 3.7 or later
 
     On Debian and derivative (Ubuntu): python
 
@@ -29,17 +29,14 @@ Building Nsound requires the following software installed:
     `www.python.org <http://www.python.org>`_ is enough
 
     On Mac OSX: I highly recommend the MacPorts package manager to install
-    the latest versions of Python 2.7.X, Numpy and Matplotlib
+    the latest versions of Python 3.7, Numpy and Matplotlib
     `www.macports.org <http://www.macports.org/install.php>`_ .
 
 2) Scons
 
     Nsound uses this execellent build system,  `www.scons.org <http://www.scons.org>`_ .
 
-    On Windows: a 64-bit self-installer is not provied (as of 2013-12-24),
-    you'll have to download the source .Zip archive and do:
-
-        python setup.py bdist_wininst
+    python3 -m pip install scons
 
     and install it by running the `dist/scons*.exe` file.
 
@@ -47,7 +44,7 @@ Building Nsound requires the following software installed:
 
     To build Nsound you will need a C++ compiler.
 
-    On Windows: you'll need to install Visual Studio 2013+.
+    On Windows: you'll need to install Visual Studio.
 
     On Mac OS X: you'll need to install XCode command line tools.
 
@@ -55,18 +52,13 @@ Building Nsound requires the following software installed:
 Optional Prerequisites
 -------------------------------------------------------------------------------
 
-1) Matplotlib (Numpy, dateutil, pyparsing, six)
+1) Matplotlib
 
     For creating pretty plots, Matplotlib is used.
 
     Numpy and python-dateutil are a prerequisites for Matplotlib.
 
-    Numpy: `numpy.scipy.org <http://numpy.scipy.org>`_
-
-    Matplotlib: `matplotlib.sourceforge.net <http://matplotlib.sourceforge.net>`_
-
-    On Windows: use the prebuilt 64-bit binaries from here:
-        `Unofficial Windows Binaries for Python Extension Packages <http://www.lfd.uci.edu/~gohlke/pythonlibs/>`_
+    python3 -m pip install matplotlib
 
 2) PortAudio
 
@@ -96,17 +88,11 @@ MacPorts download and install prerequisite automatically.
 1) Start a Python Shell and import matplotlib::
 
     >>> import matplotlib
-    >>> # Try to import pylab
-    >>> from matplotlib import pylab
+    >>> # Try to import pyplot.
+    >>> from matplotlib import pyplot
     >>> # Try to plot something
-    >>> pylab.plot([1,2,3,4], "bo-")
-    >>> pylab.show()
-
-As you run into missing packages, donload and install them.  Most of them are:
-    - Numpy
-    - dateutil
-    - six
-    - pyparsing
+    >>> pyplot.plot([1,2,3,4], "bo-")
+    >>> pyplot.show()
 
 ===============================================================================
 Compiling The C++ Library
@@ -135,18 +121,8 @@ library and examples.
 
 .. pyexec::
 
-    import os
-
-    from subprocess import Popen
-    from subprocess import PIPE
-
-    # Save current working directory
-    old_dir = os.getcwd()
-
-    # Change working directory to the root of Nsound
-    os.chdir("../../")
-    output = Popen(["scons", "--help"], stdout=PIPE).communicate()[0]
-    os.chdir(old_dir)
+    import subprocess
+    output = subprocess.check_output(["scons", "-u", "--help"]).decode('ascii')
     template = "To get help with scons, do::\n\n"
     n = -1
     for line in output.split("\n"):
@@ -177,7 +153,7 @@ environment.
 
 4) Double click the shortcut to open a DOS box with Visual Studio, Python, and SCons in the path, so building Nsound becomes as simple as::
 
-    C:\Users\USERNAME\Documents\nsound> scons
+    C:\Users\USERNAME\code\nsound> scons
 
 -------------------------------------------------------------------------------
 On Windows: Compiling Nsound C++ library Using Visual Studio
@@ -188,10 +164,10 @@ SCons have been installed.  There are Visual Studio build steps that will execut
 scons to generate some files.
 
 Next, examine the file ``msvs\properties.props`` to ensure the path to Python
-is correct, the default is ``C:\Python27``.
+is correct, the default is ``C:\Python310``.
 
 A Visual Studio 2010+ solution file is provide in ``msvs\nsound.sln``.  Debug
-builds won't link with Python because the debug library ``python27_d.lib`` is
+builds won't link with Python because the debug library ``python310_d.lib`` is
 **not** provided, but isn't needed if you're debugging Nound C++ code.
 
 .. note::
@@ -232,30 +208,12 @@ Compiling the Python Module
 
 1) Try compiling the C++ library first to ensure SCons and the C++ compiler are working (see step 2 above in `Compiling The C++ Library`).
 
-2) Build and install the Python module for a **single user**::
+2) Build, install and test the Python module::
 
-    python setup.py install --user
-
-4) Or build and install the Python module **system wide**::
-
-    sudo python setup.py install
-
-5) Or build the **Windows self-installer** (`Windows only`)::
-
-    python setup.py bdist_wininst
-
-6) Test the Python module::
-
-    import Nsound as ns
-    b = ns.Buffer()
-    print b
-
- You should see the text::
-
-    Nsound.Buffer holding 0 samples
+    scons --pytest
 
 -------------------------------------------------------------------------------
-Mac OSX Notes - Use MacPorts
+Mac OSX Notes - Use MacPorts (TODO: Update for python 3.7+)
 -------------------------------------------------------------------------------
 
 To enable real-time playback and plottting, install these prerequisites using
@@ -289,7 +247,7 @@ done automatically.  A SCons tool was added to brute-force check the
 ``site_scons/site_tools/ImportPythonConfig.py``.  To enable some extra
 debug messages, try using the ``--config-debug`` switch with scons::
 
-    $ scons --config-debug
+    scons --config-debug
 
 Please report any problems you are having to Nick.
 
@@ -336,12 +294,10 @@ filename written to the local directory after the `savefig()` call.
 Installing The Nsound Python Module Via PIP
 ===============================================================================
 
-All the prerequisites still apply from above.  With PIP, you won't have to
+All the prerequisites still apply from above.  With pip you won't have to
 download the Nsound source code yourself.
 
-From a shell with your build environment setup, do:
+From a shell with your build environment setup, do::
 
-    sudo pip install --user nsound
-
-I recommend installing into your home directory by ussing the `--user` switch.
+    python3 -m pip install Nsound
 

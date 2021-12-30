@@ -18,9 +18,9 @@ concatenation::
     b = ns.Buffer()
     b << 1 << 2 << 3
 
-    print b.getLength()
+    b.getLength()
     # 3
-    print b.toList()
+    b.toList()
     # [1.0, 2.0, 3.0]
 
 Buffers can be concatenated together::
@@ -30,9 +30,9 @@ Buffers can be concatenated together::
 
     b << b2
 
-    print b.getLength()
+    b.getLength()
     # 6
-    print b.toList()
+    b.toList()
     # [1.0, 2.0, 3.0, 6.0, 7.0, 8.0]
 
 Scalar Math
@@ -45,19 +45,19 @@ element-wise for all the samples contained in the Buffer::
     b = ns.Buffer()
     b << 1 << 2 << 3 << 6 << 7 << 8
 
-    print b.toList()
+    b.toList()
     # [1.0, 2.0, 3.0, 6.0, 7.0, 8.0]
 
     b += 1.0            # b = b + 1.0 would also work
-    print b.toList()
+    b.toList()
     # [2.0, 3.0, 6.0, 7.0, 8.0, 9.0]
 
     b *= 2.0
-    print b.toList()
+    b.toList()
     # [4.0, 6.0, 12.0, 14.0, 16.0, 18.0]
 
     b /= 3.0
-    print b.toList()
+    b.toList()
     # [1.3333, 2.0, 2.6666, 4.6666, 5.3333, 6.0]
 
 Vector Math
@@ -78,45 +78,45 @@ packages such as Numpy or Matlab, the Buffers don't have to be the same length::
 
     b3 = b1 + b2
 
-    print b3.toList()
+    b3.toList()
     # [1.0, 2.0, 2.0]
 
     b3 = b2 + b1
-    print b3
+    b3
     # [1.0, 2.0, 2.0, 1.0]
 
     # Subtraction
 
     b3 = b1 - b2
 
-    print b3.toList()
+    b3.toList()
     # [1.0, 0.0, 0.0]
 
     b3 = b2 - b1
 
-    print b3.toList()
+    b3.toList()
     # [-1.0, 0.0, 0.0, 1.0]
 
     # Products
 
     b3 = b1 * b2
 
-    print b3.toList()
+    b3.toList()
     # [0.0, 1.0, 1.0]
 
     b3 = b2 * b1
 
-    print b3.toList()
+    b3.toList()
     # [0.0, 1.0, 1.0, 1.0]
 
     # Quotients
 
     b3 = b1 / b2
 
-    print b3.toList()
+    b3.toList()
     # [1e+20, 1.0, 1.0]
 
     b3 = b2 / b1
 
-    print b3.toList()
+    b3.toList()
     # [0.0, 1.0, 1.0, 1.0]

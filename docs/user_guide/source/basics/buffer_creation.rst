@@ -81,7 +81,7 @@ You can now convert it into a Buffer like so::
 
     b = ns.Buffer(a)
 
-    print b
+    print(b)
 
     Nsound.Buffer([5, 4, 3, 2, 1, ])
 
@@ -89,6 +89,6 @@ You can also convert back using this syntax::
 
     a = np.array(b)
 
-    print a
+    print(a)
 
     [ 5.  4.  3.  2.  1.]

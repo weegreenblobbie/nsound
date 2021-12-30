@@ -1085,6 +1085,7 @@ PDF_HYPERLINKS         = NO
 # higher quality PDF documentation.
 
 USE_PDFLATEX           = NO
+USE_MATHJAX            = YES
 
 # If the LATEX_BATCHMODE tag is set to YES, doxygen will add the \\batchmode.
 # command to the generated LaTeX files. This will instruct LaTeX to keep
