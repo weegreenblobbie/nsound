@@ -35,7 +35,4 @@ jobs:
     - name: Run python tests
       run: |
         . venv/bin/activate
-        scons --disable-libportaudio --pytest
-    - name: Debug List Audio Devices
-      run: |
-        aplay -l
+        scons --pytest --disable-libportaudio --config=force
