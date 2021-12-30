@@ -23,7 +23,7 @@ jobs:
         sudo apt-get update && sudo apt-get -y install portaudio19-dev libao-dev python3-virtualenv
         python3 -m venv venv
         . venv/bin/activate
-        pip install matplotlib scons
+        pip install matplotlib scons wheel
     - name: Build nsound
       run: |
         . venv/bin/activate
