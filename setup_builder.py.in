@@ -104,18 +104,20 @@ nsound_module = Extension(
 )
 
 setup(
-    author           = "Nick Hilton et al",
-    author_email     = "weegreenblobbie2@gmail.com",
-    classifiers      = classifiers,
-    description      = description,
-    download_url     = download_url,
-    ext_modules      = [nsound_module],
+    author                        = "Nick Hilton et al",
+    author_email                  = "weegreenblobbie2@gmail.com",
+    classifiers                   = classifiers,
+    description                   = description,
+    download_url                  = download_url,
+    ext_modules                   = [nsound_module],
+    long_description              = readme_rst,
     long_description_content_type = "text/x-rst",
-    long_description = readme_rst,
-    name             = "@PACKAGE_NAME@",
-    py_modules       = ["Nsound"],
-    url              = "http://nsound.sourceforge.net",
-    version          = "@PACKAGE_VERSION@",
+    name                          = "@PACKAGE_NAME@",
+    python_requires               = ">=3.7",
+    py_modules                    = ["Nsound"],
+    setup_requires                = ["scons", "wheel"],
+    url                           = "https://github.com/weegreenblobbie/nsound",
+    version                       = "@PACKAGE_VERSION@",
 )
 
 # Workaround cleanup

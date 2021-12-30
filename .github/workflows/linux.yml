@@ -2,9 +2,12 @@ name: linux
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master
+      - release/**
   pull_request:
-    branches: [ master ]
+      - master
+      - release/**
 
 jobs:
   build:

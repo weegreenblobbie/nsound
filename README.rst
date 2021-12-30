@@ -1,13 +1,13 @@
-.. image:: https://github.com/weegreenblobbie/nsound/workflows/linux/badge.svg
-   :target: https://github.com/weegreenblobbie/nsound/actions?query=workflow%3Alinux
+.. image:: https://github.com/weegreenblobbie/nsound/workflows/linux/badge.svg?branch=release/0.9.5
+   :target: https://github.com/weegreenblobbie/nsound/actions?query=workflow%3Alinux&branch=release/0.9.5
    :alt: Github Actions
 
-.. image:: https://github.com/weegreenblobbie/nsound/workflows/macos/badge.svg
-   :target: https://github.com/weegreenblobbie/nsound/actions?query=workflow%3Amacos
+.. image:: https://github.com/weegreenblobbie/nsound/workflows/macos/badge.svg?branch=release/0.9.5
+   :target: https://github.com/weegreenblobbie/nsound/actions?query=workflow%3Amacos&branch=release/0.9.5
    :alt: Github Actions
 
-.. image:: https://github.com/weegreenblobbie/nsound/workflows/windows/badge.svg
-   :target: https://github.com/weegreenblobbie/nsound/actions?query=workflow%3Awindows
+.. image:: https://github.com/weegreenblobbie/nsound/workflows/windows/badge.svg?branch=release/0.9.5
+   :target: https://github.com/weegreenblobbie/nsound/actions?query=workflow%3Awindows&branch=release/0.9.5
    :alt: Github Actions
 
 Nsound, a C++ framework for synthesizing sound
@@ -59,5 +59,5 @@ If you're on Windows, OS X, or Linux:
 
 .. code-block:: bash
 
-    pip install nsound --user
+    python3 -m pip install Nsound
 
