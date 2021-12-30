@@ -1,15 +1,13 @@
-.. image:: https://github.com/weegreenblobbie/nsound/actions/workflows/linux.yml/badge.svg?branch=release%2F0.9.5
+.. image:: https://github.com/weegreenblobbie/nsound/actions/workflows/linux.yaml/badge.svg?branch=release/0.9.5
    :target: https://github.com/weegreenblobbie/nsound/actions/workflows/linux.yaml?query=workflow%3Alinux+branch%3Arelease%2F0.9.5
    :alt: Github Actions
 
-   [![linux]()](https://github.com/weegreenblobbie/nsound/actions/workflows/linux.yml)
-
-.. image:: https://github.com/weegreenblobbie/nsound/workflows/macos/badge.svg?branch=release/0.9.5
+.. image:: https://github.com/weegreenblobbie/nsound/actions/workflows/macos.yaml/badge.svg?branch=release/0.9.5
    :target: https://github.com/weegreenblobbie/nsound/actions/workflows/macos.yaml?query=workflow%3Amacos+branch%3Arelease%2F0.9.5
    :alt: Github Actions
 
-.. image:: https://github.com/weegreenblobbie/nsound/workflows/windows/badge.svg?branch=release/0.9.5
-   :target: https://github.com/weegreenblobbie/nsound/actions/workflows/windows.yaml?query=workflow%3Awindows+branch%3Arelease%2F0.9.5
+.. image:: https://github.com/weegreenblobbie/nsound/actions/workflows/windows.yaml/badge.svg?query=branch:release/0.9.5
+   :target: https://github.com/weegreenblobbie/nsound/actions/workflows/windows.yaml?query=workflow:windows+branch:release/0.9.5
    :alt: Github Actions
 
 Nsound, a C++ framework for synthesizing sound
