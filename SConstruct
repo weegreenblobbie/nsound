@@ -184,8 +184,8 @@ if GetOption("pytest"):
     commands = [
         ["scons", "-c"],
         build_cmd,
-        ["python", "setup.py", "sdist"],
-        ["python", "-m", "pip", "install", "dist/*"],
+        ["python", "setup_builder.py", "bdist_wheel"],
+        ["python", "-m", "pip", "install", "--isolated", "--ignore-installed", "dist/*"],
         ["python", "-m", "unittest", "discover"],
     ]
 
