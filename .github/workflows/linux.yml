@@ -3,11 +3,12 @@ name: linux
 on:
   push:
     branches:
-      - master
-      - 'release/**'
+    - master
+    - 'release/**'
   pull_request:
-      - master
-      - 'release/**'
+    branches:
+    - master
+    - 'release/**'
 
 jobs:
   build:
