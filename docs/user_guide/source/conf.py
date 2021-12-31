@@ -44,7 +44,7 @@ today = now()
 
 import matplotlib
 import matplotlib.sphinxext
-subprocess.check_output(["lame", "--version"])
+subprocess.check_output(["oggenc", "--version"])
 
 import Nsound
 

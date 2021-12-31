@@ -16,7 +16,7 @@ Nsound, a C++ framework for synthesizing sound
 .. hyper link references
 
 .. _`Nsound Homepage`: https://github.com/weegreenblobbie/nsound
-.. _`Nsound User's Guide`: https://weegreenblobbie.com/nsound/users_guide/Nsound.pdf
+.. _`Nsound User's Guide`: https://weegreenblobbie.com/nsound/user_guide/index.html
 .. _`Nsound Doxygen Reference`: https://weegreenblobbie.com/nsound/doxygen/index.html
 
 .. _`Introduction & Bebot`: https://www.youtube.com/watch?v=j4uLvl68PtI
