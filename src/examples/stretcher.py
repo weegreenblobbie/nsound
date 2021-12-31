@@ -27,7 +27,7 @@ stretch = Stretcher(sr, 0.08, 0.25)
 # Print progress to command line.
 stretch.showProgress(True)
 
-print "Pitch Shifting Up"
+print("Pitch Shifting Up")
 
 # Create new output AudioStream.
 out = AudioStream(sr, 2)
@@ -36,7 +36,7 @@ out = AudioStream(sr, 2)
 out << stretch.pitchShift(a1, bend)
 out >> "Temperature_Pitch_Shifted_Up.wav"
 
-print "Time Shifting Faster"
+print("Time Shifting Faster")
 
 # Time shift input AudioStream
 out = AudioStream(sr,2)
@@ -46,13 +46,13 @@ out >> "Temperature_Time_Shifted_Faster.wav"
 bend = Buffer()
 bend << 1.0 - 0.25 * sin.drawFatGaussian(duration, 0.15)
 
-print "Pitch Shifting Down"
+print("Pitch Shifting Down")
 
 out = AudioStream(sr, 2)
 out << stretch.pitchShift(a1, bend)
 out >> "Temperature_Pitch_Shifted_Down.wav"
 
-print "Time Shifting Slower"
+print("Time Shifting Slower")
 
 bend = Buffer()
 bend << 1.0 + 0.75 * sin.drawFatGaussian(duration, 0.15)

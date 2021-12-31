@@ -200,30 +200,16 @@ moving the mouse around.
 
     .. pyexec::
 
-        import os
-        import datetime
-        import Nsound as ns
-
         name = "bebot-rt"
 
-        wavfile = "source/_static/%s.wav" % name
-        mp3file = "source/_static/%s.mp3" % name
+        import Nsound as ns
 
-        # Encode as mp3
-        if not os.path.isfile(mp3file):
-            os.system(
-                "lame -q 2 -b 192 "
-                "--tt '%s' --ta Nsound --tl '%s' --ty %d --tc %s %s %s" %(
-                name,
-                ns.__version__,
-                datetime.datetime.now().year,
-                "http://nsound.sourceforge.net",
-                wavfile,
-                mp3file))
+        a = ns.AudioStream(f"source/_static/{name}.wav")
 
-        template = "Sample here: :download:`%s.mp3. <_static/%s.mp3>`" %(
-            name,
-            name)
+        import util
+
+        template = util.save_ogg(a, name, remove_wav=False)
+
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Piano
@@ -233,12 +219,11 @@ A simple piano with the following options:
 
 .. pyexec::
 
-    from subprocess import Popen
-    from subprocess import PIPE
+    import subprocess
 
     cmd = ["python", "../../src/examples/piano.py", "--help"]
 
-    output = Popen(cmd, stdout=PIPE).communicate()[0].split('\n')
+    output = subprocess.check_output(cmd).decode("ascii").split('\n')
 
     s = output[0] + "\n"
     for x in output[1:]:
@@ -268,27 +253,12 @@ Try running with these options:
 
     .. pyexec::
 
-        import os
-        import datetime
-        import Nsound as ns
-
         name = "piano-rt"
 
-        wavfile = "source/_static/%s.wav" % name
-        mp3file = "source/_static/%s.mp3" % name
+        import Nsound as ns
 
-        # Encode as mp3
-        if not os.path.isfile(mp3file):
-            os.system(
-                "lame -q 2 -b 192 "
-                "--tt '%s' --ta Nsound --tl '%s' --ty %d --tc %s %s %s" %(
-                name,
-                ns.__version__,
-                datetime.datetime.now().year,
-                "http://nsound.sourceforge.net",
-                wavfile,
-                mp3file))
+        a = ns.AudioStream(f"source/_static/{name}.wav")
 
-        template = "Sample here: :download:`%s.mp3. <_static/%s.mp3>`" %(
-            name,
-            name)
+        import util
+
+        template = util.save_ogg(a, name, remove_wav=False)

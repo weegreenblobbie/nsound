@@ -137,7 +137,7 @@ def main():
     assert args.width > 0
     assert args.fps > 0
 
-    print "Hello Oscillocope!"
+    print("Hello Oscillocope!")
 
     #--------------------------------------------------------------------------
     # remove exising .png files
@@ -160,7 +160,7 @@ def main():
 
     data = audio_stream[args.channel]
 
-    print " done"
+    print(" done")
 
     #--------------------------------------------------------------------------
     # compute width and step
@@ -171,11 +171,11 @@ def main():
 
     n_frames = audio_stream.getDuration() / step
 
-    print "fps = ", args.fps
-    print "sr = ", sr
-    print "width = ", width
-    print "step = ", step
-    print "n_frames = ", n_frames
+    print("fps = ", args.fps)
+    print("sr = ", sr)
+    print("width = ", width)
+    print("step = ", step)
+    print("n_frames = ", n_frames)
 
     #--------------------------------------------------------------------------
     # Create plot
@@ -230,7 +230,7 @@ def main():
     if update_display <= 0:
         update_display = 1
 
-    print "update_display = ", update_display
+    print("update_display = ", update_display)
 
     dur = audio_stream.getDuration()
 
@@ -258,7 +258,7 @@ def main():
 
     pdone = 100.0
     sys.stdout.write("             \rProcessing: %6.2f%%" % pdone)
-    print ""
+    print("")
 
     #--------------------------------------------------------------------------
     # encode audio + video
@@ -293,7 +293,7 @@ def main():
 
     os.system(cmd)
 
-    print "Goodbye!"
+    print("Goodbye!")
 
 if __name__ == "__main__":
     main()

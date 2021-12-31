@@ -38,7 +38,7 @@ PACKAGE_NAME = "Nsound"
 
 VERSION_A = "0"
 VERSION_B = "9"
-VERSION_C = "5"
+VERSION_C = "6"
 
 DEVELOPMENMT = True
 
@@ -184,11 +184,14 @@ if GetOption("pytest"):
     commands = [
         ["scons", "-c"],
         build_cmd,
-        ["python", "setup_builder.py", "install"],
+        ["python", "setup_builder.py", "bdist_wheel"],
+        ["python", "-m", "pip", "install", "--isolated", "--ignore-installed", "dist/*"],
         ["python", "-m", "unittest", "discover"],
     ]
 
     for cmd in commands:
+        if cmd[-1] == "dist/*":
+            cmd[-1] = glob.glob("dist/*")[0]
         print("    " + str(cmd))
         subprocess.check_call(cmd)
 
@@ -549,8 +552,9 @@ if not nsound_config.env.GetOption("help"):
     #--------------------------------------------------------------------------
     # Extra Cleaning
 
+    nsound_config.env.Clean(libNsound, "Nsound.egg-info")
     nsound_config.env.Clean(libNsound, "Nsound.py")
-    nsound_config.env.Clean(libNsound, "swig/Nsound.py")
+    nsound_config.env.Clean(libNsound, "__pycache__")
     nsound_config.env.Clean(libNsound, "bin")
     nsound_config.env.Clean(libNsound, "build")
     nsound_config.env.Clean(libNsound, "dist")
@@ -558,6 +562,7 @@ if not nsound_config.env.GetOption("help"):
     nsound_config.env.Clean(libNsound, "docs/user_guide/build/html")
     nsound_config.env.Clean(libNsound, "docs/user_guide/build/plot_directive")
     nsound_config.env.Clean(libNsound, "lib")
+    nsound_config.env.Clean(libNsound, "swig/Nsound.py")
     nsound_config.env.Clean(libNsound, "swig/nsound_wrap.cxx")
     nsound_config.env.Clean(libNsound, "swig/nsound_wrap.os")
     nsound_config.env.Clean(libNsound, doxyfile)
@@ -570,8 +575,8 @@ if not nsound_config.env.GetOption("help"):
     nsound_config.env.Clean(libNsound, glob.glob("src/examples/Temperature_out.wav"))
     nsound_config.env.Clean(libNsound, glob.glob("src/examples/example*.wav"))
     nsound_config.env.Clean(libNsound, glob.glob("src/examples/mynameis-*.wav"))
-    nsound_config.env.Clean(libNsound, glob.glob("src/test/*.wav"))
     nsound_config.env.Clean(libNsound, glob.glob("src/test/*.obj"))
+    nsound_config.env.Clean(libNsound, glob.glob("src/test/*.wav"))
     nsound_config.env.Clean(libNsound, nsound_h)
     nsound_config.env.Clean(libNsound, setup_builder_py)
     nsound_config.env.Clean(libNsound, unit_tests)
@@ -597,52 +602,5 @@ if not nsound_config.env.GetOption("help"):
     nsound_config.env.Alias("test", unit_tests)
 
     nsound_config.env.Alias("install", [nsound_config.env['NS_BINDIR'], nsound_config.env['NS_LIBDIR']])
-
-    #--------------------------------------------------------------------------
-    # Setup Tar and Zip
-
-    EXCLUDE_EXTENSIONS = [
-#~        ".a",  need to include mingw32 libs
-        ".cache",
-        ".cvsignore",
-        ".dblite",
-        ".dll",
-        ".gz",
-        ".jpg",
-        ".log",
-        ".mp3",
-        ".o",
-        ".os",
-        ".png",
-        ".pyc",
-        ".so",
-        ".tar",
-        ".tmp",
-        ".zip",
-        "core",
-        "~"
-        ]
-
-    EXCLUDE_DIRS = [
-        ".svn",
-        ".sconf_temp",
-        "./bin",
-        "./lib",
-        "./docs/user_guide/build",
-        "./msw"
-        ]
-
-    if 'release' in COMMAND_LINE_TARGETS:
-        if(use_disttar):
-            nsound_config.env['DISTTAR_FORMAT']='gz'
-
-            nsound_config.env.Append(\
-                DISTTAR_EXCLUDE_EXTS = EXCLUDE_EXTENSIONS,
-                DISTTAR_EXCLUDE_DIRS = EXCLUDE_DIRS)
-
-            tar = env.DistTar(PACKAGE_RELEASE + ".tar.gz", [nsound_config.env.Dir(".")])
-
-            nsound_config.env.Alias("release", tar)
-
 
 # :mode=python:

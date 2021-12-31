@@ -5,15 +5,10 @@ Getting Started Using Nsound
 Using The Nsound Python Module
 ==============================
 
-.. pyexec::
+After installing the Nsound Python module, you can start playing with the
+examples.  Download the Nsound source code or check out the git tag::
 
-    from Nsound import PACKAGE_RELEASE
-    template = """
-    After installing the Nsound Python module, you can start playing with the
-    examples.  Download the Nsound source code or check out the subversion tag::
-
-    $ svn co https://nsound.svn.sourceforge.net/svnroot/nsound/tags/%s
-    """ % PACKAGE_RELEASE
+    $ git clone https://github.com/weegreenblobbie/nsound.git
 
 Next, modify one of the examples in src/examples, then execute the example::
 
@@ -118,6 +113,6 @@ target like so::
 
     scons -u example2
 
-Or if you are on Windows:
+Or if you are on Windows::
 
     scons -u example2.exe

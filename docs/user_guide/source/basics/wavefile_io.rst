@@ -121,41 +121,39 @@ sample rate::
 
     #! /usr/bin/env python
 
+    from argparse import ArgumentParser
+
     import Nsound as ns
 
-    from optparse import OptionParser
-
-    parser = OptionParser(
+    parser = ArgumentParser(
         usage = "resample target_sample_rate input.wav output.wav")
+    parser.add_argument("target_sample_rate", type=int)
+    parser.add_argument("input_wave", type=str)
+    parser.add_argument("output_wave", type=str)
 
-    (options, argv) = parser.parse_args()
+    args = parser.parse_args()
 
-    argc = len(argv)
+    target = float(args.target_sample_rate)
+    f1 = args.input_wave
+    f2 = args.output_wave
 
-    if argc != 3:
-        raise RuntimeException("Expecting 3 arguments!")
-
-    target = float(argv[0])
-    f1 = argv[1]
-    f2 = argv[2]
-
-    print "Reading %s" % f1
+    print("Reading %s" % f1)
 
     a1 = ns.AudioStream(f1)
     source = a1.getSampleRate()
 
-    print "source: %d" %(source)
-    print "target: %d" %(target)
+    print("source: %d" % source)
+    print("target: %d" % target)
 
     ratio = target / source
 
-    print "ratio:  %f" %(ratio)
+    print("ratio:  %f" % ratio)
 
-    print "Resampling ..."
+    print("Resampling ...")
 
     a2 = a1.getResample(ratio)
     a2.setSampleRate(int(target))
 
-    print "Writing %s" % f2
+    print("Writing %s" % f2)
 
     a2 >> f2

@@ -2,9 +2,13 @@ name: windows
 
 on:
   push:
-    branches: [ master ]
+    branches:
+    - master
+    - 'release/**'
   pull_request:
-    branches: [ master ]
+    branches:
+    - master
+    - 'release/**'
 
 jobs:
 
@@ -19,7 +23,7 @@ jobs:
       name: Install Python
     - name: Install dependencies
       run: |
-        pip3 install matplotlib scons 
+        pip3 install matplotlib scons wheel
     - name: Build nsound
       run: |
         scons

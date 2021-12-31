@@ -8,6 +8,7 @@ a foundation of common musical elements for everyone to use.
 All Nsound Instruments will provide the following functions:
 
 .. py:function:: Nsound.Instrument.play()
+    :noindex:
 
 Returns:
 
@@ -44,38 +45,16 @@ Based on a physical model written in Csound by Hans Mikelson.
 
     .. pyexec::
 
-        import os
-        import datetime
         import Nsound as ns
 
         sr = 44100.0
-
         a = ns.AudioStream(sr, 1)
-
         a << ns.GuitarBass(sr).play() # Plays the demo.
 
-        name = "GuitarBass"
+        import util
 
-        wavfile = "source/_static/%s.wav" % name
-        mp3file = "source/_static/%s.mp3" % name
+        template = util.save_ogg(a, "GuitarBass")
 
-        a >> wavfile
-
-        # Encode as mp3
-        if not os.path.isfile(mp3file):
-            os.system(
-                "lame -q 2 -b 192 "
-                "--tt '%s' --ta Nsound --tl '%s' --ty %d --tc %s %s %s" %(
-                name,
-                ns.__version__,
-                datetime.datetime.now().year,
-                "http://nsound.sourceforge.net",
-                wavfile,
-                mp3file))
-
-        template = "Sample here: :download:`%s.mp3. <_static/%s.mp3>`" %(
-            name,
-            name)
 
 Clarinet
 --------
@@ -92,38 +71,15 @@ originally based on Perry Cook's physical model.
 
     .. pyexec::
 
-        import os
-        import datetime
         import Nsound as ns
 
         sr = 44100.0
-
         a = ns.AudioStream(sr, 1)
-
         a << ns.Clarinet(sr).play() # Plays the demo.
 
-        name = "Clarinet"
+        import util
 
-        wavfile = "source/_static/%s.wav" % name
-        mp3file = "source/_static/%s.mp3" % name
-
-        a >> wavfile
-
-        # Encode as mp3
-        if not os.path.isfile(mp3file):
-            os.system(
-                "lame -q 2 -b 192 "
-                "--tt '%s' --ta Nsound --tl '%s' --ty %d --tc %s %s %s" %(
-                name,
-                ns.__version__,
-                datetime.datetime.now().year,
-                "http://nsound.sourceforge.net",
-                wavfile,
-                mp3file))
-
-        template = "Sample here: :download:`%s.mp3. <_static/%s.mp3>`" %(
-            name,
-            name)
+        template = util.save_ogg(a, "Clarinet")
 
 Kick Bass Drum
 --------------
@@ -143,8 +99,6 @@ Kick Bass Drum
 
     .. pyexec::
 
-        import datetime
-        import os
         import Nsound as ns
 
         sr = 44100.0
@@ -157,28 +111,9 @@ Kick Bass Drum
         g = ns.Generator(sr)
         a << g.silence(1.0)
 
-        name = "DrumKickBass"
+        import util
+        template = util.save_ogg(a, "DrumKickBass")
 
-        wavfile = "source/_static/%s.wav" % name
-        mp3file = "source/_static/%s.mp3" % name
-
-        a >> wavfile
-
-        # Encode as mp3
-        if not os.path.isfile(mp3file):
-            os.system(
-                "lame -q 2 -b 192 "
-                "--tt '%s' --ta Nsound --tl '%s' --ty %d --tc %s %s %s" %(
-                name,
-                ns.__version__,
-                datetime.datetime.now().year,
-                "http://nsound.sourceforge.net",
-                wavfile,
-                mp3file))
-
-        template = "Sample here: :download:`%s.mp3. <_static/%s.mp3>`" %(
-            name,
-            name)
 
 BD01 Drum
 ---------
@@ -196,8 +131,7 @@ source: http://www.csounds.com/istvan/html/drums.html
 
     .. pyexec::
 
-        import os
-        import datetime
+
         import Nsound as ns
 
         sr = 44100.0
@@ -210,28 +144,10 @@ source: http://www.csounds.com/istvan/html/drums.html
         g = ns.Generator(sr)
         a << g.silence(1.0)
 
-        name = "DrumBD01"
+        import util
 
-        wavfile = "source/_static/%s.wav" % name
-        mp3file = "source/_static/%s.mp3" % name
+        template = util.save_ogg(a, "DrumBD01")
 
-        a >> wavfile
-
-        # Encode as mp3
-        if not os.path.isfile(mp3file):
-            os.system(
-                "lame -q 2 -b 192 "
-                "--tt '%s' --ta Nsound --tl '%s' --ty %d --tc %s %s %s" %(
-                name,
-                ns.__version__,
-                datetime.datetime.now().year,
-                "http://nsound.sourceforge.net",
-                wavfile,
-                mp3file))
-
-        template = "Sample here: :download:`%s.mp3. <_static/%s.mp3>`" %(
-            name,
-            name)
 
 Hat
 ---
@@ -247,38 +163,16 @@ Simulates a Hat hit, based on a Csound Hat instrument by Steven Cook.
 
     .. pyexec::
 
-        import os
-        import datetime
         import Nsound as ns
 
         sr = 44100.0
-
         a = ns.AudioStream(sr, 1)
-
         a << ns.Hat(sr).play() # Plays the demo.
 
-        name = "Hat"
+        import util
 
-        wavfile = "source/_static/%s.wav" % name
-        mp3file = "source/_static/%s.mp3" % name
+        template = util.save_ogg(a, "Hat")
 
-        a >> wavfile
-
-        # Encode as mp3
-        if not os.path.isfile(mp3file):
-            os.system(
-                "lame -q 2 -b 192 "
-                "--tt '%s' --ta Nsound --tl '%s' --ty %d --tc %s %s %s" %(
-                name,
-                ns.__version__,
-                datetime.datetime.now().year,
-                "http://nsound.sourceforge.net",
-                wavfile,
-                mp3file))
-
-        template = "Sample here: :download:`%s.mp3. <_static/%s.mp3>`" %(
-            name,
-            name)
 
 Pipe Organ
 ----------
@@ -294,41 +188,19 @@ Based on a Csound Pipe Organ by Hons Mikelson.
 
     .. pyexec::
 
-        import os
-        import datetime
         import Nsound as ns
-
-        version = ns.__version__
 
         sr = 44100.0
 
-        a = ns.AudioStream(sr, 1)
+        a = ns.AudioStream(sr, 2)
 
         # Plays the demo.
         a << ns.OrganPipe(sr).play()
 
-        name = "OrganPipe"
+        import util
 
-        wavfile = "source/_static/%s.wav" % name
-        mp3file = "source/_static/%s.mp3" % name
+        template = util.save_ogg(a, "OrganPipe")
 
-        a >> wavfile
-
-        # Encode as mp3
-        if not os.path.isfile(mp3file):
-            os.system(
-                "lame -q 2 -b 192 "
-                "--tt '%s' --ta Nsound --tl '%s' --ty %d --tc %s %s %s" %(
-                name,
-                ns.__version__,
-                datetime.datetime.now().year,
-                "http://nsound.sourceforge.net",
-                wavfile,
-                mp3file))
-
-        template = "Sample here: :download:`%s.mp3. <_static/%s.mp3>`" %(
-            name,
-            name)
 
 Slide Flute
 -----------
@@ -344,36 +216,14 @@ originally based on Perry Cook's physical model.
 .. only:: html
 
     .. pyexec::
+        name = "FluteSlide"
 
-        import os
-        import datetime
         import Nsound as ns
 
         sr = 44100.0
-
         a = ns.AudioStream(sr, 1)
-
         a << ns.FluteSlide(sr).play() # Plays the demo.
 
-        name = "FluteSlide"
+        import util
 
-        wavfile = "source/_static/%s.wav" % name
-        mp3file = "source/_static/%s.mp3" % name
-
-        a >> wavfile
-
-        # Encode as mp3
-        if not os.path.isfile(mp3file):
-            os.system(
-                "lame -q 2 -b 192 "
-                "--tt '%s' --ta Nsound --tl '%s' --ty %d --tc %s %s %s" %(
-                name,
-                ns.__version__,
-                datetime.datetime.now().year,
-                "http://nsound.sourceforge.net",
-                wavfile,
-                mp3file))
-
-        template = "Sample here: :download:`%s.mp3. <_static/%s.mp3>`" %(
-            name,
-            name)
+        template = util.save_ogg(a, "FluteSlide")
