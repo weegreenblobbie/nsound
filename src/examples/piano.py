@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """
 
-import Queue as queue
+from queue import Queue
 import argparse
 import multiprocessing
 import sys
@@ -67,7 +67,7 @@ SQUARE = enum; enum += 1
 # Random seed for chorus
 #~rng = ns.RngTausworthe()
 #~seed = rng.get()
-#~print "seed = ", seed
+#~print("seed = ", seed)
 
 seed = 1108683026
 
@@ -134,7 +134,7 @@ def worker(q, generator, n_harmonics, chorus):
         try:
             x = q.get(False)
             process_key = True
-        except queue.Empty:
+        except Queue.Empty:
             process_key = False
 
         if process_key:
@@ -213,7 +213,7 @@ running, you will get undefined behavior""")
     args = parser.parse_args()
 
     if args.use_jack:
-        print "Will try to use JACK (known to work on Linux)"
+        print("Will try to use JACK (known to work on Linux)")
         ns.AudioPlaybackRt.use_jack(True)
 
     generator = SINE
@@ -261,7 +261,7 @@ running, you will get undefined behavior""")
             args = (q, generator, n_harmonics, chorus) )
         p.start()
 
-        # read from queue that the process initialized and is ready.
+        # Read from the Queue that the process initialized and is ready.
         good = q.get()
 
         if not good:
@@ -284,9 +284,9 @@ running, you will get undefined behavior""")
     # Turn off key repeats
     pygame.key.set_repeat()
 
-    print "Hello Piano!"
-    print "Press ESC to quit."
-    print "Press [z,s,x,d,c,v,g,b,h,n,j,m] to play a note."
+    print("Hello Piano!")
+    print("Press ESC to quit.")
+    print("Press [z,s,x,d,c,v,g,b,h,n,j,m] to play a note.")
 
     main_loop = True
 
@@ -306,7 +306,7 @@ running, you will get undefined behavior""")
             if c in key_to_freq:
 
                 if len(q_idle) == 0:
-                    print "no worker thread available!"
+                    print("no worker thread available!")
                     continue
 
                 freq = key_to_freq[c]
@@ -347,8 +347,8 @@ running, you will get undefined behavior""")
         p.join()
 
     pygame.display.quit()
-    print ""
-    print "Goodbye!"
+    print("")
+    print("Goodbye!")
 
 
 if __name__ == "__main__":

@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import argparse
 import sys
-import Queue as queue
+import queue as queue
 import multiprocessing
 
 import pygame
@@ -175,7 +175,7 @@ def worker(q, signal, sig_dur, t):
                     fn = "delayline-rt-%02d.wav" % aid
                     aout >> fn
 
-                    print "Wrote %s" % fn
+                    print("Wrote %s" % fn)
 
 #~                    aout.plot("gain plot")
 #~                    ns.Plotter.show()
@@ -280,13 +280,13 @@ running, you will get undefined behavior""")
     # Low Latency
 
     if args.use_jack:
-        print "Will try to use JACK (known to work on Linux)"
+        print("Will try to use JACK (known to work on Linux)")
         ns.AudioPlaybackRt.use_jack(True)
         t = LO_T
 
     # High Latency
     else:
-        print "Using High Latency"
+        print("Using High Latency")
         t = HI_T
 
     signal = ns.AudioStream(args.input_wave).getMono()
@@ -294,8 +294,8 @@ running, you will get undefined behavior""")
     signal.normalize()
     signal *= 0.49
 
-    print "Hello DelayLine RT!"
-    print "Press ESC to quit."
+    print("Hello DelayLine RT!")
+    print("Press ESC to quit.")
 
     q = multiprocessing.Queue(maxsize = 1)
     p = multiprocessing.Process(target=worker, args = (q, signal[0], signal.getDuration(), t))
@@ -351,7 +351,7 @@ running, you will get undefined behavior""")
                 break
 
         elif event.type == pygame.QUIT:
-            print "Quitting main loop"
+            print("Quitting main loop")
             sys.stdout.flush()
             main_loop = False
             break
@@ -359,7 +359,7 @@ running, you will get undefined behavior""")
     q.put("QUIT")
     p.join()
     pygame.display.quit()
-    print "Goodbye!"
+    print("Goodbye!")
 
 
 if __name__ == "__main__":

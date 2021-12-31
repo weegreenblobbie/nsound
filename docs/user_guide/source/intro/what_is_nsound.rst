@@ -32,7 +32,5 @@ own plot methods.
 
 This User's Guide will specify code snippets written in Python.  The C++
 code is nearly identical.  For specific C++ reference, view the Doxygen
-generated documentation available on the Nsound sourceforge
-`website <http://nsound.sourceforge.net/doxygen/index.html>`_.
-
-
+generated documentation available from
+`here <https://weegreenblobbie.com/nsound/doxygen/index.html>`_.

@@ -58,7 +58,14 @@ configuration file, use::
     warnings.simplefilter('error', plot_directive.PlotWarning)
 """
 
-import sys, os, shutil, imp, warnings, cStringIO, re
+from io import StringIO
+import imp
+import os
+import re
+import shutil
+import sys
+import warnings
+
 try:
     from hashlib import md5
 except ImportError:
@@ -116,30 +123,30 @@ else:
         """
 
         if not os.path.exists(target):
-            raise OSError, 'Target does not exist: '+target
+            raise OSError(f'Target does not exist: {target}')
 
         if not os.path.isdir(base):
-            raise OSError, 'Base is not a directory or does not exist: '+base
+            raise OSError(f'Base is not a directory or does not exist: {base}')
 
         base_list = (os.path.abspath(base)).split(os.sep)
         target_list = (os.path.abspath(target)).split(os.sep)
 
         # On the windows platform the target may be on a completely
         # different drive from the base.
-        if os.name in ['nt','dos','os2'] and base_list[0] <> target_list[0]:
-            raise OSError, 'Target is on a different drive to base. Target: '+target_list[0].upper()+', base: '+base_list[0].upper()
+        if os.name in ['nt','dos','os2'] and base_list[0] != target_list[0]:
+            raise OSError(f'Target is on a different drive to base. Target: {target_list[0].upper()}, base: {base_list[0].upper()}')
 
         # Starting from the filepath root, work out how much of the
         # filepath is shared by base and target.
         for i in range(min(len(base_list), len(target_list))):
-            if base_list[i] <> target_list[i]: break
+            if base_list[i] != target_list[i]: break
         else:
             # If we broke out of the loop, i is pointing to the first
             # differing path elements.  If we didn't break out of the
             # loop, i is pointing to identical path elements.
             # Increment i so that in all cases it points to the first
             # differing path elements.
-            i+=1
+            i += 1
 
         rel_list = [os.pardir] * (len(base_list)-i) + target_list[i:]
         if rel_list:

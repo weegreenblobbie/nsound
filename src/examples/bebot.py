@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import argparse
 import sys
-import Queue as queue
+import queue as queue
 import multiprocessing
 
 import pygame
@@ -184,7 +184,7 @@ def worker(q, t):
                     fn = "bebot-rt-%02d.wav" % aid
                     aout >> fn
 
-                    print "Wrote %s" % fn
+                    print("Wrote %s" % fn)
 
                     aout = ns.AudioStream(SR, 1)
                     aid += 1
@@ -265,17 +265,17 @@ running, you will get undefined behavior""")
     # Low latency
 
     if args.use_jack:
-        print "Will try to use JACK (known to work on Linux)"
+        print("Will try to use JACK (known to work on Linux)")
         ns.AudioPlaybackRt.use_jack(True)
         t = LO_T
 
     # High latency
     else:
-        print "Using Higher Latency"
+        print("Using Higher Latency")
         t = HI_T
 
-    print "Hello Bebot!"
-    print "Press ESC to quit."
+    print("Hello Bebot!")
+    print("Press ESC to quit.")
 
     q = multiprocessing.Queue(maxsize = 1)
     p = multiprocessing.Process(target=worker, args = (q,t))
@@ -331,7 +331,7 @@ running, you will get undefined behavior""")
                 break
 
         elif event.type == pygame.QUIT:
-            print "Quitting main loop"
+            print("Quitting main loop")
             sys.stdout.flush()
             main_loop = False
             break
@@ -339,7 +339,7 @@ running, you will get undefined behavior""")
     q.put("QUIT")
     p.join()
     pygame.display.quit()
-    print "Goodbye!"
+    print("Goodbye!")
 
 
 if __name__ == "__main__":

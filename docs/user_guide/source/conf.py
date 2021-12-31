@@ -25,10 +25,16 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 """
 
+'''
+Ubuntu Linux do:
+sudo apt-get install texlive-latex-base texlive-fonts-recommended texlive-fonts-extra texlive-latex-extra latexmk
+'''
+
 # Python modules
 import datetime
 import os
 import sys
+import subprocess
 
 now = datetime.datetime.now
 
@@ -37,7 +43,8 @@ today = now()
 # 3rd party modules
 
 import matplotlib
-#~matplotlib.use("GTKAgg")
+import matplotlib.sphinxext
+subprocess.check_output(["lame", "--version"])
 
 import Nsound
 
@@ -53,10 +60,8 @@ sys.path.append(os.path.abspath('../'))
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = \
 [
-    'sphinxext.mathmpl',
-    'sphinxext.only_directives',
-    'sphinxext.plot_directive',
-    'sphinxext.pyexec_directive',
+    'matplotlib.sphinxext.plot_directive',
+    'my.pyexec_directive',
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest'
 ]
@@ -240,7 +245,7 @@ latex_logo = None
 #latex_show_urls = False
 
 # Additional stuff for the LaTeX preamble.
-latex_preamble = """
+latex_preamble = r"""
    \usepackage{amsmath}
    \usepackage{amsfonts}
    \usepackage{amssymb}

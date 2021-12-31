@@ -217,7 +217,7 @@ moving the mouse around.
                 name,
                 ns.__version__,
                 datetime.datetime.now().year,
-                "http://nsound.sourceforge.net",
+                "https://github.com/weegreenblobbie/nsound",
                 wavfile,
                 mp3file))
 
@@ -233,12 +233,11 @@ A simple piano with the following options:
 
 .. pyexec::
 
-    from subprocess import Popen
-    from subprocess import PIPE
+    import subprocess
 
     cmd = ["python", "../../src/examples/piano.py", "--help"]
 
-    output = Popen(cmd, stdout=PIPE).communicate()[0].split('\n')
+    output = subprocess.check_output(cmd).decode("ascii").split('\n')
 
     s = output[0] + "\n"
     for x in output[1:]:
@@ -285,7 +284,7 @@ Try running with these options:
                 name,
                 ns.__version__,
                 datetime.datetime.now().year,
-                "http://nsound.sourceforge.net",
+                "https://github.com/weegreenblobbie/nsound",
                 wavfile,
                 mp3file))
 
