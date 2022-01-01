@@ -2076,6 +2076,26 @@ typedef std::vector<Buffer *> BufferPointerVector;
 std::ostream &
 operator<<(std::ostream & out, const Buffer & rhs);
 
+
+//-----------------------------------------------------------------------------
+// Utilities that return Buffers.
+
+inline Buffer linspace(float64 start, float64 stop, std::size_t num, bool endpoint=true)
+{
+    const std::size_t num_ = endpoint ? num - 1 : num;
+    M_ASSERT_VALUE(num_, >, 0);
+    auto step = (stop - start) / static_cast<float64>(num_);
+    Buffer b(num_);
+
+    for (std::size_t i = 0; i <= num_; ++i)
+    {
+        b << start + i * step;
+    }
+
+    return b;
+}
+
+
 } // namespace
 
 // :mode=c++: jEdit modeline

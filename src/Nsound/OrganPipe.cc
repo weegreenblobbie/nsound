@@ -37,6 +37,12 @@
 #include <Nsound/FilterLowPassIIR.h>
 #include <Nsound/FilterTone.h>
 #include <Nsound/Sine.h>
+#include <Nsound/Sawtooth.h>
+#include <Nsound/Square.h>
+
+// DEBUG
+#include <Nsound/Plotter.h>
+
 
 using namespace Nsound;
 using std::cout;
@@ -46,11 +52,10 @@ using std::endl;
 OrganPipe::
 OrganPipe(const float64 & sample_rate)
     :
-    Instrument(sample_rate){}
-
-//-----------------------------------------------------------------------------
-OrganPipe::
-~OrganPipe(){}
+    Instrument(sample_rate),
+    _sine(std::make_unique<Sine>(sample_rate))
+{
+}
 
 AudioStream
 OrganPipe::
@@ -179,14 +184,14 @@ play(
     float64 pan_left = pan;
     float64 pan_right = 1.0 - pan_left;
 
-    float64 op1f =  1.00 * frequency;
-    float64 op2f =  2.01 * frequency;
-    float64 op3f =  3.99 * frequency;
-    float64 op4f =  8.00 * frequency;
-    float64 op5f =  0.50 * frequency;
-    float64 op7f = 16.00 * frequency;
+    Buffer rand_factor = _sine->gaussianNoise(std::size_t(6), 1.0, 0.0001);
 
-    Sine sin(sample_rate_);
+    float64 ophf =   0.5 * frequency * rand_factor[0];
+    float64 op1f =   1.0 * frequency * rand_factor[1];
+    float64 op2f =   2.0 * frequency * rand_factor[2];
+    float64 op4f =   4.0 * frequency * rand_factor[3];
+    float64 op8f =   8.0 * frequency * rand_factor[4];
+    float64 op16f = 16.0 * frequency * rand_factor[5];
 
     Buffer dclick;
     Buffer amp1;
@@ -197,75 +202,109 @@ play(
     if(duration > 0.002)
     {
         dclick
-            << sin.drawLine(0.001, 0.0, 1.0)
-            << sin.drawLine(duration - 0.002, 1.0, 1.0)
-            << sin.drawLine(0.001, 1.0, 0.0);
+            << _sine->drawLine(0.001, 0.0, 1.0)
+            << _sine->drawLine(duration - 0.002, 1.0, 1.0)
+            << _sine->drawLine(0.001, 1.0, 0.0);
     }
     else
     {
-        dclick << sin.drawLine(duration, 1.0, 1.0);
+        dclick << _sine->drawLine(duration, 1.0, 1.0);
     }
 
     if(duration > 0.02)
     {
         amp1
-            << sin.drawLine(0.01, 0.0, 1.0)
-            << sin.drawLine(duration - 0.02, 1.0, 1.0)
-            << sin.drawLine(0.01, 1.0, 0.0);
+            << _sine->drawLine(0.01, 0.0, 1.0)
+            << _sine->drawLine(duration - 0.02, 1.0, 1.0)
+            << _sine->drawLine(0.01, 1.0, 0.0);
     }
     else
     {
-        amp1 = sin.drawLine(duration, 1.0, 1.0);
+        amp1 = _sine->drawLine(duration, 1.0, 1.0);
     }
 
     if(duration > 0.16)
     {
         amp2
-            << sin.drawLine(0.05, 0.0, 1.0)
-            << sin.drawLine(0.1, 1.0, 0.7)
-            << sin.drawLine(duration - 0.16, 0.7, 0.7)
-            << sin.drawLine(0.01, 0.7, 0.0);
+            << _sine->drawLine(0.05, 0.0, 1.0)
+            << _sine->drawLine(0.1, 1.0, 0.7)
+            << _sine->drawLine(duration - 0.16, 0.7, 0.7)
+            << _sine->drawLine(0.01, 0.7, 0.0);
     }
     else
     {
-        amp2 = sin.drawLine(duration, 1.0, 1.0);
+        amp2 = _sine->drawLine(duration, 1.0, 1.0);
     }
 
     if(duration > 0.08)
     {
         amp3
-            << sin.drawLine(0.03, 0.0, 0.8)
-            << sin.drawLine(0.05, 0.8, 0.0)
-            << sin.drawLine(duration - 0.08, 0.0, 0.0);
+            << _sine->drawLine(0.03, 0.0, 0.8)
+            << _sine->drawLine(0.05, 0.8, 0.0)
+            << _sine->drawLine(duration - 0.08, 0.0, 0.0);
     }
     else
     {
-        amp3 = sin.drawLine(duration, 1.0, 1.0);
+        amp3 = _sine->drawLine(duration, 1.0, 1.0);
     }
 
     if(duration > 0.21)
     {
         amp4
-            << sin.drawLine(0.1, 0.0, 0.3)
-            << sin.drawLine(0.1, 0.3, 0.05)
-            << sin.drawLine(duration -0.21, 0.05, 0.1)
-            << sin.drawLine(0.01, 0.1, 0.0);
+            << _sine->drawLine(0.1, 0.0, 0.3)
+            << _sine->drawLine(0.1, 0.3, 0.05)
+            << _sine->drawLine(duration -0.21, 0.05, 0.1)
+            << _sine->drawLine(0.01, 0.1, 0.0);
     }
     else
     {
-        amp4 = sin.drawLine(duration, 1.0, 1.0);
+        amp4 = _sine->drawLine(duration, 1.0, 1.0);
     }
 
-    Buffer op8 = amp4 * sin.generate(duration, op5f);
+    Buffer p1 = amp4 * _sine->generate2(duration, ophf, 0.00) + 1.0;
+    Buffer p2 = amp4 * _sine->generate2(duration, ophf, 1.00) + 1.0;
 
-    Buffer p1 = op8 + 1.0;
+    Buffer out;
+    out << 0.075 * amp1 * _sine->generate2(duration, p1 * op1f, 0.00);
+    out += 0.400 * amp2 * _sine->generate2(duration, p2 * op2f, 1.00);
+    out += 0.200 * amp3 * _sine->generate2(duration, 5.0 * ophf, 0.33);
+    out += 0.100 * amp2 * _sine->generate2(duration, op4f, 0.66);
+    out += 0.050 * amp2 * _sine->generate2(duration, op8f, 0.25);
+    out += 0.025 * amp2 * _sine->generate2(duration, op16f, 0.75);
 
-    Buffer out = amp1 * sin.generate(duration, p1 * op1f);
-    out += amp2 * sin.generate(duration, p1 * op2f);
-    out += amp2 * sin.generate(duration, op3f);
-    out += amp2 * sin.generate(duration, op4f);
-    out += amp3 * sin.generate(duration, 5.0 * op5f);
-    out += amp2 * sin.generate(duration, op7f);
+//~    Plotter plt;
+
+//~    plt.figure();
+//~    plt.plot(amp1, "-", "label='amp1'");
+//~    plt.plot(amp2, "-", "label='amp2'");
+//~    plt.plot(amp3, "-", "label='amp3'");
+//~    plt.plot(amp4, "-", "label='amp4'");
+//~    plt.legend();
+//~    plt.title("amplitudes 1-4");
+
+//~    plt.figure();
+
+//~    plt.plot(1.0, op1f, "+", "label='op1f'");
+//~    plt.plot(2.0, op2f, "+", "label='op2f'");
+//~    plt.plot(3.0, op4f, "+", "label='op4f'");
+//~    plt.plot(4.0, op8f, "+", "label='op8f'");
+//~    plt.plot(5.0, 5 * ophf, "+", "label='ophf'");
+//~    plt.plot(6.0, op16f, "+", "label='op16f'");
+//~    plt.title("op[1-7]f");
+
+//~    plt.figure();
+//~    plt.plot(p1);
+//~    plt.plot(p2);
+//~    plt.title("p1, p2");
+
+//~    plt.figure();
+//~    plt.plot(out);
+//~    plt.title("output");
+
+//~    plt.show();
+
+//~    M_THROW("exit debugging");
+
 
     AudioStream y(sample_rate_, 2);
 

@@ -50,53 +50,13 @@ using std::endl;
 // Constructor
 Generator::
 Generator()
-    :
-    last_frequency_(0.0),
-    position_(0.0),
-    sync_pos_(0.0),
-    sample_rate_(0.0),
-    sample_time_(0.0),
-    t_(0.0),
-    waveform_(NULL),
-    rng_(NULL),
-    buzz_max_harmonics_(0),
-    buzz_position_(),
-    chorus_is_on_(false),
-    chorus_n_voices_(0),
-    chorus_position_(),
-    chorus_factor_(),
-    sync_is_master_(false),
-    sync_is_slave_(false),
-    sync_count_(0),
-    sync_vector_(),
-    sync_slaves_()
 {
-};
+    ctor(1.0);
+}
 
 // Constructor
 Generator::
 Generator(const float64 & sample_rate)
-    :
-    is_realtime_(false),
-    last_frequency_(0.0),
-    position_(0.0),
-    sync_pos_(0.0),
-    sample_rate_(0.0),
-    sample_time_(0.0),
-    t_(0.0),
-    waveform_(NULL),
-    rng_(NULL),
-    buzz_max_harmonics_(0),
-    buzz_position_(),
-    chorus_is_on_(false),
-    chorus_n_voices_(0),
-    chorus_position_(),
-    chorus_factor_(),
-    sync_is_master_(false),
-    sync_is_slave_(false),
-    sync_count_(0),
-    sync_vector_(),
-    sync_slaves_()
 {
     ctor(sample_rate);
 }
@@ -104,27 +64,6 @@ Generator(const float64 & sample_rate)
 // Constructor
 Generator::
 Generator(const std::string & wave_filename)
-    :
-    is_realtime_(false),
-    last_frequency_(0.0),
-    position_(0.0),
-    sync_pos_(0.0),
-    sample_rate_(0.0),
-    sample_time_(0.0),
-    t_(0.0),
-    waveform_(NULL),
-    rng_(NULL),
-    buzz_max_harmonics_(0),
-    buzz_position_(),
-    chorus_is_on_(false),
-    chorus_n_voices_(0),
-    chorus_position_(),
-    chorus_factor_(),
-    sync_is_master_(false),
-    sync_is_slave_(false),
-    sync_count_(0),
-    sync_vector_(),
-    sync_slaves_()
 {
     Buffer b(wave_filename);
     ctor(b.getLength(), b);
@@ -133,27 +72,6 @@ Generator(const std::string & wave_filename)
 // Constructor
 Generator::
 Generator(const float64 & sample_rate, const Buffer & waveform)
-    :
-    is_realtime_(false),
-    last_frequency_(0.0),
-    position_(0.0),
-    sync_pos_(0.0),
-    sample_rate_(0.0),
-    sample_time_(0.0),
-    t_(0.0),
-    waveform_(NULL),
-    rng_(NULL),
-    buzz_max_harmonics_(0),
-    buzz_position_(),
-    chorus_is_on_(false),
-    chorus_n_voices_(0),
-    chorus_position_(),
-    chorus_factor_(),
-    sync_is_master_(false),
-    sync_is_slave_(false),
-    sync_count_(0),
-    sync_vector_(),
-    sync_slaves_()
 {
     ctor(sample_rate, waveform);
 }
@@ -161,39 +79,10 @@ Generator(const float64 & sample_rate, const Buffer & waveform)
 // Copy Constructor
 Generator::
 Generator(const Generator & copy)
-    :
-    is_realtime_(false),
-    last_frequency_(0.0),
-    position_(0.0),
-    sync_pos_(0.0),
-    sample_rate_(0.0),
-    sample_time_(0.0),
-    t_(0.0),
-    waveform_(NULL),
-    rng_(NULL),
-    buzz_max_harmonics_(0),
-    buzz_position_(),
-    chorus_is_on_(false),
-    chorus_n_voices_(0),
-    chorus_position_(),
-    chorus_factor_(),
-    sync_is_master_(false),
-    sync_is_slave_(false),
-    sync_count_(0),
-    sync_vector_(),
-    sync_slaves_()
 {
     // Call operator=
     *this = copy;
 }
-
-// Destructor
-Generator::
-~Generator()
-{
-    delete waveform_;
-    delete rng_;
-};
 
 // ctor
 void
@@ -202,8 +91,7 @@ ctor(const float64 & sample_rate)
 {
     sample_rate_ = sample_rate;
     sample_time_ = 1.0 / sample_rate_;
-    waveform_ = NULL;
-    rng_ = new RngTausworthe();
+    rng_ = std::make_unique<RngTausworthe>();
 }
 
 // ctor
@@ -222,26 +110,41 @@ ctor(const float64 & sample_rate, const Buffer & waveform)
     }
     else
     {
-        delete waveform_;
-        delete rng_;
-
         sample_rate_ = sample_rate;
         sample_time_ = 1.0 / sample_rate_;
-        waveform_ = new Buffer(waveform);
-        rng_ = new RngTausworthe();
+        waveform_ = std::make_unique<Buffer>(waveform);
+        rng_ = std::make_unique<RngTausworthe>();
+    }
+}
+
+// dtor
+Generator::
+~Generator()
+{
+    // Required since the random number generated is now a uniqu ptr.
+}
+
+void
+Generator::
+_send_sync(uint32 sync_count)
+{
+    if (! sync_is_sender_) return;
+    for (auto * ptr : sync_receivers_)
+    {
+        ptr->sync_vector_.push_back(sync_count);
     }
 }
 
 void
 Generator::
-addSlaveSync(Generator & slave)
+addSync(Generator & receiver)
 {
-    sync_is_master_ = true;
-    slave.sync_is_slave_ = true;
+    sync_is_sender_ = true;
+    receiver.sync_is_receiver_ = true;
 
-    if(sync_slaves_.count(&slave) == 0)
+    if(sync_receivers_.count(&receiver) == 0)
     {
-        sync_slaves_.insert(&slave);
+        sync_receivers_.insert(&receiver);
     }
 
     reset();
@@ -289,7 +192,7 @@ buzz(
 
     float64 denom = (*waveform_)[static_cast<int32>(position_ + 0.5)] * sign;
 
-    if(fabs(denom) > 1e-12)
+    if(fabs(denom) > std::numeric_limits<float64>::epsilon())
     {
         float64 up_phase = position_ * two_n_plus_1;
         while(up_phase >= sample_rate_) up_phase -= sample_rate_;
@@ -303,7 +206,7 @@ buzz(
         y = 1.0; // this assumes cosine wave!
     }
 
-    position_ += 0.5*frequency;
+    position_ += 0.5 * frequency;
 
     return y;
 }
@@ -362,26 +265,29 @@ setChorus(const uint32 n_voices, const float64 & amount)
 {
     if(n_voices == 0)
     {
-        chorus_is_on_ = false;
+        chorus_position_.resize(1);
+        chorus_factor_.resize(1);
         return;
     }
 
-    chorus_is_on_ = true;
-
-    chorus_n_voices_ = n_voices;
-
-    chorus_factor_.clear();
-    chorus_position_.clear();
-
-    for(uint32 i = 0; i < chorus_n_voices_; ++i)
+    for(uint32 i = 0; i < n_voices; ++i)
     {
         chorus_factor_.push_back(1.0 + rng_->get(-amount, amount));
-
         chorus_position_.push_back(0.0);
     }
 
     reset();
 }
+
+void
+Generator::
+addChorus(float64 scalar)
+{
+    chorus_factor_.push_back(scalar);
+    chorus_position_.push_back(0.0);
+    reset();
+}
+
 
 Buffer
 Generator::
@@ -670,21 +576,13 @@ drawSine2(const float64 & frequency, const float64 & phase)
     float64 f = 0.0;
     float64 sample = 0.0;
 
-    if(chorus_is_on_)
+    for(std::size_t i = 0; i < chorus_position_.size(); ++i)
     {
-        for(uint32 i = 0; i < chorus_n_voices_; ++i)
-        {
-            f = M_2PI * chorus_position_[i] * sample_time_ + M_PI * phase;
-            sample += ::sin(f);
-            chorus_position_[i] += frequency * chorus_factor_[i];
-        }
-        sample /= static_cast<float64>(chorus_n_voices_);
+        f = M_2PI * chorus_position_[i] * sample_time_ + M_PI * phase;
+        sample += ::sin(f);
+        chorus_position_[i] += frequency * chorus_factor_[i];
     }
-    else
-    {
-        sample = ::sin(M_2PI * t_ * sample_time_ + M_PI * phase);
-        t_ += frequency;
-    }
+    sample /= static_cast<float64>(chorus_position_.size());
 
     return sample;
 }
@@ -982,7 +880,7 @@ generate2(const float64 & frequency, const float64 & phase)
 
     ++sync_count_;
 
-    if(sync_is_slave_ && !sync_vector_.empty())
+    if(sync_is_receiver_ && !sync_vector_.empty())
     {
         uint32 sync_count = sync_vector_.front();
 
@@ -996,65 +894,48 @@ generate2(const float64 & frequency, const float64 & phase)
 
     // Move with phase
     float64 ph = (phase * sample_rate_ / 2.0);
-    float64 position2 = position_ + ph + 0.5;
+//~    float64 position2 = position_ + ph + 0.5;
 
-    // Range checks
+//~    // Range checks
 
-    while(position2 >= sample_rate_)
-    {
-        position2 -= sample_rate_;
-    }
+//~    while(position2 >= sample_rate_)
+//~    {
+//~        position2 -= sample_rate_;
+//~    }
 
-    while(position2 < 0.0)
-    {
-        position2 += sample_rate_;
-    }
+//~    while(position2 < 0.0)
+//~    {
+//~        position2 += sample_rate_;
+//~    }
 
     float64 sample = 0.0;
 
-    if(chorus_is_on_)
+    for(std::size_t i = 0; i < chorus_position_.size(); ++i)
     {
-        for(uint32 i = 0; i < chorus_n_voices_; ++i)
-        {
-            float64 pos = chorus_position_[i]
-                        + chorus_factor_[i] * frequency
-                        + ph
-                        + 0.5;
+        float64 pos = chorus_position_[i]
+                    + chorus_factor_[i] * frequency
+                    + ph
+                    + 0.5;
 
-            // Range check
-            while(pos >= sample_rate_) pos -= sample_rate_;
-            while(pos <  0)            pos += sample_rate_;
+        // Range check
+        while(pos >= sample_rate_) pos -= sample_rate_;
+        while(pos <  0)            pos += sample_rate_;
 
-            sample += (*waveform_)[static_cast<uint32>(pos)];
+        sample += (*waveform_)[static_cast<uint32>(pos)];
 
-            chorus_position_[i] += frequency * chorus_factor_[i];
-        }
-
-        sample /= static_cast<float64>(chorus_n_voices_);
-    }
-    else
-    {
-        sample = (*waveform_)[static_cast<uint32>(position2)];
+        chorus_position_[i] += frequency * chorus_factor_[i];
     }
 
-    position_ += frequency;
+    sample /= static_cast<float64>(chorus_position_.size());
+
+//~    position_ += frequency;
     sync_pos_ += frequency;
 
     // limit
     if(sync_pos_ > sample_rate_)
     {
         sync_pos_ -= sample_rate_;
-
-        if(sync_is_master_)
-        {
-            std::set<Generator *>::iterator itor = sync_slaves_.begin();
-
-            while(itor != sync_slaves_.end())
-            {
-                (*itor)->sync_vector_.push_back(sync_count_);
-                ++itor;
-            }
-        }
+        _send_sync(sync_count_);
     }
 
     return sample;
@@ -1221,48 +1102,34 @@ operator=(const Generator & rhs)
     sample_time_    = rhs.sample_time_;
     t_              = rhs.t_;
 
-    if(waveform_ != NULL && rhs.waveform_ != NULL)
-    {
-        *waveform_ = *rhs.waveform_;
-    }
-    else if(waveform_ == NULL && rhs.waveform_ != NULL)
-    {
-        waveform_ = new Buffer(*rhs.waveform_);
-    }
-    else if(waveform_ != NULL && rhs.waveform_ == NULL)
-    {
-        delete waveform_;
-        waveform_ = NULL;
-    }
+    waveform_.reset();
+    if (rhs.waveform_) waveform_ = std::make_unique<Buffer>(*rhs.waveform_);
 
-    *rng_ = *rhs.rng_;
+    rng_.reset();
+    rng_ = std::make_unique<RngTausworthe>(*rhs.rng_);
 
     buzz_max_harmonics_ = rhs.buzz_max_harmonics_;
     buzz_position_      = rhs.buzz_position_;
 
-    chorus_is_on_    = rhs.chorus_is_on_;
-    chorus_n_voices_ = rhs.chorus_n_voices_;
     chorus_position_ = rhs.chorus_position_;
     chorus_factor_   = rhs.chorus_factor_;
 
-    sync_is_master_ = rhs.sync_is_master_;
-    sync_is_slave_  = rhs.sync_is_slave_;
-    sync_count_     = rhs.sync_count_;
-    sync_vector_    = rhs.sync_vector_;
-    sync_slaves_    = rhs.sync_slaves_;
+    sync_is_sender_   = rhs.sync_is_sender_;
+    sync_is_receiver_ = rhs.sync_is_receiver_;
+    sync_count_       = rhs.sync_count_;
+    sync_vector_      = rhs.sync_vector_;
+    sync_receivers_   = rhs.sync_receivers_;
 
     return *this;
 }
 
 void
 Generator::
-removeSlaveSync(Generator & slave)
+removeSync(Generator & receiver)
 {
-    slave.sync_is_slave_ = false;
-
-    if(sync_slaves_.count(&slave) == 0) return;
-
-    sync_slaves_.erase(&slave);
+    if(sync_receivers_.count(&receiver) == 0) return;
+    receiver.sync_is_receiver_ = false;
+    sync_receivers_.erase(&receiver);
 
     reset();
 }
@@ -1284,17 +1151,14 @@ reset()
         buzz_position_[i] = 0.0;
     }
 
-    for(uint32 i = 0; i < chorus_n_voices_; ++i)
+    for (auto & pos : chorus_position_)
     {
-        chorus_position_[i] = 0.0;
+        pos = 0.0;
     }
 
-    std::set<Generator *>::iterator itor = sync_slaves_.begin();
-
-    while(itor != sync_slaves_.end())
+    for (auto * receiver : sync_receivers_)
     {
-        (*itor)->sync_vector_.clear();
-        ++itor;
+        receiver->sync_vector_.clear();
     }
 }
 
@@ -1345,11 +1209,20 @@ gaussianNoise(
     const float64 & mu,
     const float64 & sigma) const
 {
-    Buffer buffer;
+    std::size_t num_samples = static_cast<std::size_t>(std::ceil(duration * sample_rate_));
+    return gaussianNoise(num_samples, mu, sigma);
+}
 
-    uint32 n_samples = static_cast<uint32>(std::ceil(duration * sample_rate_));
+Buffer
+Generator::
+gaussianNoise(
+    std::size_t num_samples,
+    float64 mu,
+    float64 sigma) const
+{
+    M_ASSERT_VALUE(num_samples, >, 0);
 
-    M_ASSERT_VALUE(n_samples, >, 0);
+    Buffer buffer(num_samples);
 
     // The polar form of the Box-Muller transformation.
 
@@ -1374,7 +1247,7 @@ gaussianNoise(
 
         ++i;
 
-        if(i >= n_samples)
+        if(i >= num_samples)
         {
             break;
         }
@@ -1383,7 +1256,7 @@ gaussianNoise(
 
         ++i;
 
-        if(i >= n_samples)
+        if(i >= num_samples)
         {
             break;
         }

@@ -120,10 +120,12 @@ operator=(const Axes & rhs)
 
 bool import_numpy_success()
 {
-    // Reference:
-    //     https://github.com/pa12g10/ImpliedVolatilityEngine/blob/017c832cc47fe8ef7c11ca451184a540aecb5cee/boost_1_69_0/libs/python/src/numpy/numpy.cpp#L29
-    import_array1(false);
-    import_ufunc();
+    #ifdef NSOUND_C_PYLAB
+        // Reference:
+        //     https://github.com/pa12g10/ImpliedVolatilityEngine/blob/017c832cc47fe8ef7c11ca451184a540aecb5cee/boost_1_69_0/libs/python/src/numpy/numpy.cpp#L29
+        import_array1(false);
+        import_ufunc();
+    #endif
     return true;
 }
 
@@ -165,6 +167,8 @@ Plotter()
                     stderr,
                     "Failed to import matplotlib, try setting PYTHONPATH="
                     "%%VIRTUAL_ENV%%\\Lib\\site-packages\n"
+                    "set PYTHONPATH=%s\\Lib\\site-packages\n",
+                    venv_ptr
                 );
                 fflush(stderr);
             }

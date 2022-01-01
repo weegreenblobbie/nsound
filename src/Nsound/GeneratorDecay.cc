@@ -52,7 +52,7 @@ generate2(const float64 & frequency, const float64 & alpha)
 {
     ++sync_count_;
 
-    if(sync_is_slave_ && !sync_vector_.empty())
+    if(sync_is_receiver_ && !sync_vector_.empty())
     {
         uint32 sync_count = sync_vector_.front();
 
@@ -75,19 +75,7 @@ generate2(const float64 & frequency, const float64 & alpha)
     {
         position_ -= sample_rate_;
         sync_pos_ = 0;
-
-        if(sync_is_master_)
-        {
-            std::set<Generator *>::iterator itor = this->sync_slaves_.begin();
-
-            while(itor != sync_slaves_.end())
-            {
-                GeneratorDecay * ptr = static_cast<GeneratorDecay *>(*itor);
-
-                ptr->sync_vector_.push_back(sync_count_);
-                ++itor;
-            }
-        }
+        _send_sync(sync_count_);
     }
 
     return sample;

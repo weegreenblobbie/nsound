@@ -38,8 +38,14 @@ class NsoundConfigLinux(NsoundConfig):
             if longver >= 40600 and longver < 40700:
                 CXXFLAGS = ["-std=c++0x"]
 
-            elif longver >= 40700:
+            if longver >= 40700:
                 CXXFLAGS = ["-std=c++11"]
+
+            if longver >= 50000:
+                CXXFLAGS = ["-std=c++14"]
+
+            if longver >= 80000:
+                CXXFLAGS = ["-std=c++17"]
 
         elif 'clang' in d['compiler']:
 

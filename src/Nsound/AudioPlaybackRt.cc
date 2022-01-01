@@ -44,7 +44,7 @@
 #include <Nsound/AudioPlaybackRt.h>
 #include <Nsound/AudioStream.h>
 #include <Nsound/Buffer.h>
-#include <Nsound/RandomNumberGenerator.h>
+#include <Nsound/RngTausworthe.h>
 #include <Nsound/Sine.h>
 #include <Nsound/Wavefile.h>
 
@@ -452,7 +452,7 @@ _callback(
 
             case BUM_NOISE:
             {
-                RandomNumberGenerator & rng = sine_->getRandomNumberGenerator();
+                RngTausworthe & rng = sine_->getRandomNumberGenerator();
 
                 for(uint32 i = 0; i < driver_.n_samples_per_buffer_; ++i)
                 {

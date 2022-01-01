@@ -49,29 +49,22 @@ class AudioStream;
 //! The Nsound Instrument baseclass.  All Nsound instruments extend this class.
 class Instrument
 {
-    public:
+public:
 
-    Instrument(const float64 & sample_rate):sample_rate_(sample_rate){};
+    Instrument(const float64 & sample_rate) : sample_rate_(sample_rate) {}
 
-    virtual
-    ~Instrument(){};
+    virtual ~Instrument() {}
 
     //! Plays a demo for this instrument.
-    virtual
-    AudioStream
-    play() = 0;
+    virtual AudioStream play() = 0;
 
     //! Plays a static note for this instrument.
-    virtual
-    AudioStream
-    play(const float64 & duration, const float64 & frequency) = 0;
+    virtual AudioStream play(const float64 & duration, const float64 & frequency) = 0;
 
     //! Returns information about who wrote this instrument and how to use it.
-    virtual
-    std::string
-    getInfo() = 0;
+    virtual std::string getInfo() = 0;
 
-    protected:
+protected:
 
     float64 sample_rate_;
 };

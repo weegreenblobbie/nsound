@@ -38,6 +38,8 @@
 #ifndef _NSOUND_ORGAN_PIPE_H_
 #define _NSOUND_ORGAN_PIPE_H_
 
+#include <memory>
+
 #include <Nsound/Instrument.h>
 
 namespace Nsound
@@ -46,6 +48,7 @@ namespace Nsound
 // Forward Declarations
 class AudioStream;
 class Buffer;
+class Generator;
 
 //-----------------------------------------------------------------------------
 //!  Class OrganPipe
@@ -58,13 +61,13 @@ class Buffer;
 //
 class OrganPipe : public Instrument
 {
-    public:
+public:
 
     //! Creates an OrganPipe
     OrganPipe(const float64 & sample_rate);
 
     //! Destructor
-    ~OrganPipe();
+    ~OrganPipe() {}
 
     //! Plays a demo for this instrument.
     AudioStream play();
@@ -86,6 +89,10 @@ class OrganPipe : public Instrument
             "Simulates a Pipe Organ.  Based on a Csound Pipe Organ.\n"
             "source: http://www.csounds.com/mikelson/hallown.orc\n";
     };
+
+protected:
+
+    std::unique_ptr<Generator> _sine {nullptr};
 
 };
 

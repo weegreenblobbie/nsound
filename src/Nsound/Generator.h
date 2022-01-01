@@ -42,14 +42,14 @@ namespace Nsound
 
 // Forwared declarion of Buffer
 class Buffer;
-class RandomNumberGenerator;
+class RngTausworthe;
 
 //-----------------------------------------------------------------------------
 //  Generator Class
 //! A class the provides draw utilities and a wavetable oscillator.
 class Generator
 {
-    public:
+public:
 
     //! Creates a generator with the specified sample rate.
     Generator(const float64 & sample_rate);
@@ -71,9 +71,9 @@ class Generator
     //! Sets realtime mode, disables automatic reset() if set.
     void setRealtime(bool flag) { is_realtime_ = flag; }
 
-    //! Adds a generator as a slave to this instance for syncing.
+    //! Adds a generator as to be synced from this instance.
     void
-    addSlaveSync(Generator & slave);
+    addSync(Generator & to_be_synced);
 
     //! Initaializes Buzz settings for real-time calls.
     void
@@ -118,6 +118,8 @@ class Generator
     setChorus(
         const uint32 n_voices,
         const float64 & sigma = 0.02);
+
+    void addChorus(float64 scalar);
 
     //! This method draws an exponential curve that decays from 1.0 to 0.0 over the duration.
     //
@@ -553,13 +555,13 @@ class Generator
 
     //! Removes the generator from the sync list.
     void
-    removeSlaveSync(Generator & slave);
+    removeSync(Generator & to_be_removed);
 
     //! Resets the position pointer back to the begging of the waveform.
     virtual
     void reset();
 
-    RandomNumberGenerator & getRandomNumberGenerator() {return *rng_; }
+    RngTausworthe & getRandomNumberGenerator() {return *rng_; }
 
     //! Sets the seed for the Generator's random number generator (rng).
     void setSeed(const uint32 seed);
@@ -587,11 +589,18 @@ class Generator
         const float64 & mu,
         const float64 & sigma) const;
 
+    //! This method generates noise from a Gaussian distribution.
+    Buffer
+    gaussianNoise(
+        std::size_t num_samples,
+        float64 mu,
+        float64 sigma) const;
+
     //! This method draws the tanh function accross duration samples.
     Buffer
     tanh(const float64 & duration) const;
 
-    protected:
+protected:
 
     //! DOXME
     Generator();
@@ -608,34 +617,36 @@ class Generator
         const float64 & sample_rate,
         const Buffer & wavetable);
 
+    void _send_sync(uint32 sync_count);
+
     bool is_realtime_;
 
-    float64  last_frequency_;  //! Used for phase offset adjustment.
-    float64  position_;        //! The number of samples into the wavefrom
-    float64  sync_pos_;        //! Used to determine when to create a sync sample.
-    float64  sample_rate_;     //! The number of samples per second to generate.
-    float64  sample_time_;     //! The time step between samples in seconds.
-    float64  t_;               //! The current time (for real time draw functions.)
-    Buffer * waveform_;        //! The waveform to ossicialate.
+    float64  last_frequency_ {0.0};  //! Used for phase offset adjustment.
+    float64  position_ {0.0};        //! The number of samples into the wavefrom
+    float64  sync_pos_ {0.0};        //! Used to determine when to create a sync sample.
+    float64  sample_rate_ {1.0};     //! The number of samples per second to generate.
+    float64  sample_time_ {1.0};     //! The time step between samples in seconds.
+    float64  t_ {0.0};               //! The current time (for real time draw functions.)
 
-    RandomNumberGenerator * rng_; //! The random number generator.
+    std::unique_ptr<Buffer> waveform_ {};   //! The waveform to ossicialate.
+
+    // TODO: Replace this generator with something from mondern C++.
+    std::unique_ptr<RngTausworthe> rng_ {}; //! The random number generator.
 
     // buzz() stuff
-    uint32               buzz_max_harmonics_;
-    std::vector<float64> buzz_position_;
+    uint32               buzz_max_harmonics_ {0};
+    std::vector<float64> buzz_position_ {0.0};
 
     // Chorus stuff
-    boolean              chorus_is_on_;
-    uint32               chorus_n_voices_;
-    std::vector<float64> chorus_position_;
-    std::vector<float64> chorus_factor_;
+    std::vector<float64> chorus_position_ {0.0};
+    std::vector<float64> chorus_factor_ {1.0};
 
     // Sync stuff
-    boolean sync_is_master_;               //! Indicates if this generator is the master
-    boolean sync_is_slave_;                //! Indicates if this generator is a slave
-    uint32 sync_count_;                    //! Indicates the number of samples since reset
-    std::vector<uint32> sync_vector_;      //! Stores sample counts when synced
-    std::set<Generator *> sync_slaves_;    //! Holds pointers to the slaves.
+    boolean sync_is_sender_ {false};       //! Indicates if this generator sends sync counts to receivers.
+    boolean sync_is_receiver_ {false};     //! Indicates if this generator receives sync counts.
+    uint32 sync_count_ {0};                //! Indicates the number of samples since reset.
+    std::vector<uint32> sync_vector_ {};   //! Stores sample counts when synced.
+    std::set<Generator *> sync_receivers_ {}; //! Holds pointers to the generators receiving sync counts.
 
 };//Generators
 
