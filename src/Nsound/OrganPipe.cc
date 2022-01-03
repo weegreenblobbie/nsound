@@ -184,14 +184,23 @@ play(
     float64 pan_left = pan;
     float64 pan_right = 1.0 - pan_left;
 
-    Buffer rand_factor = _sine->gaussianNoise(std::size_t(6), 1.0, 0.0001);
+    Buffer rand_factor = _sine->gaussianNoise(std::size_t(6), 2.0, 1.0);
 
-    float64 ophf =   0.5 * frequency * rand_factor[0];
-    float64 op1f =   1.0 * frequency * rand_factor[1];
-    float64 op2f =   2.0 * frequency * rand_factor[2];
-    float64 op4f =   4.0 * frequency * rand_factor[3];
-    float64 op8f =   8.0 * frequency * rand_factor[4];
-    float64 op16f = 16.0 * frequency * rand_factor[5];
+    float64 ophf =   0.5 * frequency + rand_factor[0];
+    float64 op1f =   1.0 * frequency + rand_factor[1];
+    float64 op2f =   2.0 * frequency + rand_factor[2];
+    float64 op4f =   4.0 * frequency + rand_factor[3];
+    float64 op8f =   8.0 * frequency + rand_factor[4];
+    float64 op16f = 16.0 * frequency + rand_factor[5];
+
+    const auto niquist = sample_rate_ / 2.0;
+
+    while (ophf > niquist) ophf /= 2.0;
+    while (op1f > niquist) op1f /= 2.0;
+    while (op2f > niquist) op2f /= 2.0;
+    while (op4f > niquist) op4f /= 2.0;
+    while (op8f > niquist) op8f /= 2.0;
+    while (op16f > niquist) op16f /= 2.0;
 
     Buffer dclick;
     Buffer amp1;
@@ -233,7 +242,10 @@ play(
     }
     else
     {
-        amp2 = _sine->drawLine(duration, 1.0, 1.0);
+        auto third = duration / 3.0;
+        amp2
+            << _sine->drawLine(third, 0.0, 1.0)
+            << _sine->drawLine(duration - third, 1.0, 0.0);
     }
 
     if(duration > 0.08)
@@ -258,53 +270,67 @@ play(
     }
     else
     {
-        amp4 = _sine->drawLine(duration, 1.0, 1.0);
+        auto half = duration / 2.0;
+        amp4
+            << _sine->drawLine(half, 0.0, 0.3)
+            << _sine->drawLine(duration - half, 0.3, 0.0);
     }
+
+    // TODO: remove before mergning to trunk.
+    //~    static Plotter plt;
+
+    //~    plt.figure();
+    //~    plt.plot(amp1, "-", "label='amp1'");
+    //~    plt.plot(amp2, "-", "label='amp2'");
+    //~    plt.plot(amp3, "-", "label='amp3'");
+    //~    plt.plot(amp4, "-", "label='amp4'");
+    //~    plt.plot(dclick, "-", "label='dclick'");
+    //~    plt.legend();
+    //~    plt.title("envelopes");
+    //~    plt.xlim(-560, 11'560);
+
+    //~    printf("duration = %f\n", duration); fflush(stdout);
+
+    //~    plt.figure();
+
+    //~    plt.plot(1.0, op1f, "+", "label='op1f'");
+    //~    plt.plot(2.0, op2f, "+", "label='op2f'");
+    //~    plt.plot(3.0, op4f, "+", "label='op4f'");
+    //~    plt.plot(4.0, op8f, "+", "label='op8f'");
+    //~    plt.plot(5.0, 5 * ophf, "+", "label='ophf'");
+    //~    plt.plot(6.0, op16f, "+", "label='op16f'");
+    //~    plt.title("op[1-7]f");
+
+    //~    plt.figure();
+    //~    plt.plot(p1);
+    //~    plt.plot(p2);
+    //~    plt.title("p1, p2");
+
+    //~    plt.figure();
+    //~    plt.plot(out);
+    //~    plt.title("output");
+
+    //~    static int count = 0;
+
+    //~    ++count;
+
+    //~    if (count == 2)
+    //~    {
+    //~        plt.show();
+    //~        M_THROW("exit debugging");
+    //~    }
+
 
     Buffer p1 = amp4 * _sine->generate2(duration, ophf, 0.00) + 1.0;
     Buffer p2 = amp4 * _sine->generate2(duration, ophf, 1.00) + 1.0;
 
     Buffer out;
-    out << 0.075 * amp1 * _sine->generate2(duration, p1 * op1f, 0.00);
-    out += 0.400 * amp2 * _sine->generate2(duration, p2 * op2f, 1.00);
-    out += 0.200 * amp3 * _sine->generate2(duration, 5.0 * ophf, 0.33);
-    out += 0.100 * amp2 * _sine->generate2(duration, op4f, 0.66);
-    out += 0.050 * amp2 * _sine->generate2(duration, op8f, 0.25);
-    out += 0.025 * amp2 * _sine->generate2(duration, op16f, 0.75);
-
-//~    Plotter plt;
-
-//~    plt.figure();
-//~    plt.plot(amp1, "-", "label='amp1'");
-//~    plt.plot(amp2, "-", "label='amp2'");
-//~    plt.plot(amp3, "-", "label='amp3'");
-//~    plt.plot(amp4, "-", "label='amp4'");
-//~    plt.legend();
-//~    plt.title("amplitudes 1-4");
-
-//~    plt.figure();
-
-//~    plt.plot(1.0, op1f, "+", "label='op1f'");
-//~    plt.plot(2.0, op2f, "+", "label='op2f'");
-//~    plt.plot(3.0, op4f, "+", "label='op4f'");
-//~    plt.plot(4.0, op8f, "+", "label='op8f'");
-//~    plt.plot(5.0, 5 * ophf, "+", "label='ophf'");
-//~    plt.plot(6.0, op16f, "+", "label='op16f'");
-//~    plt.title("op[1-7]f");
-
-//~    plt.figure();
-//~    plt.plot(p1);
-//~    plt.plot(p2);
-//~    plt.title("p1, p2");
-
-//~    plt.figure();
-//~    plt.plot(out);
-//~    plt.title("output");
-
-//~    plt.show();
-
-//~    M_THROW("exit debugging");
-
+    out << 0.075 /*1.0*/ * amp1 * _sine->generate2(duration, p1 * op1f, 0.00);
+    out += 0.400 /*1.0*/ * amp2 * _sine->generate2(duration, p2 * op2f, 0.20);
+    out += 0.200 /*1.0*/ * amp3 * _sine->generate2(duration, 5.0 * ophf, 0.40);
+    out += 0.100 /*1.0*/ * amp2 * _sine->generate2(duration, op4f, 0.60);
+    out += 0.050 /*1.0*/ * amp2 * _sine->generate2(duration, op8f, 0.80);
+    out += 0.025 /*1.0*/ * amp2 * _sine->generate2(duration, op16f, 1.00);
 
     AudioStream y(sample_rate_, 2);
 
