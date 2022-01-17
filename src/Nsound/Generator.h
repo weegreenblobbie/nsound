@@ -580,7 +580,11 @@ public:
 
     //! This method generates noise from a uniform distribution.
     Buffer
-    whiteNoise(const float64 & duration) const;
+    whiteNoise(std::size_t num_samples, float64 fmin=-1.0, float64 fmax=1.0) const;
+
+    //! This method generates noise from a uniform distribution.
+    Buffer
+    whiteNoise(const float64 & duration, float64 fmin=-1.0, float64 fmax=1.0) const;
 
     //! This method generates noise from a Gaussian distribution.
     Buffer
@@ -595,6 +599,10 @@ public:
         std::size_t num_samples,
         float64 mu,
         float64 sigma) const;
+
+    //! Returns the Generator's sample rate.
+    float64
+    getSampleRate() const { return sample_rate_; }
 
     //! This method draws the tanh function accross duration samples.
     Buffer
@@ -619,7 +627,7 @@ protected:
 
     void _send_sync(uint32 sync_count);
 
-    bool is_realtime_;
+    bool is_realtime_ {false};
 
     float64  last_frequency_ {0.0};  //! Used for phase offset adjustment.
     float64  position_ {0.0};        //! The number of samples into the wavefrom

@@ -2256,7 +2256,7 @@ rand(const uint32 n_samples)
 
     Generator g(1);
 
-    b << g.whiteNoise(n_samples);
+    b << g.whiteNoise(static_cast<std::size_t>(n_samples));
 
     return b;
 }

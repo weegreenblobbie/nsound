@@ -372,11 +372,11 @@ drawLine(
     const float64 & y1,
     const float64 & y2) const
 {
-    M_ASSERT_VALUE(duration, >, 0.0);
-
-    Buffer buffer;
+    M_ASSERT_VALUE(duration, >=, 0.0);
 
     float64 n_samples = duration * sample_rate_;
+
+    Buffer buffer(static_cast<uint32>(n_samples));
 
     float64 slope = (y2 - y1) / n_samples;
 
@@ -1186,20 +1186,27 @@ tell() const
 
 Buffer
 Generator::
-whiteNoise(const float64 & duration) const
+whiteNoise(std::size_t num_samples, float64 fmin, float64 fmax) const
 {
-    M_ASSERT_VALUE(duration, >, 0.0);
+    Buffer buffer(num_samples);
 
-    Buffer buffer;
-
-    uint64 n_samples = static_cast<uint64>(std::ceil(duration * sample_rate_));
-
-    for(uint64 i = 0; i < n_samples; ++i)
+    for(std::size_t i = 0; i < num_samples; ++i)
     {
-        buffer << rng_->get(-1.0f,1.0f);
+        buffer << rng_->get(fmin, fmax);
     }
 
     return buffer;
+}
+
+Buffer
+Generator::
+whiteNoise(const float64 & duration, float64 fmin, float64 fmax) const
+{
+    M_ASSERT_VALUE(duration, >, 0.0);
+
+    auto num_samples = static_cast<std::size_t>(std::ceil(duration * sample_rate_));
+
+    return whiteNoise(num_samples, fmin, fmax);
 }
 
 Buffer

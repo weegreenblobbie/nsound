@@ -30,6 +30,7 @@
 
 #include <cmath>
 #include <ctime>
+#include <random>
 
 using namespace Nsound;
 
@@ -43,7 +44,9 @@ RngTausworthe()
     s2_(0),
     s3_(0)
 {
-    setSeed(static_cast<uint32>(time(NULL)));
+    std::uniform_int_distribution<uint32> dist(0, std::numeric_limits<uint32>::max());
+    std::random_device rd1;
+    setSeed(dist(rd1));
 }
 
 uint32

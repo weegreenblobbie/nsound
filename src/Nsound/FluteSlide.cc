@@ -90,14 +90,19 @@ play(
 
     FilterTone tone(sample_rate_, 2000.0);
 
+    float64 attack = duration >= 0.20 ? 0.1 : duration / 2.0;
+    float64 sustain = duration >= 0.20 ? duration - 0.20 : 0.0;
 
-    Buffer env1 =  sine.drawLine(0.1, 0.0, pressure)
-                << sine.drawLine(duration - 0.2, pressure, pressure)
-                << sine.drawLine(0.1, pressure, 0.0);
+    Buffer env1 =  sine.drawLine(attack, 0.0, pressure)
+                << sine.drawLine(sustain, pressure, pressure)
+                << sine.drawLine(attack, pressure, 0.0);
 
-    Buffer env2 =  sine.drawLine(0.01, 0.0, 1.0)
-                << sine.drawLine(duration - 0.02, 1.0, 1.0)
-                << sine.drawLine(0.01, 1.0, 0.0) << 0.0;
+    attack = duration >= 0.02 ? 0.01 : duration / 2.0;
+    sustain = duration >= 0.02 ? duration - 0.02 : 0.0;
+
+    Buffer env2 =  sine.drawLine(attack, 0.0, 1.0)
+                << sine.drawLine(sustain, 1.0, 1.0)
+                << sine.drawLine(attack, 1.0, 0.0) << 0.0;
 
     Buffer flow = env1 * sine.whiteNoise(duration);
 

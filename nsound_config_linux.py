@@ -21,7 +21,10 @@ class NsoundConfigLinux(NsoundConfig):
 
         else:
             self.env.AppendUnique(
-                CXXFLAGS = ["-fno-strict-aliasing", "-fwrapv", "-O2", '-Wall'])
+                CXXFLAGS = ["-fno-strict-aliasing", "-fwrapv", "-O2", '-Wall', '-g'])
+
+        self.env.AppendUnique(LIBS = ["pthread"])
+
 
     def add_custom_compiler_flags(self):
 

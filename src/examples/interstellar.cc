@@ -128,11 +128,12 @@ void play_n(AudioStream & out, float64 time, const AudioStream & in1, const Audi
 int main(void)
 {
     cout << "Constructing pipe organ and filters ..."; fflush(stdout);
-    const auto sr = 22050.0;
+    const auto sr = 44100.0;
 
     auto out = AudioStream(sr, 2);
     auto gen = Generator(sr);
     auto po = OrganPipe(sr);
+//~    auto po = GuitarBass(sr);
     auto filter = FilterLowPassIIR(sr, 5, 5000.0, 0.05);
 //~    auto reverb = ReverberationRoom(sr, 0.750, 1.00, 0.50, 2500.0, 0.1000);
 //~    auto reverb = ReverberationRoom(sr, 0.750, 0.50, 0.50, 1500.0, 0.1000);
@@ -146,7 +147,7 @@ int main(void)
     //
     // Quarter notes are 90 BPM.
     //
-    const auto _quarter = 60.0 / 100.0;
+    const auto _quarter = 60.0 / 90.0;
     const auto _eighth = _quarter / 2.0;
     const auto _sixth  = _eighth / 2.0;
 
@@ -165,26 +166,35 @@ int main(void)
     auto env_hd  = Asdr{0.04, 0.10, 0.80, 0.10};
     auto env_2hd = Asdr{0.02, 0.05, 0.80, 0.05};
 
+    const auto a2_s = po.play(sixth, A2) * env_s;
     const auto a3_s = po.play(sixth, A3) * env_s;
     const auto a4_s = po.play(sixth, A4) * env_s;
     const auto a5_s = po.play(sixth, A5) * env_s;
     const auto a6_s = po.play(sixth, A6) * env_s;
+    const auto b2_s = po.play(sixth, B2) * env_s;
+    const auto b3_s = po.play(sixth, B3) * env_s;
     const auto b4_s = po.play(sixth, B4) * env_s;
     const auto b5_s = po.play(sixth, B5) * env_s;
     const auto b6_s = po.play(sixth, B6) * env_s;
+    const auto c3_s = po.play(sixth, C3) * env_s;
     const auto c4_s = po.play(sixth, C4) * env_s;
     const auto c5_s = po.play(sixth, C5) * env_s;
     const auto c6_s = po.play(sixth, C6) * env_s;
+    const auto d2_s = po.play(sixth, D2) * env_s;
+    const auto d3_s = po.play(sixth, D3) * env_s;
     const auto d4_s = po.play(sixth, D4) * env_s;
     const auto d5_s = po.play(sixth, D5) * env_s;
     const auto d6_s = po.play(sixth, D6) * env_s;
+    const auto e3_s = po.play(sixth, E3) * env_s;
     const auto e4_s = po.play(sixth, E4) * env_s;
     const auto e5_s = po.play(sixth, E5) * env_s;
     const auto e6_s = po.play(sixth, E6) * env_s;
+    const auto f2_s = po.play(sixth, F2) * env_s;
     const auto f3_s = po.play(sixth, F3) * env_s;
     const auto f4_s = po.play(sixth, F4) * env_s;
     const auto f5_s = po.play(sixth, F5) * env_s;
     const auto f6_s = po.play(sixth, F6) * env_s;
+    const auto g2_s = po.play(sixth, G2) * env_s;
     const auto g3_s = po.play(sixth, G3) * env_s;
     const auto g4_s = po.play(sixth, G4) * env_s;
     const auto g5_s = po.play(sixth, G5) * env_s;
@@ -210,6 +220,8 @@ int main(void)
     const auto g5_e = po.play(eighth, G5) * env_e;
     const auto g6_e = po.play(eighth, G6) * env_e;
 
+    const auto a1 = po.play(quarter, A1) * env;
+    const auto a2 = po.play(quarter, A2) * env;
     const auto a3 = po.play(quarter, A3) * env;
     const auto a4 = po.play(quarter, A4) * env;
     const auto a5 = po.play(quarter, A5) * env;
@@ -226,8 +238,12 @@ int main(void)
     const auto e4 = po.play(quarter, E4) * env;
     const auto e5 = po.play(quarter, E5) * env;
     const auto e6 = po.play(quarter, E6) * env;
+    const auto f1 = po.play(quarter, F1) * env;
+    const auto f2 = po.play(quarter, F2) * env;
     const auto f4 = po.play(quarter, F4) * env;
     const auto f5 = po.play(quarter, F5) * env;
+    const auto g1 = po.play(quarter, G1) * env;
+    const auto g2 = po.play(quarter, G2) * env;
     const auto g4 = po.play(quarter, G4) * env;
     const auto g5 = po.play(quarter, G5) * env;
 
@@ -279,215 +295,48 @@ int main(void)
     // Testing C scales on the organ.
     {
 //~        {
-//~            auto e4 = po.play(quarter, E4) * env;
-//~            auto e4_s = po.play(sixth, E4) * env_s;
+//~            auto f1 = po.play(quarter, F1) * env;
+//~            auto f4 = po.play(quarter, F4) * env;
 //~        }
 
-
-//~        play(move_to(1, 1), c5, c4);
-//~        play(move_to(1, 2), d5, d4);
-//~        play(move_to(1, 3), e5, e4);
-//~        play(move_to(2, 1), f5, f4);
-//~        play(move_to(2, 2), g5, g4);
-//~        play(move_to(2, 3), a5, a4);
-//~        play(move_to(3, 1), b5, b4);
-//~        play(move_to(3, 2), c6, c5);
-//~        play(move_to(3, 3), d6, d5);
-
-
-//~        play(move_to(4, 1, 1), c5_e, c4_e);
-//~        play(move_to(4, 1, 2), d5_e, d4_e);
-//~        play(move_to(4, 1, 3), e5_e, e4_e);
-//~        play(move_to(4, 1, 4), f5_e, f4_e);
-//~        play(move_to(4, 1, 5), g5_e, g4_e);
-//~        play(move_to(4, 1, 6), a5_e, a4_e);
-//~        play(move_to(5, 1, 1), b5_e, b4_e);
-//~        play(move_to(5, 1, 2), c6_e, c5_e);
-//~        play(move_to(5, 1, 3), d6_e, d5_e);
-//~        play(move_to(5, 1, 4), e6_e, e5_e);
-//~        play(move_to(5, 1, 5), f6_e, f5_e);
-//~        play(move_to(5, 1, 6), g6_e, g5_e);
+        play(move_to(1, 1), c5, c4);
+        play(move_to(1, 2), d5, d4);
+        play(move_to(1, 3), e5, e4);
+        play(move_to(2, 1), f5, f4);
+        play(move_to(2, 2), g5, g4);
+        play(move_to(2, 3), a5, a4);
+        play(move_to(3, 1), b5, b4);
+        play(move_to(3, 2), c6, c5);
+        play(move_to(3, 3), d6, d5);
 
 
-
-//~        play(move_to(6, 1, 1,  1), c5_s, c4_s);
-//~        play(move_to(6, 1, 1,  2), d5_s, d4_s);
-//~        play(move_to(6, 1, 1,  3), e5_s, e4_s);
-//~        play(move_to(6, 1, 1,  4), f5_s, f4_s);
-//~        play(move_to(6, 1, 1,  5), g5_s, g4_s);
-//~        play(move_to(6, 1, 1,  6), a5_s, a4_s);
-//~        play(move_to(6, 1, 1,  7), b5_s, b4_s);
-//~        play(move_to(6, 1, 1,  8), c6_s, c5_s);
-//~        play(move_to(6, 1, 1,  9), d6_s, d5_s);
-//~        play(move_to(6, 1, 1, 10), e6_s, e5_s);
-//~        play(move_to(6, 1, 1, 11), f6_s, f5_s);
-//~        play(move_to(6, 1, 1, 12), g6_s, g5_s);
-
-//~        play(move_to(1, 1, 1,  1), b5_s * 0.5, a4_s);
-//~        play(move_to(1, 1, 1,  2), c6_s * 0.5, c5_s * 0.5);
-//~        play(move_to(1, 1, 1,  3), b5_s * 0.5, e5_s * 0.5);
-//~        play(move_to(1, 1, 1,  4), c6_s * 0.5);
-//~        play(move_to(1, 1, 1,  5), b5_s * 0.5, a4_s);
-//~        play(move_to(1, 1, 1,  6), c6_s * 0.5, c5_s * 0.5);
-//~        play(move_to(1, 1, 1,  7), b5_s * 0.5, e5_s * 0.5);
-//~        play(move_to(1, 1, 1,  8), c6_s * 0.5);
-//~        play(move_to(1, 1, 1,  9), b5_s * 0.5, a4_s);
-//~        play(move_to(1, 1, 1, 10), c6_s * 0.5, c5_s * 0.5);
-//~        play(move_to(1, 1, 1, 11), b5_s * 0.5, e5_s * 0.5);
-//~        play(move_to(1, 1, 1, 12), c6_s * 0.5);
-
-//~        play(move_to(2, 1, 1,  1), b5_s * 0.5, b4_s);
-//~        play(move_to(2, 1, 1,  2), c6_s * 0.5, d5_s * 0.5);
-//~        play(move_to(2, 1, 1,  3), b5_s * 0.5, e5_s * 0.5);
-//~        play(move_to(2, 1, 1,  4), c6_s * 0.5);
-//~        play(move_to(2, 1, 1,  5), b5_s * 0.5, b4_s);
-//~        play(move_to(2, 1, 1,  6), c6_s * 0.5, d5_s * 0.5);
-//~        play(move_to(2, 1, 1,  7), b5_s * 0.5, e5_s * 0.5);
-//~        play(move_to(2, 1, 1,  8), c6_s * 0.5);
-//~        play(move_to(2, 1, 1,  9), b5_s * 0.5, b4_s);
-//~        play(move_to(2, 1, 1, 10), c6_s * 0.5, d5_s * 0.5);
-//~        play(move_to(2, 1, 1, 11), b5_s * 0.5, e5_s * 0.5);
-//~        play(move_to(2, 1, 1, 12), c6_s * 0.5);
-
-//~        play(move_to(3, 1, 1,  1), b5_s * 0.5, b4_s);
-//~        play(move_to(3, 1, 1,  2), c6_s * 0.5, d5_s * 0.5);
-//~        play(move_to(3, 1, 1,  3), b5_s * 0.5, e5_s * 0.5);
-//~        play(move_to(3, 1, 1,  4), c6_s * 0.5);
-//~        play(move_to(3, 1, 1,  5), b5_s * 0.5, b4_s);
-//~        play(move_to(3, 1, 1,  6), c6_s * 0.5, d5_s * 0.5);
-//~        play(move_to(3, 1, 1,  7), b5_s * 0.5, e5_s * 0.5);
-//~        play(move_to(3, 1, 1,  8), c6_s * 0.5);
-//~        play(move_to(3, 1, 1,  9), b5_s * 0.5, b4_s);
-//~        play(move_to(3, 1, 1, 10), c6_s * 0.5, d5_s * 0.5);
-//~        play(move_to(3, 1, 1, 11), b5_s * 0.5, e5_s * 0.5);
-//~        play(move_to(3, 1, 1, 12), c6_s * 0.5);
-
-//~        play(move_to(4, 1, 1,  1), b5_s * 0.5, a4_s);
-//~        play(move_to(4, 1, 1,  2), c6_s * 0.5, c5_s * 0.5);
-//~        play(move_to(4, 1, 1,  3), b5_s * 0.5, e5_s * 0.5);
-//~        play(move_to(4, 1, 1,  4), c6_s * 0.5);
-//~        play(move_to(4, 1, 1,  5), b5_s * 0.5, a4_s);
-//~        play(move_to(4, 1, 1,  6), c6_s * 0.5, c5_s * 0.5);
-//~        play(move_to(4, 1, 1,  7), b5_s * 0.5, e5_s * 0.5);
-//~        play(move_to(4, 1, 1,  8), c6_s * 0.5);
-//~        play(move_to(4, 1, 1,  9), b5_s * 0.5, a4_s);
-//~        play(move_to(4, 1, 1, 10), c6_s * 0.5, c5_s * 0.5);
-//~        play(move_to(4, 1, 1, 11), b5_s * 0.5, e5_s * 0.5);
-//~        play(move_to(4, 1, 1, 12), c6_s * 0.5);
-
-        // 80
-        play(move_to(1, 1, 1,  1), b5_s, b4_s);
-        play(move_to(1, 1, 1,  2), c6_s, d5_s);
-        play(move_to(1, 1, 1,  3), b5_s, e5_s);
-        play(move_to(1, 1, 1,  4), c6_s);
-        play(move_to(1, 1, 1,  5), b5_s, b4_s);
-        play(move_to(1, 1, 1,  6), c6_s, d5_s);
-        play(move_to(1, 1, 1,  7), b5_s, e5_s);
-        play(move_to(1, 1, 1,  8), c6_s);
-        play(move_to(1, 1, 1,  9), b5_s, b4_s);
-        play(move_to(1, 1, 1, 10), c6_s, d5_s);
-        play(move_to(1, 1, 1, 11), b5_s, e5_s);
-        play(move_to(1, 1, 1, 12), c6_s);
-
-        // 81
-        play(move_to(2, 1, 1,  1), f3_s, a5, a4);
-        play(move_to(2, 1, 1,  2), c4_s);
-        play(move_to(2, 1, 1,  3), e4_s);
-        play(move_to(2, 1, 1,  4), a4_s);
-        play(move_to(2, 1, 1,  5), e4_s, e6, e5);
-        play(move_to(2, 1, 1,  6), c4_s);
-        play(move_to(2, 1, 1,  7), f3_s);
-        play(move_to(2, 1, 1,  8), c4_s);
-        play(move_to(2, 1, 1,  9), e4_s);
-        play(move_to(2, 1, 1, 10), a4_s);
-        play(move_to(2, 1, 1, 11), e4_s);
-        play(move_to(2, 1, 1, 12), c4_s);
-
-        // 82
-        play(move_to(3, 1, 1,  1), f3_s, a5, a4);
-        play(move_to(3, 1, 1,  2), c4_s);
-        play(move_to(3, 1, 1,  3), e4_s);
-        play(move_to(3, 1, 1,  4), a4_s);
-        play(move_to(3, 1, 1,  5), e4_s, e6, e5);
-        play(move_to(3, 1, 1,  6), c4_s);
-        play(move_to(3, 1, 1,  7), f3_s);
-        play(move_to(3, 1, 1,  8), c4_s);
-        play(move_to(3, 1, 1,  9), e4_s);
-        play(move_to(3, 1, 1, 10), a4_s);
-        play(move_to(3, 1, 1, 11), e4_s);
-        play(move_to(3, 1, 1, 12), c4_s);
-
-        // 83
-        play(move_to(4, 1, 1,  1), g3_s, b5, b4);
-        play(move_to(4, 1, 1,  2), d4_s);
-        play(move_to(4, 1, 1,  3), e4_s);
-        play(move_to(4, 1, 1,  4), b4_s);
-        play(move_to(4, 1, 1,  5), e4_s, e6, e5);
-        play(move_to(4, 1, 1,  6), d4_s);
-        play(move_to(4, 1, 1,  7), f3_s);
-        play(move_to(4, 1, 1,  8), d4_s);
-        play(move_to(4, 1, 1,  9), e4_s);
-        play(move_to(4, 1, 1, 10), b4_s);
-        play(move_to(4, 1, 1, 11), e4_s);
-        play(move_to(4, 1, 1, 12), d4_s);
-
-        // 84
-        play(move_to(5, 1, 1,  1), g3_s, b5, b4);
-        play(move_to(5, 1, 1,  2), d4_s);
-        play(move_to(5, 1, 1,  3), e4_s);
-        play(move_to(5, 1, 1,  4), b4_s);
-        play(move_to(5, 1, 1,  5), e4_s, e6, e5);
-        play(move_to(5, 1, 1,  6), d4_s);
-        play(move_to(5, 1, 1,  7), f3_s);
-        play(move_to(5, 1, 1,  8), d4_s);
-        play(move_to(5, 1, 1,  9), e4_s);
-        play(move_to(5, 1, 1, 10), b4_s);
-        play(move_to(5, 1, 1, 11), e4_s);
-        play(move_to(5, 1, 1, 12), d4_s);
-
-        // 85
-        play(move_to(6, 1, 1,  1), a3_s, c6, c5);
-        play(move_to(6, 1, 1,  2), c4_s);
-        play(move_to(6, 1, 1,  3), e4_s);
-        play(move_to(6, 1, 1,  4), a4_s);
-        play(move_to(6, 1, 1,  5), e4_s, e6, e5);
-        play(move_to(6, 1, 1,  6), c4_s);
-        play(move_to(6, 1, 1,  7), f3_s);
-        play(move_to(6, 1, 1,  8), c4_s);
-        play(move_to(6, 1, 1,  9), e4_s);
-        play(move_to(6, 1, 1, 10), a4_s);
-        play(move_to(6, 1, 1, 11), e4_s);
-        play(move_to(6, 1, 1, 12), c4_s);
-
-        // 86
-        play(move_to(7, 1, 1,  1), a3_s, c6, c5);
-        play(move_to(7, 1, 1,  2), c4_s);
-        play(move_to(7, 1, 1,  3), e4_s);
-        play(move_to(7, 1, 1,  4), a4_s);
-        play(move_to(7, 1, 1,  5), e4_s, e6, e5);
-        play(move_to(7, 1, 1,  6), c4_s);
-        play(move_to(7, 1, 1,  7), f3_s);
-        play(move_to(7, 1, 1,  8), c4_s);
-        play(move_to(7, 1, 1,  9), e4_s);
-        play(move_to(7, 1, 1, 10), a4_s);
-        play(move_to(7, 1, 1, 11), e4_s);
-        play(move_to(7, 1, 1, 12), c4_s);
-
-        // 87
-        play(move_to(8, 1, 1,  1), g3_s, d6, d5);
-        play(move_to(8, 1, 1,  2), d4_s);
-        play(move_to(8, 1, 1,  3), e4_s);
-        play(move_to(8, 1, 1,  4), b4_s);
-        play(move_to(8, 1, 1,  5), e4_s, e6, e5);
-        play(move_to(8, 1, 1,  6), d4_s);
-        play(move_to(8, 1, 1,  7), g3_s);
-        play(move_to(8, 1, 1,  8), d4_s);
-        play(move_to(8, 1, 1,  9), e4_s);
-        play(move_to(8, 1, 1, 10), b4_s);
-        play(move_to(8, 1, 1, 11), e4_s);
-        play(move_to(8, 1, 1, 12), d4_s);
+        play(move_to(4, 1, 1), c5_e, c4_e);
+        play(move_to(4, 1, 2), d5_e, d4_e);
+        play(move_to(4, 1, 3), e5_e, e4_e);
+        play(move_to(4, 1, 4), f5_e, f4_e);
+        play(move_to(4, 1, 5), g5_e, g4_e);
+        play(move_to(4, 1, 6), a5_e, a4_e);
+        play(move_to(5, 1, 1), b5_e, b4_e);
+        play(move_to(5, 1, 2), c6_e, c5_e);
+        play(move_to(5, 1, 3), d6_e, d5_e);
+        play(move_to(5, 1, 4), e6_e, e5_e);
+        play(move_to(5, 1, 5), f6_e, f5_e);
+        play(move_to(5, 1, 6), g6_e, g5_e);
 
 
+
+        play(move_to(6, 1, 1,  1), c5_s, c4_s);
+        play(move_to(6, 1, 1,  2), d5_s, d4_s);
+        play(move_to(6, 1, 1,  3), e5_s, e4_s);
+        play(move_to(6, 1, 1,  4), f5_s, f4_s);
+        play(move_to(6, 1, 1,  5), g5_s, g4_s);
+        play(move_to(6, 1, 1,  6), a5_s, a4_s);
+        play(move_to(6, 1, 1,  7), b5_s, b4_s);
+        play(move_to(6, 1, 1,  8), c6_s, c5_s);
+        play(move_to(6, 1, 1,  9), d6_s, d5_s);
+        play(move_to(6, 1, 1, 10), e6_s, e5_s);
+        play(move_to(6, 1, 1, 11), f6_s, f5_s);
+        play(move_to(6, 1, 1, 12), g6_s, g5_s);
 
     }
 #endif
@@ -1139,7 +988,7 @@ int main(void)
     play(move_to(84, 1, 1,  4), b4_s);
     play(move_to(84, 1, 1,  5), e4_s, e6, e5);
     play(move_to(84, 1, 1,  6), d4_s);
-    play(move_to(84, 1, 1,  7), f3_s);
+    play(move_to(84, 1, 1,  7), g3_s);
     play(move_to(84, 1, 1,  8), d4_s);
     play(move_to(84, 1, 1,  9), e4_s);
     play(move_to(84, 1, 1, 10), b4_s);
@@ -1149,26 +998,26 @@ int main(void)
     play(move_to(85, 1, 1,  1), a3_s, c6, c5);
     play(move_to(85, 1, 1,  2), c4_s);
     play(move_to(85, 1, 1,  3), e4_s);
-    play(move_to(85, 1, 1,  4), a4_s);
+    play(move_to(85, 1, 1,  4), c5_s);
     play(move_to(85, 1, 1,  5), e4_s, e6, e5);
     play(move_to(85, 1, 1,  6), c4_s);
-    play(move_to(85, 1, 1,  7), f3_s);
+    play(move_to(85, 1, 1,  7), a3_s);
     play(move_to(85, 1, 1,  8), c4_s);
     play(move_to(85, 1, 1,  9), e4_s);
-    play(move_to(85, 1, 1, 10), a4_s);
+    play(move_to(85, 1, 1, 10), c5_s);
     play(move_to(85, 1, 1, 11), e4_s);
     play(move_to(85, 1, 1, 12), c4_s);
 
     play(move_to(86, 1, 1,  1), a3_s, c6, c5);
     play(move_to(86, 1, 1,  2), c4_s);
     play(move_to(86, 1, 1,  3), e4_s);
-    play(move_to(86, 1, 1,  4), a4_s);
+    play(move_to(86, 1, 1,  4), c5_s);
     play(move_to(86, 1, 1,  5), e4_s, e6, e5);
     play(move_to(86, 1, 1,  6), c4_s);
-    play(move_to(86, 1, 1,  7), f3_s);
+    play(move_to(86, 1, 1,  7), a3_s);
     play(move_to(86, 1, 1,  8), c4_s);
     play(move_to(86, 1, 1,  9), e4_s);
-    play(move_to(86, 1, 1, 10), a4_s);
+    play(move_to(86, 1, 1, 10), c5_s);
     play(move_to(86, 1, 1, 11), e4_s);
     play(move_to(86, 1, 1, 12), c4_s);
 
@@ -1193,11 +1042,206 @@ int main(void)
     play(move_to(88, 1, 1,  6), d4_s);
     play(move_to(88, 1, 1,  7), g3_s);
     play(move_to(88, 1, 1,  8), d4_s);
-    play(move_to(88, 1, 1,  9), e4_s, b4, b5);
+    play(move_to(88, 1, 1,  9), e4_s, b5, b4);
     play(move_to(88, 1, 1, 10), b4_s);
     play(move_to(88, 1, 1, 11), e4_s);
     play(move_to(88, 1, 1, 12), d4_s);
 
+    play(move_to(89, 1, 1,  1), f2_s, a5, a4);
+    play(move_to(89, 1, 1,  2), c3_s);
+    play(move_to(89, 1, 1,  3), e3_s);
+    play(move_to(89, 1, 1,  4), a3_s);
+    play(move_to(89, 1, 1,  5), e3_s, e6, e5);
+    play(move_to(89, 1, 1,  6), c3_s);
+    play(move_to(89, 1, 1,  7), f2_s);
+    play(move_to(89, 1, 1,  8), c3_s);
+    play(move_to(89, 1, 1,  9), e3_s);
+    play(move_to(89, 1, 1, 10), a3_s);
+    play(move_to(89, 1, 1, 11), e3_s);
+    play(move_to(89, 1, 1, 12), c3_s);
+
+    play(move_to(90, 1, 1,  1), f2_s, a5, a4);
+    play(move_to(90, 1, 1,  2), c3_s);
+    play(move_to(90, 1, 1,  3), e3_s);
+    play(move_to(90, 1, 1,  4), a3_s);
+    play(move_to(90, 1, 1,  5), e3_s, e6, e5);
+    play(move_to(90, 1, 1,  6), c3_s);
+    play(move_to(90, 1, 1,  7), f2_s);
+    play(move_to(90, 1, 1,  8), c3_s);
+    play(move_to(90, 1, 1,  9), e3_s);
+    play(move_to(90, 1, 1, 10), a3_s);
+    play(move_to(90, 1, 1, 11), e3_s);
+    play(move_to(90, 1, 1, 12), c3_s);
+
+    play(move_to(91, 1, 1,  1), g2_s, b5, b4);
+    play(move_to(91, 1, 1,  2), d3_s);
+    play(move_to(91, 1, 1,  3), e3_s);
+    play(move_to(91, 1, 1,  4), b3_s);
+    play(move_to(91, 1, 1,  5), e3_s, e6, e5);
+    play(move_to(91, 1, 1,  6), d3_s);
+    play(move_to(91, 1, 1,  7), g2_s);
+    play(move_to(91, 1, 1,  8), d3_s);
+    play(move_to(91, 1, 1,  9), e3_s);
+    play(move_to(91, 1, 1, 10), b3_s);
+    play(move_to(91, 1, 1, 11), e3_s);
+    play(move_to(91, 1, 1, 12), d3_s);
+
+    // check 16th notes here!
+    play(move_to(92, 1, 1,  1), g2_s, b5, b4);
+    play(move_to(92, 1, 1,  2), d3_s);
+    play(move_to(92, 1, 1,  3), e3_s);
+    play(move_to(92, 1, 1,  4), b3_s);
+    play(move_to(92, 1, 1,  5), e3_s, e6, e5);
+    play(move_to(92, 1, 1,  6), d3_s);
+    play(move_to(92, 1, 1,  7), g2_s);
+    play(move_to(92, 1, 1,  8), d3_s);
+    play(move_to(92, 1, 1,  9), e3_s);
+    play(move_to(92, 1, 1, 10), b3_s);
+    play(move_to(92, 1, 1, 11), e3_s);
+    play(move_to(92, 1, 1, 12), d3_s);
+
+    play(move_to(93, 1, 1,  1), a2_s, c6, c5);
+    play(move_to(93, 1, 1,  2), c3_s);
+    play(move_to(93, 1, 1,  3), e3_s);
+    play(move_to(93, 1, 1,  4), c4_s);
+    play(move_to(93, 1, 1,  5), e3_s, e6, e5);
+    play(move_to(93, 1, 1,  6), c3_s);
+    play(move_to(93, 1, 1,  7), a2_s);
+    play(move_to(93, 1, 1,  8), c3_s);
+    play(move_to(93, 1, 1,  9), e3_s);
+    play(move_to(93, 1, 1, 10), c4_s);
+    play(move_to(93, 1, 1, 11), e3_s);
+    play(move_to(93, 1, 1, 12), c3_s);
+
+    play(move_to(94, 1, 1,  1), a2_s, c6, c5);
+    play(move_to(94, 1, 1,  2), c3_s);
+    play(move_to(94, 1, 1,  3), e3_s);
+    play(move_to(94, 1, 1,  4), c4_s);
+    play(move_to(94, 1, 1,  5), e3_s, e6, e5);
+    play(move_to(94, 1, 1,  6), c3_s);
+    play(move_to(94, 1, 1,  7), a2_s);
+    play(move_to(94, 1, 1,  8), c3_s);
+    play(move_to(94, 1, 1,  9), e3_s);
+    play(move_to(94, 1, 1, 10), c4_s);
+    play(move_to(94, 1, 1, 11), e3_s);
+    play(move_to(94, 1, 1, 12), c3_s);
+
+    play(move_to(95, 1, 1,  1), g2_s, d6, d5);
+    play(move_to(95, 1, 1,  2), d3_s);
+    play(move_to(95, 1, 1,  3), e3_s);
+    play(move_to(95, 1, 1,  4), b3_s);
+    play(move_to(95, 1, 1,  5), e3_s, e6, e5);
+    play(move_to(95, 1, 1,  6), d3_s);
+    play(move_to(95, 1, 1,  7), g2_s);
+    play(move_to(95, 1, 1,  8), d3_s);
+    play(move_to(95, 1, 1,  9), e3_s);
+    play(move_to(95, 1, 1, 10), b3_s);
+    play(move_to(95, 1, 1, 11), e3_s);
+    play(move_to(95, 1, 1, 12), d3_s);
+
+    play(move_to(96, 1, 1,  1), g2_s, d6, d5);
+    play(move_to(96, 1, 1,  2), d3_s);
+    play(move_to(96, 1, 1,  3), e3_s);
+    play(move_to(96, 1, 1,  4), b3_s);
+    play(move_to(96, 1, 1,  5), e3_s, e6, e5);
+    play(move_to(96, 1, 1,  6), d3_s);
+    play(move_to(96, 1, 1,  7), g2_s);
+    play(move_to(96, 1, 1,  8), d3_s);
+    play(move_to(96, 1, 1,  9), e3_s, b5, b4);
+    play(move_to(96, 1, 1, 10), b3_s);
+    play(move_to(96, 1, 1, 11), e3_s);
+    play(move_to(96, 1, 1, 12), d3_s);
+
+    play(move_to(97, 1, 1,  1), a3_s, f2, f1);
+    play(move_to(97, 1, 1,  2), f3_s);
+    play(move_to(97, 1, 1,  3), e3_s);
+    play(move_to(97, 1, 1,  4), c3_s);
+    play(move_to(97, 1, 1,  5),       e4);
+    play(move_to(97, 1, 1,  6), c3_s);
+    play(move_to(97, 1, 1,  7), e3_s);
+    play(move_to(97, 1, 1,  8), f3_s);
+    play(move_to(97, 1, 1,  9), a3_s);
+    play(move_to(97, 1, 1, 10), f3_s);
+    play(move_to(97, 1, 1, 11), e3_s);
+    play(move_to(97, 1, 1, 12), c3_s);
+
+    play(move_to(98, 1, 1,  1), a3_s, f2, f1);
+    play(move_to(98, 1, 1,  2), f3_s);
+    play(move_to(98, 1, 1,  3), e3_s);
+    play(move_to(98, 1, 1,  4), c3_s);
+    play(move_to(98, 1, 1,  5),       e4);
+    play(move_to(98, 1, 1,  6), c3_s);
+    play(move_to(98, 1, 1,  7), e3_s);
+    play(move_to(98, 1, 1,  8), f3_s);
+    play(move_to(98, 1, 1,  9), a3_s);
+    play(move_to(98, 1, 1, 10), f3_s);
+    play(move_to(98, 1, 1, 11), e3_s);
+    play(move_to(98, 1, 1, 12), c3_s);
+
+    play(move_to(99, 1, 1,  1), b3_s, g2, g1);
+    play(move_to(99, 1, 1,  2), e3_s);
+    play(move_to(99, 1, 1,  3), d3_s);
+    play(move_to(99, 1, 1,  4), b2_s);
+    play(move_to(99, 1, 1,  5),       e4);
+    play(move_to(99, 1, 1,  6), b2_s);
+    play(move_to(99, 1, 1,  7), d3_s);
+    play(move_to(99, 1, 1,  8), e3_s);
+    play(move_to(99, 1, 1,  9), b3_s);
+    play(move_to(99, 1, 1, 10), e3_s);
+    play(move_to(99, 1, 1, 11), d3_s);
+    play(move_to(99, 1, 1, 12), b2_s);
+
+    play(move_to(100, 1, 1,  1), b3_s, g2, g1);
+    play(move_to(100, 1, 1,  2), e3_s);
+    play(move_to(100, 1, 1,  3), d3_s);
+    play(move_to(100, 1, 1,  4), b2_s);
+    play(move_to(100, 1, 1,  5),       e4);
+    play(move_to(100, 1, 1,  6), b2_s);
+    play(move_to(100, 1, 1,  7), d3_s);
+    play(move_to(100, 1, 1,  8), e3_s);
+    play(move_to(100, 1, 1,  9), b3_s);
+    play(move_to(100, 1, 1, 10), e3_s);
+    play(move_to(100, 1, 1, 11), d3_s);
+    play(move_to(100, 1, 1, 12), b2_s);
+
+    play(move_to(101, 1, 1,  1), c4_s, a2, a1);
+    play(move_to(101, 1, 1,  2), a3_s);
+    play(move_to(101, 1, 1,  3), e3_s);
+    play(move_to(101, 1, 1,  4), c3_s);
+    play(move_to(101, 1, 1,  5),       e4);
+    play(move_to(101, 1, 1,  6), c3_s);
+    play(move_to(101, 1, 1,  7), e3_s);
+    play(move_to(101, 1, 1,  8), a3_s);
+    play(move_to(101, 1, 1,  9), c4_s);
+    play(move_to(101, 1, 1, 10), a3_s);
+    play(move_to(101, 1, 1, 11), e3_s);
+    play(move_to(101, 1, 1, 12), c3_s);
+
+    play(move_to(102, 1, 1,  1), c4_s, a2, a1);
+    play(move_to(102, 1, 1,  2), a3_s);
+    play(move_to(102, 1, 1,  3), e3_s);
+    play(move_to(102, 1, 1,  4), c3_s);
+    play(move_to(102, 1, 1,  5),       e4);
+    play(move_to(102, 1, 1,  6), c3_s);
+    play(move_to(102, 1, 1,  7), e3_s);
+    play(move_to(102, 1, 1,  8), a3_s);
+    play(move_to(102, 1, 1,  9), c4_s);
+    play(move_to(102, 1, 1, 10), a3_s);
+    play(move_to(102, 1, 1, 11), e3_s);
+    play(move_to(102, 1, 1, 12), c3_s);
+
+    play(move_to(103, 1, 1,  1), a4_s, f2, f1);
+    play(move_to(103, 1, 1,  2), f4_s);
+    play(move_to(103, 1, 1,  3), e4_s);
+    play(move_to(103, 1, 1,  4), c4_s);
+    play(move_to(103, 1, 1,  5),       e5);
+    play(move_to(103, 1, 1,  6), c4_s);
+    play(move_to(103, 1, 1,  7), e4_s);
+    play(move_to(103, 1, 1,  8), f4_s);
+    play(move_to(103, 1, 1,  9), a4_s);
+    play(move_to(103, 1, 1, 10), f4_s);
+    play(move_to(103, 1, 1, 11), e4_s);
+    play(move_to(103, 1, 1, 12), c4_s);
 
     //-------------------------------------------------------------------------
     // Finish up.
@@ -1207,8 +1251,8 @@ int main(void)
     cout << "\nRendering took: " << dt
          << "\nFinishing up." << std::endl;
 
-//~    auto t0 = move_to(77);
-//~    auto t1 = move_to(89);
+//~    auto t0 = move_to(84);
+//~    auto t1 = move_to(103);
 
 //~    out = out.substream(t0, t1 - t0);
 #endif
