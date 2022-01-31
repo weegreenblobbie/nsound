@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cassert>
 #include <csignal>
 #include <iostream>
 #include <iomanip>
@@ -121,15 +122,15 @@ void signal_handler(int signal)
     g_signal = signal == SIGINT;
 }
 
-struct Organ
+struct FitSpec
 {
-    static Organ from_txt(const std::string & filename, float64 freq_, std::size_t num_harmonics_)
+    static FitSpec from_txt(const std::string & filename, float64 freq_, std::size_t num_harmonics_)
     {
         std::ifstream fin(filename.c_str());
 
         if (not fin.good())
         {
-            return Organ(48000.0, freq_, num_harmonics_);
+            return FitSpec(48000.0, freq_, num_harmonics_);
         }
 
         std::string key;
@@ -171,6 +172,7 @@ struct Organ
         {
             float64 w {0.0};
             fin >> w;
+            if (w < 1e-2) w = 0.0;
             weights.push_back(w);
         }
 
@@ -180,12 +182,14 @@ struct Organ
         assert (weights.size() > 0);
         assert (phases.size() == weights.size());
 
-        auto organ = Organ(sample_rate, freq, weights.size());
+        auto fitter = FitSpec(sample_rate, freq, weights.size());
 
-        organ.phases = phases;
-        organ.weights = weights;
+        fitter.phases = phases;
+        fitter.weights = weights;
 
-        return organ;
+        fitter.phases[0] = 0.0;
+
+        return fitter;
     }
 
     void to_txt(const std::string & filename)
@@ -214,7 +218,7 @@ struct Organ
         cout << "Wrote " << filename << endl;
     }
 
-    Organ(float64 sample_rate, float64 frequency, std::size_t num_harmonics)
+    FitSpec(float64 sample_rate, float64 frequency, std::size_t num_harmonics)
         :
         sin(sample_rate),
         freq(frequency),
@@ -229,7 +233,7 @@ struct Organ
         weights[0] = 1.0;
     }
 
-    Organ(const Organ & copy)
+    FitSpec(const FitSpec & copy)
         :
         sin(copy.sin.getSampleRate()),
         freq(copy.freq),
@@ -238,7 +242,7 @@ struct Organ
         weights(copy.weights)
     {}
 
-    Organ & operator=(const Organ & rhs)
+    FitSpec & operator=(const FitSpec & rhs)
     {
         if (this == &rhs) return *this;
 
@@ -273,7 +277,7 @@ struct Organ
         return out * 0.80;
     }
 
-    // Freq domain signal
+    // Freq domain signal.
     float64 score(const Buffer & reference)
     {
         float64 duration = 2 * reference.getLength() / sin.getSampleRate();
@@ -286,8 +290,10 @@ struct Organ
 
         mag.normalize();
 
+        float64 norm = std::sqrt((reference ^ 2.0).getMean());
+
         // Compute root mean squared error.
-        return std::sqrt(((reference - mag) ^ 2.0).getMean());
+        return std::sqrt(((reference - mag) ^ 2.0).getMean()) / norm;
     }
 
     void mutate()
@@ -326,6 +332,8 @@ struct Organ
             if (weight < 1e-2) { weight = 0.0; phase = 0.0; }
             if (weight > 1.0) weight = 1.0;
         }
+
+        phases[0] = 0.0;
     }
 
     void print() const
@@ -362,7 +370,7 @@ main(int argc, char ** argv)
 {
     if (argc != 3)
     {
-        cout << "usage: example1 [NOTE] [WAVE REFERENCE]\n";
+        cout << "usage: fit-spec [NOTE] [WAVE REFERENCE]\n";
         return 1;
     }
 
@@ -379,15 +387,15 @@ main(int argc, char ** argv)
 
     std::signal(SIGINT, signal_handler);
 
-    const auto params_txt = "organ-" + arg2 + ".txt";
+    const auto params_txt = "fit-spec-" + arg2 + ".txt";
 
-    auto organ = Organ::from_txt(params_txt, FREQ, 23);
+    auto parent = FitSpec::from_txt(params_txt, FREQ, 23);
 
-    const auto sr = organ.sin.getSampleRate();
+    const auto sr = parent.sin.getSampleRate();
 
     //-------------------------------------------------------------------------
     // Reference
-    const auto reference = AudioStream(arg1  );
+    const auto reference = AudioStream(arg1);
 
     assert (std::abs(reference.getSampleRate() - sr) < 1.0);
 
@@ -401,25 +409,25 @@ main(int argc, char ** argv)
     mag.normalize();
     const auto spec_ref = mag;
 
-    auto score_0 = organ.score(spec_ref);
+    auto score_0 = parent.score(spec_ref);
 
     Tic();
 
     cout << std::setw(4) << 0 << " score = " << std::setw(8) << std::fixed << score_0 << std::endl;
 
-    auto child = Organ(organ);
+    auto child = FitSpec(parent);
 
     struct Parameters
     {
-        Organ organ;
+        FitSpec parent;
         float64 score;
     };
 
-    auto params = Parameters{organ, score_0};
+    auto params = Parameters{parent, score_0};
 
     auto worker = [&](const Parameters & par) {
-        auto organ = par.organ;
-        auto child = par.organ;
+        auto parent = par.parent;
+        auto child = par.parent;
         auto score_0 = par.score;
         for (int i = 0; i < 250; ++i)
         {
@@ -429,16 +437,16 @@ main(int argc, char ** argv)
 
             if (score < score_0)
             {
-                organ = child;
+                parent = child;
                 score_0 = score;
             }
-            else
+            else // reset.
             {
-                child = organ;
+                child = parent;
             }
         }
 
-        return Parameters{organ, score_0};
+        return Parameters{parent, score_0};
     };
 
     for (int i = 1; i <= 50'000; ++i)
@@ -472,34 +480,34 @@ main(int argc, char ** argv)
                     score_0 = res.score;
                     once = false;
                 }
-                params.organ = res.organ;
+                params.parent = res.parent;
             }
         }
     }
-    organ = params.organ;
+    parent = params.parent;
 
     float64 runtime = Toc();
 
     cout << "\nruntime = " << runtime << endl;
 
-    organ.print();
-    organ.to_txt(params_txt);
+    parent.print();
+    parent.to_txt(params_txt);
 
     AudioStream aout(sr, 1);
 
-    aout << organ.generate(3.0) * 0.33;
+    aout << parent.generate(3.0) * 0.33;
 
-    aout >> "organ.wav";
+    aout >> "fit.wav";
 
     auto reverb = ReverberationRoom(sr, 1.00, 0.75, 0.50, 25.0, 0.10);
 
     auto aout2 = reverb.filter(aout);
 
-    aout2 >> "organ-reverb.wav";
+    aout2 >> "fit-reverb.wav";
 
     // FFT.
 
-    auto out = organ.generate(3600.0/sr);
+    auto out = parent.generate(3600.0/sr);
 
     Spectrogram spec2(out, sr, 0.060, 0.010, HANNING);
     auto mag2 = spec2.getMagnitude()[0];
@@ -513,7 +521,7 @@ main(int argc, char ** argv)
     plt.figure();
     plt.plot(ref);
     plt.plot(out);
-    plt.title("real vs synth");
+    plt.title("reference vs synth");
     plt.xlim(x0, x1);
 
     x0 = 0.0;
@@ -524,7 +532,7 @@ main(int argc, char ** argv)
     plt.plot(freq_axis, mag2);
     plt.xlim(x0, x1);
     plt.xlabel("freq HZ");
-    plt.title("real vs synth");
+    plt.title("reference vs synth");
 
     plt.show();
 

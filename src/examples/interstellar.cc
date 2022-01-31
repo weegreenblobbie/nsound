@@ -133,10 +133,7 @@ int main(void)
     auto out = AudioStream(sr, 2);
     auto gen = Generator(sr);
     auto po = OrganPipe(sr);
-//~    auto po = GuitarBass(sr);
     auto filter = FilterLowPassIIR(sr, 5, 5000.0, 0.05);
-//~    auto reverb = ReverberationRoom(sr, 0.750, 1.00, 0.50, 2500.0, 0.1000);
-//~    auto reverb = ReverberationRoom(sr, 0.750, 0.50, 0.50, 1500.0, 0.1000);
     auto reverb = ReverberationRoom(sr, 0.10, 0.5, 0.50, 5000.0, 0.10);
 
     Tic();
