@@ -371,7 +371,7 @@ const std::map<float64, Parameters> principal_stops = {
               {1.000000, 0.345736, 0.000000, 0.164520, 0.022945, 0.016498, 0.027191, }}
 },
 // C6
-{ 1052.08000, {0.16,
+{ 1052.08000, {0.22,
               {0.000000, 1.000000, 0.489395, 0.901466, 0.000000, 0.564716, 0.688017, 0.384432, 0.186622, 0.000000, 0.000000, 0.000000, 0.000000, },
               {1.000000, 0.648249, 0.254927, 0.207379, 0.012766, 0.034433, 0.024719, 0.035111, 0.010490, 0.000000, 0.024209, 0.000000, 0.011164, }}
 },
@@ -504,6 +504,9 @@ play(
     const auto & phases = params.phases;
     const auto & weights = params.weights;
 
+    // Frequency offsets adds a nice low frequency oscillation to long notes.
+    Buffer freq_offset = _sine->gaussianNoise(weights.size(), 0.0, 1.0);
+
     float64 pan_left = pan;
     float64 pan_right = 1.0 - pan_left;
 
@@ -585,7 +588,7 @@ play(
 
     for (std::size_t i = 0 ; i < weights.size(); ++i)
     {
-        const auto f = (i + 1.0) * frequency;
+        const auto f = (i + 1.0) * frequency + freq_offset[i];
         const auto & p = phases[i];
         const auto & w = weights[i];
 
@@ -614,17 +617,62 @@ play()
 {
     AudioStream y(sample_rate_, 2);
 
-    for (const auto & pair: principal_stops)
-    {
-        const auto freq = pair.first;
-
-        std::string fout = "organ-freq-" + std::to_string(static_cast<int>(freq)) + ".wav";
-
-        AudioStream out(sample_rate_, 2);
-
-        out << play(1.0, freq);
-        out >> fout.c_str();
-    }
+    const auto A0  =  27.50000;
+    const auto B0  =  30.86771;
+    const auto C1  =  32.70320;
+    const auto C1S =  34.64783;
+    const auto D1  =  36.70810;
+    const auto E1  =  41.20344;
+    const auto F1  =  43.65353;
+    const auto G1  =  48.99943;
+    const auto A1  =  55.00000;
+    const auto A1S =  58.27047;
+    const auto B1  =  61.73541;
+    const auto C2  =  65.40639;
+    const auto C2S =  69.29566;
+    const auto D2  =  73.41619;
+    const auto E2  =  82.40689;
+    const auto F2  =  87.30706;
+    const auto G2  =  97.99886;
+    const auto A2  = 110.0000 ;
+    const auto B2  = 123.4708 ;
+    const auto C3  = 130.8128 ;
+    const auto C3S = 138.5913 ;
+    const auto D3  = 146.8324 ;
+    const auto E3  = 164.8138 ;
+    const auto F3  = 174.6141 ;
+    const auto G3  = 195.9977 ;
+    const auto A3  = 220.0000 ;
+    const auto B3  = 246.9417 ;
+    const auto C4  = 261.6256 ;
+    const auto D4  = 293.6648 ;
+    const auto E4  = 329.6276 ;
+    const auto F4  = 349.2282 ;
+    const auto G4  = 391.9954 ;
+    const auto A4  = 440.0000 ;
+    const auto B4  = 493.8833 ;
+    const auto C5  = 523.2511 ;
+    const auto D5  = 587.3295 ;
+    const auto E5  = 659.2551 ;
+    const auto F5  = 698.4565 ;
+    const auto G5  = 783.9909 ;
+    const auto A5  = 880.0000 ;
+    const auto B5  = 987.7666 ;
+    const auto C6  = 1046.502 ;
+    const auto D6  = 1174.659 ;
+    const auto E6  = 1318.510 ;
+    const auto F6  = 1396.913 ;
+    const auto G6  = 1567.982 ;
+    const auto A6  = 1760.000 ;
+    const auto B6  = 1975.533 ;
+    const auto C7  = 2093.005 ;
+    const auto D7  = 2349.318 ;
+    const auto E7  = 2637.020 ;
+    const auto F7  = 2793.826 ;
+    const auto G7  = 3135.963 ;
+    const auto A7  = 3520.000 ;
+    const auto B7  = 3951.066 ;
+    const auto C8  = 4186.009 ;
 
 
     // Organ Intro to Bach's Toccata & Fugue in Dminor
@@ -639,18 +687,18 @@ play()
     // i4  .      .56  900    7.01  .4   1       2
     // i4  .     1.2   1200   7.02  .5   1       2
 
-    y << play(0.12, 219.98, 0.9)
-      << play(0.10, 195.99, 0.8)
-      << play(0.80, 219.98, 0.7);
+    y << play(0.12, A3, 0.9)
+      << play(0.10, G3, 0.8)
+      << play(0.80, A3, 0.7);
 
     // Use AudioStream::add to insert the precise delay.
-    y.add(play(0.16, 195.99, 0.6), 1.20f);
+    y.add(play(0.16, G3, 0.6), 1.20f);
 
-    y << play(0.14, 174.61, 0.5)
-      << play(0.12, 164.80, 0.4)
-      << play(0.12, 146.83, 0.3)
-      << play(0.56, 138.58, 0.4)
-      << play(1.20, 146.83, 0.5);
+    y << play(0.14, F3, 0.5)
+      << play(0.12, E3, 0.4)
+      << play(0.12, D3, 0.3)
+      << play(0.56, C3S, 0.4)
+      << play(1.20, D3, 0.5);
 
     // i4  29.8   .12  1600   6.09  .5
     // i4  +      .1   .      6.07  .5
@@ -660,16 +708,16 @@ play()
     // i4  .      .3   .      6.01  .5
     // i4  .     1.2   .      6.02  .5
 
-    y.add(play(0.12, 109.99), 2.80f);
+    y.add(play(0.12, A2), 2.80f);
 
-    y << play(0.10,  97.99)
-      << play(0.80, 109.99);
+    y << play(0.10, G2)
+      << play(0.80, A2);
 
-    y.add(play(0.30,  87.30), 5.00f);
+    y.add(play(0.30, F2), 5.00f);
 
-    y << play(0.30,  97.99)
-      << play(0.30,  69.29)
-      << play(1.20,  73.41);
+    y << play(0.30,  G2)
+      << play(0.30,  C2S)
+      << play(1.20,  D2);
 
     // i4  33.2   .12  3000   5.09  .5
     // i4  +      .1   .      5.07  .5
@@ -681,18 +729,18 @@ play()
     // i4  .      .56  .      5.01  .5
     // i4  .     1.2   .      5.02  .5
 
-    y.add(play(0.12, 55.00), 7.20f);
+    y.add(play(0.12, A1), 7.20f);
 
-    y << play(0.10, 49.00)
-      << play(0.80, 55.00);
+    y << play(0.10, G1)
+      << play(0.80, A1);
 
-    y.add(play(0.16, 49.00), 8.40f);
+    y.add(play(0.16, G1), 8.40f);
 
-    y << play(0.14, 43.65)
-      << play(0.12, 41.20)
-      << play(0.12, 36.71)
-      << play(0.56, 34.65)
-      << play(1.20, 36.71);
+    y << play(0.14, F1)
+      << play(0.12, E1)
+      << play(0.12, D1)
+      << play(0.56, C1S)
+      << play(1.20, D1);
 
     // i4  36.5  2.0   .      5.01  .5
     // i4  36.7  1.8   .      5.04  .5
@@ -705,14 +753,14 @@ play()
     // i4  +     0.8   .      5.09  .5
     // i4  .     1.6   .      5.06  .5
 
-    y.add(play(2.00, 34.65), 10.5f);
-    y.add(play(1.80, 41.20), 10.7f);
-    y.add(play(1.60, 49.00), 10.9f);
-    y.add(play(1.40, 58.27), 11.1f);
-    y.add(play(1.20, 69.29), 11.3f);
-    y.add(play(3.20, 36.71), 12.7f);
-    y.add(play(3.20, 73.41), 12.7f);
-    y.add(play(0.08, 49.00), 12.7f);
+    y.add(play(2.00, C1S), 10.5f);
+    y.add(play(1.80, E1), 10.7f);
+    y.add(play(1.60, G1), 10.9f);
+    y.add(play(1.40, A1S), 11.1f);
+    y.add(play(1.20, C2S), 11.3f);
+    y.add(play(3.20, D1), 12.7f);
+    y.add(play(3.20, D2), 12.7f);
+    y.add(play(0.08, G1), 12.7f);
 
     for(uint32 i = 0 ; i < sample_rate_ * 0.3; ++i) y << 0.0;
 

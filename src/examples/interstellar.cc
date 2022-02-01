@@ -1,6 +1,9 @@
+#include <fstream>
 #include <iostream>
-#include <string>
 #include <map>
+#include <sstream>
+#include <string>
+
 #include <Nsound/NsoundAll.h>
 
 
@@ -125,6 +128,13 @@ void play_n(AudioStream & out, float64 time, const AudioStream & in1, const Audi
 }
 
 
+inline bool file_exists(const std::string & name)
+{
+    std::ifstream fin(name.c_str());
+    return fin.good();
+}
+
+
 int main(void)
 {
     cout << "Constructing pipe organ and filters ..."; fflush(stdout);
@@ -144,7 +154,7 @@ int main(void)
     //
     // Quarter notes are 90 BPM.
     //
-    const auto _quarter = 60.0 / 90.0;
+    const auto _quarter = 60.0 / 98.0;
     const auto _eighth = _quarter / 2.0;
     const auto _sixth  = _eighth / 2.0;
 
@@ -163,108 +173,128 @@ int main(void)
     auto env_hd  = Asdr{0.04, 0.10, 0.80, 0.10};
     auto env_2hd = Asdr{0.02, 0.05, 0.80, 0.05};
 
-    const auto a2_s = po.play(sixth, A2) * env_s;
-    const auto a3_s = po.play(sixth, A3) * env_s;
-    const auto a4_s = po.play(sixth, A4) * env_s;
-    const auto a5_s = po.play(sixth, A5) * env_s;
-    const auto a6_s = po.play(sixth, A6) * env_s;
-    const auto b2_s = po.play(sixth, B2) * env_s;
-    const auto b3_s = po.play(sixth, B3) * env_s;
-    const auto b4_s = po.play(sixth, B4) * env_s;
-    const auto b5_s = po.play(sixth, B5) * env_s;
-    const auto b6_s = po.play(sixth, B6) * env_s;
-    const auto c3_s = po.play(sixth, C3) * env_s;
-    const auto c4_s = po.play(sixth, C4) * env_s;
-    const auto c5_s = po.play(sixth, C5) * env_s;
-    const auto c6_s = po.play(sixth, C6) * env_s;
-    const auto d2_s = po.play(sixth, D2) * env_s;
-    const auto d3_s = po.play(sixth, D3) * env_s;
-    const auto d4_s = po.play(sixth, D4) * env_s;
-    const auto d5_s = po.play(sixth, D5) * env_s;
-    const auto d6_s = po.play(sixth, D6) * env_s;
-    const auto e3_s = po.play(sixth, E3) * env_s;
-    const auto e4_s = po.play(sixth, E4) * env_s;
-    const auto e5_s = po.play(sixth, E5) * env_s;
-    const auto e6_s = po.play(sixth, E6) * env_s;
-    const auto f2_s = po.play(sixth, F2) * env_s;
-    const auto f3_s = po.play(sixth, F3) * env_s;
-    const auto f4_s = po.play(sixth, F4) * env_s;
-    const auto f5_s = po.play(sixth, F5) * env_s;
-    const auto f6_s = po.play(sixth, F6) * env_s;
-    const auto g2_s = po.play(sixth, G2) * env_s;
-    const auto g3_s = po.play(sixth, G3) * env_s;
-    const auto g4_s = po.play(sixth, G4) * env_s;
-    const auto g5_s = po.play(sixth, G5) * env_s;
-    const auto g6_s = po.play(sixth, G6) * env_s;
+    auto cached_play = [&po](float64 duration, float64 frequency)
+    {
+        std::stringstream ss;
+        ss << "cache/organ-" << static_cast<int>(duration * 1'000)
+           << "-" << static_cast<int>(frequency) << ".wav";
 
-    const auto a4_e = po.play(eighth, A4) * env_e;
-    const auto a5_e = po.play(eighth, A5) * env_e;
-    const auto b4_e = po.play(eighth, B4) * env_e;
-    const auto b5_e = po.play(eighth, B5) * env_e;
-    const auto c4_e = po.play(eighth, C4) * env_e;
-    const auto c5_e = po.play(eighth, C5) * env_e;
-    const auto c6_e = po.play(eighth, C6) * env_e;
-    const auto d4_e = po.play(eighth, D4) * env_e;
-    const auto d5_e = po.play(eighth, D5) * env_e;
-    const auto d6_e = po.play(eighth, D6) * env_e;
-    const auto e4_e = po.play(eighth, E4) * env_e;
-    const auto e5_e = po.play(eighth, E5) * env_e;
-    const auto e6_e = po.play(eighth, E6) * env_e;
-    const auto f4_e = po.play(eighth, F4) * env_e;
-    const auto f5_e = po.play(eighth, F5) * env_e;
-    const auto f6_e = po.play(eighth, F6) * env_e;
-    const auto g4_e = po.play(eighth, G4) * env_e;
-    const auto g5_e = po.play(eighth, G5) * env_e;
-    const auto g6_e = po.play(eighth, G6) * env_e;
+        const auto cached_name = ss.str();
 
-    const auto a1 = po.play(quarter, A1) * env;
-    const auto a2 = po.play(quarter, A2) * env;
-    const auto a3 = po.play(quarter, A3) * env;
-    const auto a4 = po.play(quarter, A4) * env;
-    const auto a5 = po.play(quarter, A5) * env;
-    const auto b3 = po.play(quarter, B3) * env;
-    const auto b4 = po.play(quarter, B4) * env;
-    const auto b5 = po.play(quarter, B5) * env;
-    const auto c3 = po.play(quarter, C3) * env;
-    const auto c4 = po.play(quarter, C4) * env;
-    const auto c5 = po.play(quarter, C5) * env;
-    const auto c6 = po.play(quarter, C6) * env;
-    const auto d4 = po.play(quarter, D4) * env;
-    const auto d5 = po.play(quarter, D5) * env;
-    const auto d6 = po.play(quarter, D6) * env;
-    const auto e4 = po.play(quarter, E4) * env;
-    const auto e5 = po.play(quarter, E5) * env;
-    const auto e6 = po.play(quarter, E6) * env;
-    const auto f1 = po.play(quarter, F1) * env;
-    const auto f2 = po.play(quarter, F2) * env;
-    const auto f4 = po.play(quarter, F4) * env;
-    const auto f5 = po.play(quarter, F5) * env;
-    const auto g1 = po.play(quarter, G1) * env;
-    const auto g2 = po.play(quarter, G2) * env;
-    const auto g4 = po.play(quarter, G4) * env;
-    const auto g5 = po.play(quarter, G5) * env;
+        if (file_exists(cached_name))
+        {
+            return AudioStream(cached_name);
+        }
 
-    const auto a3_h = po.play(half, A3) * env_h;
-    const auto a4_h = po.play(half, A4) * env_h;
+        const auto out = po.play(duration, frequency);
 
-    const auto a3_hd = po.play(half_dot, A3) * env_hd;
-    const auto a4_hd = po.play(half_dot, A4) * env_hd;
-    const auto c3_hd = po.play(half_dot, C3) * env_hd;
-    const auto c4_hd = po.play(half_dot, C4) * env_hd;
-    const auto c5_hd = po.play(half_dot, C5) * env_hd;
-    const auto d3_hd = po.play(half_dot, D3) * env_hd;
-    const auto d4_hd = po.play(half_dot, D4) * env_hd;
-    const auto d5_hd = po.play(half_dot, D5) * env_hd;
-    const auto e5_hd = po.play(half_dot, E5) * env_hd;
+        out >> cached_name.c_str();
 
-    const auto a2_2hd = po.play(half_dot_2, A2) * env_2hd;
-    const auto a3_2hd = po.play(half_dot_2, A3) * env_2hd;
-    const auto b3_2hd = po.play(half_dot_2, B3) * env_2hd;
-    const auto b4_2hd = po.play(half_dot_2, B4) * env_2hd;
-    const auto f2_2hd = po.play(half_dot_2, F2) * env_2hd;
-    const auto f3_2hd = po.play(half_dot_2, F3) * env_2hd;
-    const auto g2_2hd = po.play(half_dot_2, G2) * env_2hd;
-    const auto g3_2hd = po.play(half_dot_2, G3) * env_2hd;
+        return out;
+    };
+
+    const auto a2_s = cached_play(sixth, A2) * env_s;
+    const auto a3_s = cached_play(sixth, A3) * env_s;
+    const auto a4_s = cached_play(sixth, A4) * env_s;
+    const auto a5_s = cached_play(sixth, A5) * env_s;
+    const auto a6_s = cached_play(sixth, A6) * env_s;
+    const auto b2_s = cached_play(sixth, B2) * env_s;
+    const auto b3_s = cached_play(sixth, B3) * env_s;
+    const auto b4_s = cached_play(sixth, B4) * env_s;
+    const auto b5_s = cached_play(sixth, B5) * env_s;
+    const auto b6_s = cached_play(sixth, B6) * env_s;
+    const auto c3_s = cached_play(sixth, C3) * env_s;
+    const auto c4_s = cached_play(sixth, C4) * env_s;
+    const auto c5_s = cached_play(sixth, C5) * env_s;
+    const auto c6_s = cached_play(sixth, C6) * env_s;
+    const auto d2_s = cached_play(sixth, D2) * env_s;
+    const auto d3_s = cached_play(sixth, D3) * env_s;
+    const auto d4_s = cached_play(sixth, D4) * env_s;
+    const auto d5_s = cached_play(sixth, D5) * env_s;
+    const auto d6_s = cached_play(sixth, D6) * env_s;
+    const auto e3_s = cached_play(sixth, E3) * env_s;
+    const auto e4_s = cached_play(sixth, E4) * env_s;
+    const auto e5_s = cached_play(sixth, E5) * env_s;
+    const auto e6_s = cached_play(sixth, E6) * env_s;
+    const auto f2_s = cached_play(sixth, F2) * env_s;
+    const auto f3_s = cached_play(sixth, F3) * env_s;
+    const auto f4_s = cached_play(sixth, F4) * env_s;
+    const auto f5_s = cached_play(sixth, F5) * env_s;
+    const auto f6_s = cached_play(sixth, F6) * env_s;
+    const auto g2_s = cached_play(sixth, G2) * env_s;
+    const auto g3_s = cached_play(sixth, G3) * env_s;
+    const auto g4_s = cached_play(sixth, G4) * env_s;
+    const auto g5_s = cached_play(sixth, G5) * env_s;
+    const auto g6_s = cached_play(sixth, G6) * env_s;
+
+    const auto a4_e = cached_play(eighth, A4) * env_e;
+    const auto a5_e = cached_play(eighth, A5) * env_e;
+    const auto b4_e = cached_play(eighth, B4) * env_e;
+    const auto b5_e = cached_play(eighth, B5) * env_e;
+    const auto c4_e = cached_play(eighth, C4) * env_e;
+    const auto c5_e = cached_play(eighth, C5) * env_e;
+    const auto c6_e = cached_play(eighth, C6) * env_e;
+    const auto d4_e = cached_play(eighth, D4) * env_e;
+    const auto d5_e = cached_play(eighth, D5) * env_e;
+    const auto d6_e = cached_play(eighth, D6) * env_e;
+    const auto e4_e = cached_play(eighth, E4) * env_e;
+    const auto e5_e = cached_play(eighth, E5) * env_e;
+    const auto e6_e = cached_play(eighth, E6) * env_e;
+    const auto f4_e = cached_play(eighth, F4) * env_e;
+    const auto f5_e = cached_play(eighth, F5) * env_e;
+    const auto f6_e = cached_play(eighth, F6) * env_e;
+    const auto g4_e = cached_play(eighth, G4) * env_e;
+    const auto g5_e = cached_play(eighth, G5) * env_e;
+    const auto g6_e = cached_play(eighth, G6) * env_e;
+
+    const auto a1 = cached_play(quarter, A1) * env;
+    const auto a2 = cached_play(quarter, A2) * env;
+    const auto a3 = cached_play(quarter, A3) * env;
+    const auto a4 = cached_play(quarter, A4) * env;
+    const auto a5 = cached_play(quarter, A5) * env;
+    const auto b3 = cached_play(quarter, B3) * env;
+    const auto b4 = cached_play(quarter, B4) * env;
+    const auto b5 = cached_play(quarter, B5) * env;
+    const auto c3 = cached_play(quarter, C3) * env;
+    const auto c4 = cached_play(quarter, C4) * env;
+    const auto c5 = cached_play(quarter, C5) * env;
+    const auto c6 = cached_play(quarter, C6) * env;
+    const auto d4 = cached_play(quarter, D4) * env;
+    const auto d5 = cached_play(quarter, D5) * env;
+    const auto d6 = cached_play(quarter, D6) * env;
+    const auto e4 = cached_play(quarter, E4) * env;
+    const auto e5 = cached_play(quarter, E5) * env;
+    const auto e6 = cached_play(quarter, E6) * env;
+    const auto f1 = cached_play(quarter, F1) * env;
+    const auto f2 = cached_play(quarter, F2) * env;
+    const auto f4 = cached_play(quarter, F4) * env;
+    const auto f5 = cached_play(quarter, F5) * env;
+    const auto g1 = cached_play(quarter, G1) * env;
+    const auto g2 = cached_play(quarter, G2) * env;
+    const auto g4 = cached_play(quarter, G4) * env;
+    const auto g5 = cached_play(quarter, G5) * env;
+
+    const auto a3_h = cached_play(half, A3) * env_h;
+    const auto a4_h = cached_play(half, A4) * env_h;
+
+    const auto a3_hd = cached_play(half_dot, A3) * env_hd;
+    const auto a4_hd = cached_play(half_dot, A4) * env_hd;
+    const auto c3_hd = cached_play(half_dot, C3) * env_hd;
+    const auto c4_hd = cached_play(half_dot, C4) * env_hd;
+    const auto c5_hd = cached_play(half_dot, C5) * env_hd;
+    const auto d3_hd = cached_play(half_dot, D3) * env_hd;
+    const auto d4_hd = cached_play(half_dot, D4) * env_hd;
+    const auto d5_hd = cached_play(half_dot, D5) * env_hd;
+    const auto e5_hd = cached_play(half_dot, E5) * env_hd;
+
+    const auto a2_2hd = cached_play(half_dot_2, A2) * env_2hd;
+    const auto a3_2hd = cached_play(half_dot_2, A3) * env_2hd;
+    const auto b3_2hd = cached_play(half_dot_2, B3) * env_2hd;
+    const auto b4_2hd = cached_play(half_dot_2, B4) * env_2hd;
+    const auto f2_2hd = cached_play(half_dot_2, F2) * env_2hd;
+    const auto f3_2hd = cached_play(half_dot_2, F3) * env_2hd;
+    const auto g2_2hd = cached_play(half_dot_2, G2) * env_2hd;
+    const auto g3_2hd = cached_play(half_dot_2, G3) * env_2hd;
 
     // Utility to compute the time at the measure and quarter note given.
     auto move_to = [&](float64 measure, float64 qnote = 1.0, float64 enote = 1.0, float64 snote = 1.0)
@@ -465,7 +495,7 @@ int main(void)
     play(move_to(31, 1, 3), a4_e, e4, a3);
     play(move_to(31, 1, 4), c5_e);
     play(move_to(31, 1, 5), b4_e, e4, b3);
-    play(move_to(31, 1, 6), a4_e);
+    play(move_to(31, 1, 6), d5_e);
 
     play(move_to(32, 1, 1), c5_e, e4, c4_hd);
     play(move_to(32, 1, 2), d5_e);
@@ -600,7 +630,7 @@ int main(void)
     play(move_to(43, 1, 1,  6), e4_s);
     play(move_to(43, 1, 1,  7), b4_s);
     play(move_to(43, 1, 1,  8), e4_s);
-    play(move_to(43, 1, 1,  9), e5_s, e4_s);
+    play(move_to(43, 1, 1,  9), e5_s, e4);
     play(move_to(43, 1, 1, 10), e4_s);
     play(move_to(43, 1, 1, 11), b4_s);
     play(move_to(43, 1, 1, 12), e4_s);
@@ -663,11 +693,11 @@ int main(void)
     play(move_to(48, 1, 1,  4), e4_s);
     play(move_to(48, 1, 1,  5), a4_s, a3);
     play(move_to(48, 1, 1,  6), e4_s);
-    play(move_to(48, 1, 1,  7), b4_s);
+    play(move_to(48, 1, 1,  7), c4_s);
     play(move_to(48, 1, 1,  8), e4_s);
-    play(move_to(48, 1, 1,  9), c5_s, c4);
+    play(move_to(48, 1, 1,  9), b4_s, b3);
     play(move_to(48, 1, 1, 10), e4_s);
-    play(move_to(48, 1, 1, 11), a4_s);
+    play(move_to(48, 1, 1, 11), d5_s);
     play(move_to(48, 1, 1, 12), e4_s);
 
     play(move_to(49, 1, 1,  1), c5_s, c4_hd);
@@ -761,6 +791,7 @@ int main(void)
     play(move_to(55, 1, 1, 11), b4_s);
     play(move_to(55, 1, 1, 12), e4_s);
 
+    // Fade out.
     v = linspace(1.0, 0.5, 12);
 
     play(move_to(56, 1, 1), e5_e * v[0], e4_e * v[0]);
@@ -777,6 +808,7 @@ int main(void)
     play(move_to(57, 1, 5), e5_e * v[10]);
     play(move_to(57, 1, 6), e4_e * v[11]);
 
+    // Fade in.
     v = linspace(0.5, 1.0, 6);
 
     play(move_to(58, 1), e5 * v[0], e4 * v[0]);
@@ -787,7 +819,7 @@ int main(void)
     play(move_to(59, 2), e5 * v[4], e4 * v[4]);
     play(move_to(59, 3), e5 * v[5], e4 * v[5]);
 
-    play(move_to(60, 1), a4, e4, f3_2hd);
+    play(move_to(60, 1), a4, e4, f3_2hd * 0.5);
     play(move_to(60, 2), e5, e4);
     play(move_to(60, 3), e4);
 
@@ -795,7 +827,7 @@ int main(void)
     play(move_to(61, 2), e5, e4);
     play(move_to(61, 3), e4);
 
-    play(move_to(62, 1), b4, e4, g3_2hd);
+    play(move_to(62, 1), b4, e4, g3_2hd * 0.5);
     play(move_to(62, 2), e5, e4);
     play(move_to(62, 3), e4);
 
@@ -803,7 +835,7 @@ int main(void)
     play(move_to(63, 2), e5, e4);
     play(move_to(63, 3), e4);
 
-    play(move_to(64, 1), c5, e4, a3_2hd);
+    play(move_to(64, 1), c5, e4, a3_2hd * 0.5);
     play(move_to(64, 2), e5, e4);
     play(move_to(64, 3), e4);
 
@@ -811,7 +843,7 @@ int main(void)
     play(move_to(65, 2), e5, e4);
     play(move_to(65, 3), e4);
 
-    play(move_to(66, 1), d5, e4, g3_2hd);
+    play(move_to(66, 1), d5, e4, g3_2hd * 0.5);
     play(move_to(66, 2), e5, e4);
     play(move_to(66, 3), e4);
 
@@ -877,67 +909,67 @@ int main(void)
 
     play(move_to(76, 1, 1,  1), b5_s, a4_s);
     play(move_to(76, 1, 1,  2), c6_s, c5_s);
-    play(move_to(76, 1, 1,  3), b5_s, e5_s);
+    play(move_to(76, 1, 1,  3), b5_s, e5_e);
     play(move_to(76, 1, 1,  4), c6_s);
     play(move_to(76, 1, 1,  5), b5_s, a4_s);
     play(move_to(76, 1, 1,  6), c6_s, c5_s);
-    play(move_to(76, 1, 1,  7), b5_s, e5_s);
+    play(move_to(76, 1, 1,  7), b5_s, e5_e);
     play(move_to(76, 1, 1,  8), c6_s);
     play(move_to(76, 1, 1,  9), b5_s, a4_s);
     play(move_to(76, 1, 1, 10), c6_s, c5_s);
-    play(move_to(76, 1, 1, 11), b5_s, e5_s);
+    play(move_to(76, 1, 1, 11), b5_s, e5_e);
     play(move_to(76, 1, 1, 12), c6_s);
 
     play(move_to(77, 1, 1,  1), b5_s, b4_s);
     play(move_to(77, 1, 1,  2), c6_s, d5_s);
-    play(move_to(77, 1, 1,  3), b5_s, e5_s);
+    play(move_to(77, 1, 1,  3), b5_s, e5_e);
     play(move_to(77, 1, 1,  4), c6_s);
     play(move_to(77, 1, 1,  5), b5_s, b4_s);
     play(move_to(77, 1, 1,  6), c6_s, d5_s);
-    play(move_to(77, 1, 1,  7), b5_s, e5_s);
+    play(move_to(77, 1, 1,  7), b5_s, e5_e);
     play(move_to(77, 1, 1,  8), c6_s);
     play(move_to(77, 1, 1,  9), b5_s, b4_s);
     play(move_to(77, 1, 1, 10), c6_s, d5_s);
-    play(move_to(77, 1, 1, 11), b5_s, e5_s);
+    play(move_to(77, 1, 1, 11), b5_s, e5_e);
     play(move_to(77, 1, 1, 12), c6_s);
 
     play(move_to(78, 1, 1,  1), b5_s, b4_s);
     play(move_to(78, 1, 1,  2), c6_s, d5_s);
-    play(move_to(78, 1, 1,  3), b5_s, e5_s);
+    play(move_to(78, 1, 1,  3), b5_s, e5_e);
     play(move_to(78, 1, 1,  4), c6_s);
     play(move_to(78, 1, 1,  5), b5_s, b4_s);
     play(move_to(78, 1, 1,  6), c6_s, d5_s);
-    play(move_to(78, 1, 1,  7), b5_s, e5_s);
+    play(move_to(78, 1, 1,  7), b5_s, e5_e);
     play(move_to(78, 1, 1,  8), c6_s);
     play(move_to(78, 1, 1,  9), b5_s, b4_s);
     play(move_to(78, 1, 1, 10), c6_s, d5_s);
-    play(move_to(78, 1, 1, 11), b5_s, e5_s);
+    play(move_to(78, 1, 1, 11), b5_s, e5_e);
     play(move_to(78, 1, 1, 12), c6_s);
 
-    play(move_to(79, 1, 1,  1), a5_s, a4_s);
+    play(move_to(79, 1, 1,  1), b5_s, a4_s);
     play(move_to(79, 1, 1,  2), c6_s, c5_s);
-    play(move_to(79, 1, 1,  3), b5_s, e5_s);
+    play(move_to(79, 1, 1,  3), b5_s, e5_e);
     play(move_to(79, 1, 1,  4), c6_s);
     play(move_to(79, 1, 1,  5), b5_s, g4_s);
     play(move_to(79, 1, 1,  6), c6_s, b4_s);
-    play(move_to(79, 1, 1,  7), b5_s, e5_s);
+    play(move_to(79, 1, 1,  7), b5_s, e5_e);
     play(move_to(79, 1, 1,  8), c6_s);
     play(move_to(79, 1, 1,  9), b5_s, a4_s);
     play(move_to(79, 1, 1, 10), c6_s, c5_s);
-    play(move_to(79, 1, 1, 11), b5_s, e5_s);
+    play(move_to(79, 1, 1, 11), b5_s, e5_e);
     play(move_to(79, 1, 1, 12), c6_s);
 
     play(move_to(80, 1, 1,  1), b5_s, b4_s);
     play(move_to(80, 1, 1,  2), c6_s, d5_s);
-    play(move_to(80, 1, 1,  3), b5_s, e5_s);
+    play(move_to(80, 1, 1,  3), b5_s, e5_e);
     play(move_to(80, 1, 1,  4), c6_s);
     play(move_to(80, 1, 1,  5), b5_s, a4_s);
-    play(move_to(80, 1, 1,  6), c6_s, d5_s);
-    play(move_to(80, 1, 1,  7), b5_s, e5_s);
+    play(move_to(80, 1, 1,  6), c6_s, c5_s);
+    play(move_to(80, 1, 1,  7), b5_s, e5_e);
     play(move_to(80, 1, 1,  8), c6_s);
     play(move_to(80, 1, 1,  9), b5_s, g4_s);
     play(move_to(80, 1, 1, 10), c6_s, b4_s);
-    play(move_to(80, 1, 1, 11), b5_s, e5_s);
+    play(move_to(80, 1, 1, 11), b5_s, e5_e);
     play(move_to(80, 1, 1, 12), c6_s);
 
     play(move_to(81, 1, 1,  1), f3_s, a5, a4);
@@ -972,7 +1004,7 @@ int main(void)
     play(move_to(83, 1, 1,  4), b4_s);
     play(move_to(83, 1, 1,  5), e4_s, e6, e5);
     play(move_to(83, 1, 1,  6), d4_s);
-    play(move_to(83, 1, 1,  7), f3_s);
+    play(move_to(83, 1, 1,  7), g3_s);
     play(move_to(83, 1, 1,  8), d4_s);
     play(move_to(83, 1, 1,  9), e4_s);
     play(move_to(83, 1, 1, 10), b4_s);
@@ -1248,10 +1280,10 @@ int main(void)
     cout << "\nRendering took: " << dt
          << "\nFinishing up." << std::endl;
 
-//~    auto t0 = move_to(84);
-//~    auto t1 = move_to(103);
+    auto t0 = move_to(87);
+    auto t1 = move_to(92);
 
-//~    out = out.substream(t0, t1 - t0);
+    out = out.substream(t0, t1 - t0);
 #endif
     //-------------------------------------------------------------------------
     // Pad with silence, filter, save, play.
