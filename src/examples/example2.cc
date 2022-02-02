@@ -99,7 +99,7 @@ using namespace Nsound;
 int main(int argc, char *argv[])
 {
     std::string arg1 = "C1";
-    float scale = 1.0;
+    float scale = 0.5;
 
     if (argc >= 2)
     {
@@ -126,14 +126,16 @@ int main(int argc, char *argv[])
 
     OrganPipe po(sr);
 
+//~    po.play() >> "organ.wav";
+
     AudioStream ref(sr, 2);
     AudioStream out(sr, 2);
     AudioStream silence(sr, 2);
 
     AudioPlayback playback(sr, 2);
 
-    ref << po.play(1.0, notes["E4"]);
-    out << po.play(1.0, notes[arg1]);
+    ref << 0.5 * po.play(1.0, notes["G2"]);
+    out << 0.5 * po.play(1.0, notes[arg1]);
     silence = 0.0 * po.play(0.25, 1.0);
 
     float step = 0.05;

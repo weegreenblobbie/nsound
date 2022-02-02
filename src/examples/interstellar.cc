@@ -630,7 +630,7 @@ int main(void)
     play(move_to(43, 1, 1,  6), e4_s);
     play(move_to(43, 1, 1,  7), b4_s);
     play(move_to(43, 1, 1,  8), e4_s);
-    play(move_to(43, 1, 1,  9), e5_s, e4);
+    play(move_to(43, 1, 1,  9), e5_s, e4_s);
     play(move_to(43, 1, 1, 10), e4_s);
     play(move_to(43, 1, 1, 11), b4_s);
     play(move_to(43, 1, 1, 12), e4_s);
@@ -1181,7 +1181,9 @@ int main(void)
     play(move_to(96, 1, 1, 11), e3_s);
     play(move_to(96, 1, 1, 12), d3_s);
 
-    play(move_to(97, 1, 1,  1), a3_s, f2, f1);
+    auto vv = 2.0;
+
+    play(move_to(97, 1, 1,  1), a3_s, f2 * vv, f1 * vv);
     play(move_to(97, 1, 1,  2), f3_s);
     play(move_to(97, 1, 1,  3), e3_s);
     play(move_to(97, 1, 1,  4), c3_s);
@@ -1194,7 +1196,7 @@ int main(void)
     play(move_to(97, 1, 1, 11), e3_s);
     play(move_to(97, 1, 1, 12), c3_s);
 
-    play(move_to(98, 1, 1,  1), a3_s, f2, f1);
+    play(move_to(98, 1, 1,  1), a3_s, f2 * vv, f1 * vv);
     play(move_to(98, 1, 1,  2), f3_s);
     play(move_to(98, 1, 1,  3), e3_s);
     play(move_to(98, 1, 1,  4), c3_s);
@@ -1207,7 +1209,7 @@ int main(void)
     play(move_to(98, 1, 1, 11), e3_s);
     play(move_to(98, 1, 1, 12), c3_s);
 
-    play(move_to(99, 1, 1,  1), b3_s, g2, g1);
+    play(move_to(99, 1, 1,  1), b3_s, g2 * vv, g1 * vv);
     play(move_to(99, 1, 1,  2), e3_s);
     play(move_to(99, 1, 1,  3), d3_s);
     play(move_to(99, 1, 1,  4), b2_s);
@@ -1220,7 +1222,7 @@ int main(void)
     play(move_to(99, 1, 1, 11), d3_s);
     play(move_to(99, 1, 1, 12), b2_s);
 
-    play(move_to(100, 1, 1,  1), b3_s, g2, g1);
+    play(move_to(100, 1, 1,  1), b3_s, g2 * vv, g1 * vv);
     play(move_to(100, 1, 1,  2), e3_s);
     play(move_to(100, 1, 1,  3), d3_s);
     play(move_to(100, 1, 1,  4), b2_s);
@@ -1233,7 +1235,7 @@ int main(void)
     play(move_to(100, 1, 1, 11), d3_s);
     play(move_to(100, 1, 1, 12), b2_s);
 
-    play(move_to(101, 1, 1,  1), c4_s, a2, a1);
+    play(move_to(101, 1, 1,  1), c4_s, a2 * vv, a1 * vv);
     play(move_to(101, 1, 1,  2), a3_s);
     play(move_to(101, 1, 1,  3), e3_s);
     play(move_to(101, 1, 1,  4), c3_s);
@@ -1246,7 +1248,7 @@ int main(void)
     play(move_to(101, 1, 1, 11), e3_s);
     play(move_to(101, 1, 1, 12), c3_s);
 
-    play(move_to(102, 1, 1,  1), c4_s, a2, a1);
+    play(move_to(102, 1, 1,  1), c4_s, a2 * vv, a1 * vv);
     play(move_to(102, 1, 1,  2), a3_s);
     play(move_to(102, 1, 1,  3), e3_s);
     play(move_to(102, 1, 1,  4), c3_s);
@@ -1259,7 +1261,7 @@ int main(void)
     play(move_to(102, 1, 1, 11), e3_s);
     play(move_to(102, 1, 1, 12), c3_s);
 
-    play(move_to(103, 1, 1,  1), a4_s, f2, f1);
+    play(move_to(103, 1, 1,  1), a4_s, f2 * vv, f1 * vv);
     play(move_to(103, 1, 1,  2), f4_s);
     play(move_to(103, 1, 1,  3), e4_s);
     play(move_to(103, 1, 1,  4), c4_s);
@@ -1272,6 +1274,97 @@ int main(void)
     play(move_to(103, 1, 1, 11), e4_s);
     play(move_to(103, 1, 1, 12), c4_s);
 
+    play(move_to(104, 1, 1,  1), a4_s, f2 * vv, f1 * vv);
+    play(move_to(104, 1, 1,  2), f4_s);
+    play(move_to(104, 1, 1,  3), e4_s);
+    play(move_to(104, 1, 1,  4), c4_s);
+    play(move_to(104, 1, 1,  5),       e5);
+    play(move_to(104, 1, 1,  6), c4_s);
+    play(move_to(104, 1, 1,  7), e4_s);
+    play(move_to(104, 1, 1,  8), f4_s);
+    play(move_to(104, 1, 1,  9), a4_s);
+    play(move_to(104, 1, 1, 10), f4_s);
+    play(move_to(104, 1, 1, 11), e4_s);
+    play(move_to(104, 1, 1, 12), c4_s);
+
+    play(move_to(105, 1, 1,  1), b4_s, g2 * vv, g1 * vv);
+    play(move_to(105, 1, 1,  2), e4_s);
+    play(move_to(105, 1, 1,  3), d4_s);
+    play(move_to(105, 1, 1,  4), b3_s);
+    play(move_to(105, 1, 1,  5),       e5);
+    play(move_to(105, 1, 1,  6), b3_s);
+    play(move_to(105, 1, 1,  7), d4_s);
+    play(move_to(105, 1, 1,  8), e4_s);
+    play(move_to(105, 1, 1,  9), b4_s);
+    play(move_to(105, 1, 1, 10), e4_s);
+    play(move_to(105, 1, 1, 11), d4_s);
+    play(move_to(105, 1, 1, 12), b3_s);
+
+    play(move_to(106, 1, 1,  1), b4_s, g2 * vv, g1 * vv);
+    play(move_to(106, 1, 1,  2), e4_s);
+    play(move_to(106, 1, 1,  3), d4_s);
+    play(move_to(106, 1, 1,  4), b3_s);
+    play(move_to(106, 1, 1,  5),       e5);
+    play(move_to(106, 1, 1,  6), b3_s);
+    play(move_to(106, 1, 1,  7), d4_s);
+    play(move_to(106, 1, 1,  8), e4_s);
+    play(move_to(106, 1, 1,  9), b4_s);
+    play(move_to(106, 1, 1, 10), e4_s);
+    play(move_to(106, 1, 1, 11), d4_s);
+    play(move_to(106, 1, 1, 12), b3_s);
+
+    play(move_to(107, 1, 1,  1), c5_s, a2 * vv, a1 * vv);
+    play(move_to(107, 1, 1,  2), a4_s);
+    play(move_to(107, 1, 1,  3), e4_s);
+    play(move_to(107, 1, 1,  4), c4_s);
+    play(move_to(107, 1, 1,  5),       e5);
+    play(move_to(107, 1, 1,  6), c4_s);
+    play(move_to(107, 1, 1,  7), e4_s);
+    play(move_to(107, 1, 1,  8), a4_s);
+    play(move_to(107, 1, 1,  9), c5_s);
+    play(move_to(107, 1, 1, 10), a4_s);
+    play(move_to(107, 1, 1, 11), e4_s);
+    play(move_to(107, 1, 1, 12), c4_s);
+
+    play(move_to(108, 1, 1,  1), c5_s, a2 * vv, a1 * vv);
+    play(move_to(108, 1, 1,  2), a4_s);
+    play(move_to(108, 1, 1,  3), e4_s);
+    play(move_to(108, 1, 1,  4), c4_s);
+    play(move_to(108, 1, 1,  5),       e5);
+    play(move_to(108, 1, 1,  6), c4_s);
+    play(move_to(108, 1, 1,  7), e4_s);
+    play(move_to(108, 1, 1,  8), a4_s);
+    play(move_to(108, 1, 1,  9), c5_s);
+    play(move_to(108, 1, 1, 10), a4_s);
+    play(move_to(108, 1, 1, 11), e4_s);
+    play(move_to(108, 1, 1, 12), c4_s);
+
+    play(move_to(109, 1, 1,  1), d5_s, g2 * vv, g1 * vv);
+    play(move_to(109, 1, 1,  2), g4_s);
+    play(move_to(109, 1, 1,  3), e4_s);
+    play(move_to(109, 1, 1,  4), d4_s);
+    play(move_to(109, 1, 1,  5),       e5);
+    play(move_to(109, 1, 1,  6), d4_s);
+    play(move_to(109, 1, 1,  7), e4_s);
+    play(move_to(109, 1, 1,  8), g4_s);
+    play(move_to(109, 1, 1,  9), d5_s);
+    play(move_to(109, 1, 1, 10), g4_s);
+    play(move_to(109, 1, 1, 11), e4_s);
+    play(move_to(109, 1, 1, 12), d4_s);
+
+    play(move_to(110, 1, 1,  1), d5_s, g2 * vv, g1 * vv);
+    play(move_to(110, 1, 1,  2), g4_s);
+    play(move_to(110, 1, 1,  3), e4_s);
+    play(move_to(110, 1, 1,  4), d4_s);
+    play(move_to(110, 1, 1,  5),       e5);
+    play(move_to(110, 1, 1,  6), d4_s);
+    play(move_to(110, 1, 1,  7), e4_s);
+    play(move_to(110, 1, 1,  8), g4_s);
+    play(move_to(110, 1, 1,  9), b4_s);
+    play(move_to(110, 1, 1, 10), g4_s);
+    play(move_to(110, 1, 1, 11), e4_s);
+    play(move_to(110, 1, 1, 12), d4_s);
+
     //-------------------------------------------------------------------------
     // Finish up.
 
@@ -1280,10 +1373,10 @@ int main(void)
     cout << "\nRendering took: " << dt
          << "\nFinishing up." << std::endl;
 
-    auto t0 = move_to(87);
-    auto t1 = move_to(92);
+//~    auto t0 = move_to(92);
+//~    auto t1 = move_to(111);
 
-    out = out.substream(t0, t1 - t0);
+//~    out = out.substream(t0, t1 - t0);
 #endif
     //-------------------------------------------------------------------------
     // Pad with silence, filter, save, play.
