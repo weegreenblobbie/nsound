@@ -598,17 +598,26 @@ class NsoundConfig(SConfBase):
             context.Result("no, Python disabled on command line")
             self.env[key] = False
 
-        try:
-            import matplotlib
-        except ImportError:
+        import subprocess, sys, os
+        py_exe = os.path.join(os.environ['VIRTUAL_ENV'], "bin", os.path.basename(sys.executable))
+#~        try:
+        if True:
+            cmd = [py_exe, '-c', 'import matplotlib']
+            subprocess.check_call(cmd)
+#~        except Exception:
+        else:
             context.Result(
                 'no, matplotlib is missing, no plotting is possible')
             self.env[key] = False
             return False
 
-        try:
-            import matplotlib.pyplot
-        except ImportError:
+#~        try:
+        if True:
+            cmd[-1] = 'import matplotlib; import matplotlib.pyplot'
+            subprocess.check_call(cmd)
+
+#~        except Exception:
+        else:
             context.Result(
                 'no, matplotlib.pyplot is missing, no plotting is possible')
             self.env[key] = False
@@ -651,7 +660,7 @@ class NsoundConfig(SConfBase):
         context = self._make_check_context()
 
         cpppath = self.env['PYTHON_CONFIG']['CPPPATH']
-        
+
         try:
             import numpy as np
             cpppath.append(np.get_include())
@@ -676,7 +685,7 @@ class NsoundConfig(SConfBase):
                 PyObject * ptr = nullptr;
 
                 Py_Initialize();
-                
+
                 if(PyErr_Occurred())
                 {
                     printf("no");
@@ -684,7 +693,7 @@ class NsoundConfig(SConfBase):
                     PyErr_Clear();
                     return 1;
                 }
-                
+
                 import_array1(1);
 
                 ptr = PyImport_ImportModule("matplotlib");
