@@ -71,6 +71,7 @@ libNsound_SRC_list = Split("""
     GuitarBass.cc
     Hat.cc
     Kernel.cc
+    LookupTable.cc
     Mesh2D.cc
     MeshJunction.cc
     Mixer.cc

@@ -29,8 +29,8 @@ main(void)
 
     GeneratorDecay gend(sr);
 
-    gend.addSlaveSync(gen);
-//~    gend.addSlaveSync(gent);
+    gend.addSync(gen);
+//~    gend.addSync(gent);
 
     AudioStream aout(sr, 1);
 

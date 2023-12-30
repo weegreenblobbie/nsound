@@ -84,6 +84,7 @@
 #include <Nsound/Hat.h>
 #include <Nsound/Instrument.h>
 #include <Nsound/Kernel.h>
+#include <Nsound/LookupTable.h>
 #include <Nsound/Mesh2D.h>
 #include <Nsound/MeshJunction.h>
 #include <Nsound/Mixer.h>

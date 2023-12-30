@@ -54,6 +54,7 @@ other_tests = Split(
     test_fft
     test_filters
     test_iir_ga
+    test_lookuptable
     test_rng
     test_mesh
     test_mixer
