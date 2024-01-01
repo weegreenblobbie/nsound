@@ -336,6 +336,10 @@ class Buffer
     cbegin() const
     { return const_circular_iterator(data_); }
 
+    //! Returns true if the Buffer is empty.
+    //
+    inline bool empty() const { return data_.empty(); }
+
     //! Retruns the itreator at the end of the Buffer.
     //
     //! \par Example:

@@ -96,6 +96,8 @@ protected:
 
 };
 
+void pipeorgan_normalize();
+
 };
 
 // :mode=c++: jEdit modeline

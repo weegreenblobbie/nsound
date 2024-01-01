@@ -137,6 +137,10 @@ inline bool file_exists(const std::string & name)
 
 int main(void)
 {
+//~    cout << "Nick's pipe organize normalize process"; fflush(stdout);
+//~    pipeorgan_normalize();
+//~    return 0;
+
     cout << "Constructing pipe organ and filters ..."; fflush(stdout);
     const auto sr = 44100.0;
 
