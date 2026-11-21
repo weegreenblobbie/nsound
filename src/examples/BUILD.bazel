@@ -1,0 +1,31 @@
+"""Nsound example programs, the same list the SCons build makes.
+
+They read and write .wav files in this folder, which they change into when
+started with `bazel run` (see run_from_examples_dir.h), for example:
+
+    bazel run //src/examples:mynameis
+"""
+
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+[
+    cc_binary(
+        name = name,
+        srcs = [name + ".cc", "run_from_examples_dir.h"],
+        deps = ["//src/Nsound:nsound"],
+    )
+    for name in [
+        "bebot",
+        "cepstral_pitch_estimate",
+        "dynamic_filter",
+        "example1",
+        "example2",
+        "example3",
+        "example4",
+        "example5",
+        "example6",
+        "interstellar",
+        "mynameis",
+        "stretcher",
+    ]
+]

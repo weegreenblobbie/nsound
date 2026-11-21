@@ -62,14 +62,14 @@ FilterIIR(
     :
     Filter(sample_rate),
     n_poles_(n_poles),
-    kernel_(NULL),
-    x_history_(NULL),
-    x_ptr_(NULL),
-    x_end_ptr_(NULL),
-    y_history_(NULL),
-    y_ptr_(NULL),
-    y_end_ptr_(NULL),
-    rng_(NULL)
+    kernel_(nullptr),
+    x_history_(nullptr),
+    x_ptr_(nullptr),
+    x_end_ptr_(nullptr),
+    y_history_(nullptr),
+    y_ptr_(nullptr),
+    y_end_ptr_(nullptr),
+    rng_(nullptr)
 {
     kernel_ = new Kernel(n_poles_, n_poles_);
 
@@ -92,14 +92,14 @@ FilterIIR(const FilterIIR & copy)
     :
     Filter(copy.sample_rate_),
     n_poles_(copy.n_poles_),
-    kernel_(NULL),
-    x_history_(NULL),
-    x_ptr_(NULL),
-    x_end_ptr_(NULL),
-    y_history_(NULL),
-    y_ptr_(NULL),
-    y_end_ptr_(NULL),
-    rng_(NULL)
+    kernel_(nullptr),
+    x_history_(nullptr),
+    x_ptr_(nullptr),
+    x_end_ptr_(nullptr),
+    y_history_(nullptr),
+    y_ptr_(nullptr),
+    y_end_ptr_(nullptr),
+    rng_(nullptr)
 {
     x_history_ = new float64 [n_poles_];
     y_history_ = new float64 [n_poles_];
@@ -313,8 +313,8 @@ designKernel(
     float64 rms_error1 = LARGE_RMS;
     float64 rms_error2 = LARGE_RMS;
 
-    Kernel * low1 = NULL;
-    Kernel * low2 = NULL;
+    Kernel * low1 = nullptr;
+    Kernel * low2 = nullptr;
 
     float64 last_rms_error = rms_error;
     int32 stale_count = 0;

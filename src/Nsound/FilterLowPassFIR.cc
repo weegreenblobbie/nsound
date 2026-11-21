@@ -51,11 +51,11 @@ FilterLowPassFIR(
     const float64 & cutoff_frequency_Hz)
     :
     Filter(sample_rate),
-    b_(NULL),
-    window_(NULL),
-    x_history_(NULL),
-    x_ptr_(NULL),
-    x_end_ptr_(NULL),
+    b_(nullptr),
+    window_(nullptr),
+    x_history_(nullptr),
+    x_ptr_(nullptr),
+    x_end_ptr_(nullptr),
     frequency_1_Hz_(cutoff_frequency_Hz),
     lp_cache_()
 {
@@ -93,11 +93,11 @@ FilterLowPassFIR::
     FilterLowPassFIR(const FilterLowPassFIR & copy)
     :
     Filter(copy.sample_rate_),
-    b_(NULL),
-    window_(NULL),
-    x_history_(NULL),
-    x_ptr_(NULL),
-    x_end_ptr_(NULL),
+    b_(nullptr),
+    window_(nullptr),
+    x_history_(nullptr),
+    x_ptr_(nullptr),
+    x_end_ptr_(nullptr),
     frequency_1_Hz_(0.0),
     lp_cache_()
 {}
@@ -374,7 +374,7 @@ FilterLowPassFIR::
 Kernel::
 Kernel(const uint32 & frequency)
     :
-    b_(NULL),
+    b_(nullptr),
     frequency_(frequency)
 {
 }

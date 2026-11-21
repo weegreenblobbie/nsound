@@ -32,7 +32,7 @@ skip = False
 
 d = dir(ns)
 
-if 'NSOUND_CPP11' not in d or 'NSOUND_LIBPORTAUDIO' not in d:
+if 'NSOUND_LIBPORTAUDIO' not in d:
     skip = True
 
 

@@ -96,9 +96,6 @@
     #include <omp.h>
 #endif
 
-// C++11
-@NSOUND_CPP11@
-
 // Cuda usage
 @NSOUND_CUDA@
 
@@ -170,9 +167,9 @@ struct Exception : public std::exception
 {
 	Exception(const std::string & message) : _message(message){};
 
-	~Exception() throw() {};
+	~Exception() noexcept {};
 
-	const char * what() const throw(){ return _message.c_str(); };
+	const char * what() const noexcept { return _message.c_str(); };
 
 	private:
 

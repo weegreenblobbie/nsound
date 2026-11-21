@@ -1,0 +1,106 @@
+"""The Nsound C++ library."""
+
+load("@bazel_skylib//rules:expand_template.bzl", "expand_template")
+load("@rules_cc//cc:defs.bzl", "cc_library")
+load(
+    "//:version.bzl",
+    "NSOUND_VERSION",
+    "NSOUND_VERSION_A",
+    "NSOUND_VERSION_B",
+    "NSOUND_VERSION_C",
+)
+
+# Nsound.h for Linux, macOS or Windows on x86_64 or arm64, little endian,
+# 64 bit floats.
+# Optional features come from the flags in //bazel.
+expand_template(
+    name = "nsound_h",
+    out = "Nsound.h",
+    substitutions = {
+        "@PACKAGE_NAME@": "Nsound",
+        "@PACKAGE_VERSION_A@": NSOUND_VERSION_A,
+        "@PACKAGE_VERSION_B@": NSOUND_VERSION_B,
+        "@PACKAGE_VERSION_C@": NSOUND_VERSION_C,
+        "@PACKAGE_VERSION@": NSOUND_VERSION,
+        "@PACKAGE_RELEASE@": "Nsound-" + NSOUND_VERSION,
+        "@NSOUND_ENDIAN@": "NSOUND_LITTLE_ENDIAN",
+        "@NSOUND_IN_PYTHON_MODULE@": "// no",
+        "@NSOUND_64_32_BIT@": "#define NSOUND_64_BIT 1",
+        "@NSOUND_M_PI@": "// M_PI is defined in math.h",
+        "@NSOUND_CUDA@": "#undef NSOUND_CUDA // disabled",
+        "@NSOUND_BOOLEAN@": "bool",
+        "@NSOUND_INT_8@": "signed char",
+        "@NSOUND_INT_16@": "signed short",
+        "@NSOUND_INT_32@": "signed int",
+        "@NSOUND_INT_64@": "signed long long",
+        "@NSOUND_FLOAT_32@": "float",
+        "@NSOUND_FLOAT_64@": "double",
+        "@NSOUND_U_INT_8@": "unsigned char",
+        "@NSOUND_U_INT_16@": "unsigned short",
+        "@NSOUND_U_INT_32@": "unsigned int",
+        "@NSOUND_U_INT_64@": "unsigned long long",
+        "@NSOUND_RAW_INT_64@": "signed long long",
+        "@NSOUND_RAW_U_INT_64@": "unsigned long long",
+        "@NSOUND_RAW_FLOAT_64@": "double",
+    } | select({
+        "@platforms//os:macos": {"@NSOUND_PLATFORM_OS@": "NSOUND_PLATFORM_OS_MAC"},
+        "@platforms//os:windows": {"@NSOUND_PLATFORM_OS@": "NSOUND_PLATFORM_OS_WINDOWS"},
+        "//conditions:default": {"@NSOUND_PLATFORM_OS@": "NSOUND_PLATFORM_OS_LINUX"},
+    }) | select({
+        "//bazel:libao_enabled": {"@NSOUND_LIBAO@": "#define NSOUND_LIBAO 1"},
+        "//conditions:default": {"@NSOUND_LIBAO@": "#undef NSOUND_LIBAO // disabled"},
+    }) | select({
+        "//bazel:portaudio_enabled": {"@NSOUND_LIBPORTAUDIO@": "#define NSOUND_LIBPORTAUDIO 1"},
+        "//conditions:default": {"@NSOUND_LIBPORTAUDIO@": "#undef NSOUND_LIBPORTAUDIO // disabled"},
+    }) | select({
+        "//bazel:openmp_enabled": {"@NSOUND_OPENMP@": "#define NSOUND_OPENMP 1"},
+        "//conditions:default": {"@NSOUND_OPENMP@": "#undef NSOUND_OPENMP // disabled"},
+    }) | select({
+        "//bazel:c_pylab_enabled": {"@NSOUND_C_PYLAB@": "#define NSOUND_C_PYLAB 1"},
+        "//conditions:default": {"@NSOUND_C_PYLAB@": "#undef NSOUND_C_PYLAB  // disabled"},
+    }),
+    template = "Nsound.h.in",
+)
+
+# Sources compiled only when their feature flag is on.  The CUDA sources
+# (*.cu) are not built by Bazel.
+LIBAO_SRCS = ["AudioBackendLibao.cc"]
+
+PORTAUDIO_SRCS = ["AudioBackendLibportaudio.cc"]
+
+cc_library(
+    name = "nsound",
+    srcs = glob(
+        ["*.cc", "*.cpp"],
+        exclude = LIBAO_SRCS + PORTAUDIO_SRCS,
+    ) + select({
+        "//bazel:libao_enabled": LIBAO_SRCS,
+        "//conditions:default": [],
+    }) + select({
+        "//bazel:portaudio_enabled": PORTAUDIO_SRCS,
+        "//conditions:default": [],
+    }),
+    # Nsound.h is excluded in case SCons generated it in the source tree.
+    hdrs = glob(
+        ["*.h", "*.hpp"],
+        exclude = ["Nsound.h"],
+    ) + [":nsound_h"],
+    copts = select({
+        "//bazel:openmp_enabled_windows": ["/openmp"],
+        "//bazel:openmp_enabled": ["-fopenmp"],
+        "//conditions:default": [],
+    }),
+    linkopts = select({
+        "//bazel:libao_enabled": ["-lao"],
+        "//conditions:default": [],
+    }) + select({
+        "//bazel:portaudio_enabled": ["-lportaudio"],
+        "//conditions:default": [],
+    }) + select({
+        "//bazel:openmp_enabled_windows": [],
+        "//bazel:openmp_enabled": ["-fopenmp"],
+        "//conditions:default": [],
+    }),
+    strip_include_prefix = "/src",
+    visibility = ["//visibility:public"],
+)

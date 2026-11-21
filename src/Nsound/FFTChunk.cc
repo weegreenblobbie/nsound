@@ -45,8 +45,8 @@ using std::flush;
 FFTChunk::
 FFTChunk(uint32 size, uint32 sample_rate, uint32 original_size)
     :
-    real_(NULL),
-    imag_(NULL),
+    real_(nullptr),
+    imag_(nullptr),
     sample_rate_(sample_rate),
     original_size_(original_size),
     is_polar_(false)

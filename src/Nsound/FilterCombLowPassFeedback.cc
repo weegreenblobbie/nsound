@@ -52,7 +52,7 @@ FilterCombLowPassFeedback(
     const float64 & low_pass_frequency_Hz)
     :
     Filter(sample_rate),
-    delay_(NULL),
+    delay_(nullptr),
     feedback_gain_(feedback_gain),
     damp1_(0.0),
     damp2_(0.0),

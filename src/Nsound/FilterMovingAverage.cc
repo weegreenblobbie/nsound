@@ -41,7 +41,7 @@ FilterMovingAverage(uint32 n_samples_to_average)
     init_sum_(true),
     n_samples_to_average_(n_samples_to_average),
     running_sum_(0.0),
-    delay_(NULL)
+    delay_(nullptr)
 {
     delay_ = new FilterDelay(1.0, n_samples_to_average_);
 

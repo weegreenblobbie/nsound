@@ -84,8 +84,8 @@ AudioBackendLibportaudio(
     AudioBackend(sample_rate, channels, bits_per_sample),
     options_(),
     error_buffer_(""),
-    out_params_(NULL),
-    stream_(NULL),
+    out_params_(nullptr),
+    stream_(nullptr),
 //~    pos_(0),
     n_frames_per_buffer_(64),
     driver_id_(0)
@@ -140,11 +140,11 @@ getInfo()
             return getError();
         }
 
-        const PaDeviceInfo * info = NULL;
+        const PaDeviceInfo * info = nullptr;
 
         info = Pa_GetDeviceInfo(out_params_->device);
 
-        if(info == NULL)
+        if(info == nullptr)
         {
             M_THROW("Nsound::AudioBackendLibportaudio::getInfo():"
                 << ": Pa_GetDeviceInfo() failed\n");
@@ -167,11 +167,11 @@ getInfo()
            << "    defaultHighOutputLatency: " << info->defaultHighOutputLatency << endl
            << "    defaultSampleRate:   " << info->defaultSampleRate << endl;
 
-        const PaHostApiInfo * api_info = NULL;
+        const PaHostApiInfo * api_info = nullptr;
 
         api_info = Pa_GetHostApiInfo(info->hostApi);
 
-        if(info == NULL)
+        if(info == nullptr)
         {
             M_THROW("Nsound::AudioBackendLibportaudio::getInfo():"
                 << ": Pa_GetHostApiInfo() failed\n");
@@ -226,7 +226,7 @@ initialize()
         // Alocate params object
         out_params_ = new PaStreamParameters();
 
-        if(out_params_ == NULL)
+        if(out_params_ == nullptr)
         {
             error_buffer_
                 << "Nsound::AudioBackendLibportaudio::initialize():"
@@ -256,7 +256,7 @@ initialize()
             Pa_Terminate();
 
             delete out_params_;
-            out_params_ = NULL;
+            out_params_ = nullptr;
 
             return;
         }
@@ -290,7 +290,7 @@ initialize()
                 Pa_Terminate();
 
                 delete out_params_;
-                out_params_ = NULL;
+                out_params_ = nullptr;
 
                 return;
         }
@@ -298,18 +298,18 @@ initialize()
         out_params_->suggestedLatency =
             Pa_GetDeviceInfo(out_params_->device)->defaultHighOutputLatency;
 
-        out_params_->hostApiSpecificStreamInfo = NULL;
+        out_params_->hostApiSpecificStreamInfo = nullptr;
 
         // Open the stream.
         ecode = Pa_OpenStream(
             & stream_,
-            NULL, // no input channel
+            nullptr, // no input channel
             out_params_,
             static_cast<double>(sample_rate_),
             n_frames_per_buffer_,
             paClipOff,
-            NULL,   // no callback for now
-            NULL);
+            nullptr,   // no callback for now
+            nullptr);
 
         if(ecode != paNoError)
         {
@@ -326,7 +326,7 @@ initialize()
             Pa_Terminate();
 
             delete out_params_;
-            out_params_ = NULL;
+            out_params_ = nullptr;
 
             return;
         }
@@ -405,12 +405,12 @@ play(void * data, uint32 n_bytes)
             return;
         }
 
-        if(data == NULL)
+        if(data == nullptr)
         {
             error_buffer_
                 << "Nsound::AudioBackendLibportaudio::play():"
                 << __LINE__
-                << ": data is NULL"
+                << ": data is nullptr"
                 << endl;
 
             state_ = BACKEND_ERROR;
@@ -437,7 +437,7 @@ play(void * data, uint32 n_bytes)
             Pa_Terminate();
 
             delete out_params_;
-            out_params_ = NULL;
+            out_params_ = nullptr;
 
             return;
         }
@@ -472,7 +472,7 @@ play(void * data, uint32 n_bytes)
                 Pa_Terminate();
 
                 delete out_params_;
-                out_params_ = NULL;
+                out_params_ = nullptr;
 
                 return;
         }
@@ -512,7 +512,7 @@ play(void * data, uint32 n_bytes)
                 Pa_Terminate();
 
                 delete out_params_;
-                out_params_ = NULL;
+                out_params_ = nullptr;
 
                 return;
             }
@@ -543,7 +543,7 @@ play(void * data, uint32 n_bytes)
             Pa_Terminate();
 
             delete out_params_;
-            out_params_ = NULL;
+            out_params_ = nullptr;
 
             return;
         }
@@ -561,7 +561,7 @@ play(void * data, uint32 n_bytes)
             wait_time.tv_sec = 0;
             wait_time.tv_nsec = 500000000;
 
-            nanosleep(&wait_time, NULL);
+            nanosleep(&wait_time, nullptr);
         #endif
 
         // Stop the stream
@@ -583,7 +583,7 @@ play(void * data, uint32 n_bytes)
             Pa_Terminate();
 
             delete out_params_;
-            out_params_ = NULL;
+            out_params_ = nullptr;
 
             return;
         }
@@ -613,7 +613,7 @@ scanDevices(AudioPlayback & pb, const AudioStream & test_clip)
     {
         const PaHostApiInfo * info = Pa_GetHostApiInfo(i);
 
-        if(info != NULL)
+        if(info != nullptr)
         {
             std::string short_name = lower(std::string(info->name));
 
@@ -704,7 +704,7 @@ setOption(const std::string & key, const std::string & value)
             {
                 const PaHostApiInfo * info = Pa_GetHostApiInfo(i);
 
-                if(info != NULL)
+                if(info != nullptr)
                 {
                     std::string short_name = lower(std::string(info->name));
 
@@ -750,15 +750,15 @@ shutdown()
         return;
     #else
 
-        if(stream_ != NULL)
+        if(stream_ != nullptr)
         {
             Pa_CloseStream(stream_);
             Pa_Terminate();
 
-            stream_ = NULL;
+            stream_ = nullptr;
 
             delete out_params_;
-            out_params_ = NULL;
+            out_params_ = nullptr;
         }
 
         state_ = BACKEND_NOT_INITIALIZED;

@@ -58,10 +58,10 @@ MeshJunction(
     vc_(0.0),
     yj_(0.0),
     yc_(0.0),
-    neighbor_north_(NULL),
-    neighbor_south_(NULL),
-    neighbor_east_(NULL),
-    neighbor_west_(NULL)
+    neighbor_north_(nullptr),
+    neighbor_south_(nullptr),
+    neighbor_east_(nullptr),
+    neighbor_west_(nullptr)
 {
     yj_ = 2.0 * ( (delta * delta) / (tau * tau * gamma * gamma) );
     yc_ = 2.0 * ( (delta * delta) / (tau * tau * gamma * gamma) - 2.0);
@@ -97,10 +97,10 @@ MeshJunction(const MeshJunction & copy)
     vc_(0.0),
     yj_(0.0),
     yc_(0.0),
-    neighbor_north_(NULL),
-    neighbor_south_(NULL),
-    neighbor_east_(NULL),
-    neighbor_west_(NULL)
+    neighbor_north_(nullptr),
+    neighbor_south_(nullptr),
+    neighbor_east_(nullptr),
+    neighbor_west_(nullptr)
 {
     *this = copy;
     // This operator can not assign neighbor pointers.
@@ -261,7 +261,7 @@ void
 MeshJunction::
 updateBoundry()
 {
-    if(neighbor_north_ == NULL)
+    if(neighbor_north_ == nullptr)
     {
         float64 vtemp = velocity_north_;
 
@@ -274,7 +274,7 @@ updateBoundry()
 
     }
 
-    if(neighbor_south_ == NULL)
+    if(neighbor_south_ == nullptr)
     {
         float64 vtemp = velocity_south_;
 
@@ -287,7 +287,7 @@ updateBoundry()
 
     }
 
-    if(neighbor_east_ == NULL)
+    if(neighbor_east_ == nullptr)
     {
         float64 vtemp = velocity_east_;
 
@@ -300,7 +300,7 @@ updateBoundry()
 
     }
 
-    if(neighbor_west_ == NULL)
+    if(neighbor_west_ == nullptr)
     {
         float64 vtemp = velocity_west_;
 

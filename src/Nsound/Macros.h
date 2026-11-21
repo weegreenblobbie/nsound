@@ -62,13 +62,13 @@ inline void __throw__(const std::string & message)
 
 
 #define M_CHECK_PTR(ptr)               \
-	if((ptr) == NULL)                  \
+	if((ptr) == nullptr)                  \
 	{                                  \
 		std::stringstream ss;          \
 		ss << M_LINE_PREFIX            \
 			<< "FATAL ERROR: "         \
 			<< #ptr                    \
-			<< " is NULL";             \
+			<< " is nullptr";             \
 		Nsound::__throw__(ss.str());   \
 	}
 

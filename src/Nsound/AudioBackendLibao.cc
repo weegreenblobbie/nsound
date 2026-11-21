@@ -81,7 +81,7 @@ AudioBackendLibao(
     options_(),
     error_buffer_(""),
     driver_id_(-1),
-    device_ptr_(NULL)
+    device_ptr_(nullptr)
 {
     initialize();
 };
@@ -178,7 +178,7 @@ getInfo()
 
         ao_info * info = ao_driver_info(driver_id_);
 
-        if(info == NULL)
+        if(info == nullptr)
         {
             return "Nsound::AudioBackendLibao::getInfo(): "
                 "ao_driver_info() failed";
@@ -270,7 +270,7 @@ initialize()
 
         // Setup any options.
 
-        ao_option * options = NULL;
+        ao_option * options = nullptr;
 
         uint32 n_options = static_cast<uint32>(options_.size());
 
@@ -310,7 +310,7 @@ initialize()
 
         ao_free_options(options);
 
-        if(device_ptr_ == NULL)
+        if(device_ptr_ == nullptr)
         {
             ao_shutdown();
 
@@ -392,12 +392,12 @@ play(void * data, uint32 n_bytes)
             return;
         }
 
-        if(data == NULL)
+        if(data == nullptr)
         {
             error_buffer_
                 << "AudioBackendLibao::play():"
                 << __LINE__
-                << ": data == NULL"
+                << ": data == nullptr"
                 << endl;
 
             state_ = BACKEND_ERROR;
@@ -556,10 +556,10 @@ shutdown()
             << ": Nsound was not compiled with libao support.\n");
         return;
     #else
-        if(device_ptr_ != NULL)
+        if(device_ptr_ != nullptr)
         {
             ao_close(device_ptr_);
-            device_ptr_ = NULL;
+            device_ptr_ = nullptr;
             driver_id_ = -1;
         }
 

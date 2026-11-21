@@ -57,8 +57,8 @@ Generator()
     sample_rate_(0.0),
     sample_time_(0.0),
     t_(0.0),
-    waveform_(NULL),
-    rng_(NULL),
+    waveform_(nullptr),
+    rng_(nullptr),
     buzz_max_harmonics_(0),
     buzz_position_(),
     chorus_is_on_(false),
@@ -84,8 +84,8 @@ Generator(const float64 & sample_rate)
     sample_rate_(0.0),
     sample_time_(0.0),
     t_(0.0),
-    waveform_(NULL),
-    rng_(NULL),
+    waveform_(nullptr),
+    rng_(nullptr),
     buzz_max_harmonics_(0),
     buzz_position_(),
     chorus_is_on_(false),
@@ -112,8 +112,8 @@ Generator(const std::string & wave_filename)
     sample_rate_(0.0),
     sample_time_(0.0),
     t_(0.0),
-    waveform_(NULL),
-    rng_(NULL),
+    waveform_(nullptr),
+    rng_(nullptr),
     buzz_max_harmonics_(0),
     buzz_position_(),
     chorus_is_on_(false),
@@ -141,8 +141,8 @@ Generator(const float64 & sample_rate, const Buffer & waveform)
     sample_rate_(0.0),
     sample_time_(0.0),
     t_(0.0),
-    waveform_(NULL),
-    rng_(NULL),
+    waveform_(nullptr),
+    rng_(nullptr),
     buzz_max_harmonics_(0),
     buzz_position_(),
     chorus_is_on_(false),
@@ -169,8 +169,8 @@ Generator(const Generator & copy)
     sample_rate_(0.0),
     sample_time_(0.0),
     t_(0.0),
-    waveform_(NULL),
-    rng_(NULL),
+    waveform_(nullptr),
+    rng_(nullptr),
     buzz_max_harmonics_(0),
     buzz_position_(),
     chorus_is_on_(false),
@@ -202,7 +202,7 @@ ctor(const float64 & sample_rate)
 {
     sample_rate_ = sample_rate;
     sample_time_ = 1.0 / sample_rate_;
-    waveform_ = NULL;
+    waveform_ = nullptr;
     rng_ = new RngTausworthe();
 }
 
@@ -1221,18 +1221,18 @@ operator=(const Generator & rhs)
     sample_time_    = rhs.sample_time_;
     t_              = rhs.t_;
 
-    if(waveform_ != NULL && rhs.waveform_ != NULL)
+    if(waveform_ != nullptr && rhs.waveform_ != nullptr)
     {
         *waveform_ = *rhs.waveform_;
     }
-    else if(waveform_ == NULL && rhs.waveform_ != NULL)
+    else if(waveform_ == nullptr && rhs.waveform_ != nullptr)
     {
         waveform_ = new Buffer(*rhs.waveform_);
     }
-    else if(waveform_ != NULL && rhs.waveform_ == NULL)
+    else if(waveform_ != nullptr && rhs.waveform_ == nullptr)
     {
         delete waveform_;
-        waveform_ = NULL;
+        waveform_ = nullptr;
     }
 
     *rng_ = *rhs.rng_;
@@ -1277,12 +1277,7 @@ reset()
     sync_pos_ = 0.0;
     t_ = 0.0;
 
-    buzz_position_.reserve(buzz_max_harmonics_);
-
-    for(uint32 i = 0; i < buzz_max_harmonics_; ++i)
-    {
-        buzz_position_[i] = 0.0;
-    }
+    buzz_position_.assign(buzz_max_harmonics_, 0.0);
 
     for(uint32 i = 0; i < chorus_n_voices_; ++i)
     {

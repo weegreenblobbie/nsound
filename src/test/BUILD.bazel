@@ -1,0 +1,37 @@
+"""Nsound C++ unit tests and manual test programs."""
+
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_test")
+
+# All unit tests, run in order by Main.cc, compared against the gold files.
+cc_test(
+    name = "unit_tests",
+    srcs = ["Main.cc", "UnitTest.h"] + glob(["*_UnitTest.cc"]),
+    size = "small",
+    data = glob(["gold/**"]),
+    deps = ["//src/Nsound:nsound"],
+)
+
+# Test programs that are run by hand, they are not built by `bazel build //...`.
+[
+    cc_binary(
+        name = name,
+        srcs = [name + ".cc", "Test.h"],
+        tags = ["manual"],
+        deps = ["//src/Nsound:nsound"],
+    )
+    for name in [
+        "test_audio_stream",
+        "test_convolve",
+        "test_fft",
+        "test_filters",
+        "test_generators",
+        "test_granulator",
+        "test_iir_ga",
+        "test_mesh",
+        "test_mixer",
+        "test_moving_average",
+        "test_plotter",
+        "test_pluck",
+        "test_rng",
+    ]
+]

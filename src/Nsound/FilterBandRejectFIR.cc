@@ -364,7 +364,7 @@ FilterBandRejectFIR::
 Kernel::
 Kernel(const uint32 & f1, const uint32 & f2)
     :
-    b_(NULL),
+    b_(nullptr),
     frequency_1_(f1),
     frequency_2_(f2)
 {

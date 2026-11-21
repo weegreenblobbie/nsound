@@ -247,7 +247,7 @@ getStream(float64 start_time, float64 end_time)
         // Move to the next MixerNode in the list.
         ++node;
 
-    } // while(node != NULL)
+    } // while(node != nullptr)
 
     return new_stream;
 }

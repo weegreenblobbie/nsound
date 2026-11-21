@@ -59,14 +59,7 @@ class NsoundConfigCygwin(NsoundConfig):
         d = self.env['NS_COMPILER']
 
         if 'gcc' in d['compiler']:
-
-            longver = d['longver']
-
-            if longver >= 40600 and longver < 40700:
-                CXXFLAGS = ["-std=c++0x"]
-
-            elif longver >= 40700:
-                CXXFLAGS = ["-std=c++11"]
+            CXXFLAGS = ["-std=c++20"]
 
         self.env.AppendUnique(CXXFLAGS = CXXFLAGS)
 

@@ -75,7 +75,7 @@ class Granulator
         const float64  & sample_rate,
         EnvelopeType_e   env_type,
         const float64  & envelope_noise = 0.0,
-        const Buffer   * custom_envelope = NULL);
+        const Buffer   * custom_envelope = nullptr);
 
     //////////////////////////////////////////////////////////////////////////
     // DOXME

@@ -104,19 +104,16 @@ extra_link_args = []
 
 if env['NSOUND_PLATFORM_OS'] == "NSOUND_PLATFORM_OS_MAC":
 #~    extra_link_args = ["-Wl,-Z"]
-    extra_comple_args.append("-mmacosx-version-min=10.7")
+    extra_compile_args.append("-mmacosx-version-min=10.7")
 
 if env['NSOUND_PLATFORM_OS'] == "NSOUND_PLATFORM_OS_WINDOWS":
     extra_compile_args.append("/EHsc")
     extra_compile_args.append("/D_CRT_SECURE_NO_WARNINGS")
 
-if env['NS_HAVE_CPP11']:
-
-    if 'c++11' in str(env['CXXFLAGS']):
-        extra_compile_args.append("-std=c++11")
-
-    elif 'c++0x' in str(env['CXXFLAGS']):
-        extra_compile_args.append("-std=c++0x")
+# Build the Python module with the same C++ standard as the library.
+for std_flag in ["-std=c++20", "/std:c++20"]:
+    if std_flag in str(env['CXXFLAGS']):
+        extra_compile_args.append(std_flag)
 
 # Force compiler
 

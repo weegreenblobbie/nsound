@@ -1,0 +1,7 @@
+# Bazel output links.  The folder is shared between the Linux container and
+# Windows, so each Bazel must skip the links the other one made.
+bazel-bin
+bazel-nsound
+bazel-out
+bazel-testlogs
+bazel-workspace

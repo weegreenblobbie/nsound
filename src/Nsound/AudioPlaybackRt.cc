@@ -48,13 +48,10 @@
 #include <Nsound/Sine.h>
 #include <Nsound/Wavefile.h>
 
+#include <atomic>
 #include <cstring> // for memset
 #include <limits>
-
-#ifdef NSOUND_CPP11
-    #include <atomic>
-    #include <thread>
-#endif
+#include <thread>
 
 using std::cerr;
 using std::cout;
@@ -66,9 +63,9 @@ namespace Nsound
 bool AudioPlaybackRt::use_jack_ = false;
 
 //-----------------------------------------------------------------------------
-// stub out class if we don't have portaudio or c++11
+// stub out class if we don't have portaudio
 
-#if !defined(NSOUND_LIBPORTAUDIO) || !defined(NSOUND_CPP11)
+#if !defined(NSOUND_LIBPORTAUDIO)
 
     AudioPlaybackRt::AudioPlaybackRt(float64, uint32, uint32, float64)
     {
@@ -89,7 +86,7 @@ bool AudioPlaybackRt::use_jack_ = false;
 
 
 //-----------------------------------------------------------------------------
-// Real class implementation with c++11
+// Real class implementation with portaudio
 
 #else
 

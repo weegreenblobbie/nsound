@@ -64,4 +64,11 @@
 %ignore Nsound::Spectrogram::operator=;
 %ignore Nsound::Stretcher::operator=;
 
+// Nsound.h macros for C++ error messages, they expand to stream expressions
+// (__FILE__ << ":" << ...), which newer SWIG turns into constants that don't
+// compile.
+%ignore LINE_PREFIX;
+%ignore ERROR_HEADER;
+%ignore WARNING_HEADER;
+
 // :mode=c++:

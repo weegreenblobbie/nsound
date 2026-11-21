@@ -53,7 +53,7 @@ Granulator(
     const Buffer   * custom_envelope)
     :
     sample_rate_(sample_rate),
-    envelope_generator_(NULL)
+    envelope_generator_(nullptr)
 //     sine_(new Sine(sample_rate_)),
 //     current_time_(0.0),
 //     next_grain_time_(0.0),
@@ -66,7 +66,7 @@ Granulator(
     {
         case Granulator::CUSTOM:
         {
-            if(custom_envelope == NULL
+            if(custom_envelope == nullptr
                 || custom_envelope->getLength() != sample_rate_)
             {
                 M_THROW("custom_envelope->getLength() must equal "
@@ -176,7 +176,7 @@ Granulator::
 Granulator(const Nsound::Granulator & gran)
     :
     sample_rate_(gran.sample_rate_),
-    envelope_generator_(NULL)
+    envelope_generator_(nullptr)
 {
     *this = gran;
 }

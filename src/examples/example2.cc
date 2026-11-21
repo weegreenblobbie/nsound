@@ -6,6 +6,7 @@
 
 // Include the Nsound headers
 #include <Nsound/NsoundAll.h>
+#include "run_from_examples_dir.h"
 
 using namespace Nsound;
 
@@ -15,6 +16,8 @@ using std::endl;
 int
 main(void)
 {
+    run_from_examples_dir();
+
     float64 sr = 44100.0;
 
     // Create a new instance of the Sine Generator

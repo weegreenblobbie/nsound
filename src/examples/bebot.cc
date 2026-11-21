@@ -5,6 +5,7 @@
 //-----------------------------------------------------------------------------
 
 #include <Nsound/NsoundAll.h>
+#include "run_from_examples_dir.h"
 
 #include <iostream>
 
@@ -17,6 +18,8 @@ using namespace Nsound;
 int
 main(void)
 {
+    run_from_examples_dir();
+
     float64 sr = 44100.0;
 //~    float64 freq = 110.0;
 

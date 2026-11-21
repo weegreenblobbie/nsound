@@ -53,14 +53,14 @@ FilterStageIIR(
     n_poles_(n_poles),
     frequency_(frequency),
     percent_ripple_(percent_ripple),
-    a_(NULL),
-    b_(NULL),
-    x_history_(NULL),
-    x_ptr_(NULL),
-    x_end_ptr_(NULL),
-    y_history_(NULL),
-    y_ptr_(NULL),
-    y_end_ptr_(NULL),
+    a_(nullptr),
+    b_(nullptr),
+    x_history_(nullptr),
+    x_ptr_(nullptr),
+    x_end_ptr_(nullptr),
+    y_history_(nullptr),
+    y_ptr_(nullptr),
+    y_end_ptr_(nullptr),
     kernel_cache_()
 {
     if(n_poles_ > 20)
@@ -97,14 +97,14 @@ FilterStageIIR(const FilterStageIIR & copy)
     n_poles_(copy.n_poles_),
     frequency_(copy.frequency_),
     percent_ripple_(copy.percent_ripple_),
-    a_(NULL),
-    b_(NULL),
-    x_history_(NULL),
-    x_ptr_(NULL),
-    x_end_ptr_(NULL),
-    y_history_(NULL),
-    y_ptr_(NULL),
-    y_end_ptr_(NULL),
+    a_(nullptr),
+    b_(nullptr),
+    x_history_(nullptr),
+    x_ptr_(nullptr),
+    x_end_ptr_(nullptr),
+    y_history_(nullptr),
+    y_ptr_(nullptr),
+    y_end_ptr_(nullptr),
     kernel_cache_()
 {
     *this = copy;
@@ -596,8 +596,8 @@ FilterStageIIR::
 Kernel::
 Kernel(const uint32 & frequency)
     :
-    b_(NULL),
-    a_(NULL),
+    b_(nullptr),
+    a_(nullptr),
     frequency_(frequency)
 {
 }

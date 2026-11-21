@@ -37,8 +37,8 @@ import subprocess
 PACKAGE_NAME = "Nsound"
 
 VERSION_A = "0"
-VERSION_B = "9"
-VERSION_C = "6"
+VERSION_B = "10"
+VERSION_C = "0"
 
 DEVELOPMENMT = True
 
@@ -358,11 +358,6 @@ Failed to compile test program, check config.log for
 the compiler statements and errors.
 """)
 
-    nsound_config.check_for_cpp11()
-
-    if not nsound_config.env['NS_HAVE_CPP11']:
-        raise RuntimeError("Nsound now requires a C++11 compiler!")
-
     nsound_config.check_endian()
     nsound_config.check_for_pi_macro()
 
@@ -415,13 +410,6 @@ the compiler statements and errors.
     else:
         d["NSOUND_OPENMP"] = "#undef NSOUND_OPENMP // disabled"
         d["NSOUND_HAVE_OPENMP"] = "False"
-
-    if nsound_config.env['NS_HAVE_CPP11']:
-        d["NSOUND_CPP11"] = "#define NSOUND_CPP11 1"
-        d["NSOUND_HAVE_CPP11"] = "True"
-    else:
-        d["NSOUND_CPP11"] = "#undef NSOUND_CPP11 // disabled"
-        d["NSOUND_HAVE_CPP11"] = "False"
 
     if nsound_config.env['NS_HAVE_CUDA']:
         d["NSOUND_CUDA"] = "#define NSOUND_CUDA 1"

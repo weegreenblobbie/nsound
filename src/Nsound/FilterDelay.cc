@@ -47,10 +47,10 @@ FilterDelay(
     const float64 & max_delay_time_seconds)
     :
     Filter(sample_rate),
-    buffer_(NULL),
-    buffer_end_ptr_(NULL),
-    read_ptr_(NULL),
-    write_ptr_(NULL),
+    buffer_(nullptr),
+    buffer_end_ptr_(nullptr),
+    read_ptr_(nullptr),
+    write_ptr_(nullptr),
     delay_(max_delay_time_seconds),
     n_samples_(0)
 {
@@ -72,10 +72,10 @@ FilterDelay::
 FilterDelay(const FilterDelay & copy)
     :
     Filter(copy.sample_rate_),
-    buffer_(NULL),
-    buffer_end_ptr_(NULL),
-    read_ptr_(NULL),
-    write_ptr_(NULL),
+    buffer_(nullptr),
+    buffer_end_ptr_(nullptr),
+    read_ptr_(nullptr),
+    write_ptr_(nullptr),
     delay_(copy.delay_),
     n_samples_(copy.n_samples_)
 {

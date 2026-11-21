@@ -49,10 +49,10 @@ Spectrogram(
     const WindowType & type)
     :
     sample_rate_(sample_rate),
-    frequency_axis_(NULL),
-    time_axis_(NULL),
-    real_(NULL),
-    imag_(NULL),
+    frequency_axis_(nullptr),
+    time_axis_(nullptr),
+    real_(nullptr),
+    imag_(nullptr),
     fft_window_(new Buffer()),
     nfft_(0),
     n_window_samples_(0),
@@ -136,7 +136,7 @@ Spectrogram(
     real_ = new AudioStream(1, k, 1);
     imag_ = new AudioStream(1, k, 1);
 
-    if(frequency_axis_ == NULL)
+    if(frequency_axis_ == nullptr)
     {
         cerr << "Nsound::Spectrogram::Spectrogram(): "
              << "failed to allocate memory for frequency_axis_"
@@ -145,7 +145,7 @@ Spectrogram(
         return;
     }
 
-    if(time_axis_ == NULL)
+    if(time_axis_ == nullptr)
     {
         cerr << "Nsound::Spectrogram::Spectrogram(): "
              << "failed to allocate memory for time_axis_"
@@ -154,7 +154,7 @@ Spectrogram(
         return;
     }
 
-    if(real_ == NULL)
+    if(real_ == nullptr)
     {
         cerr << "Nsound::Spectrogram::Spectrogram(): "
              << "failed to allocate memory for real_"
@@ -163,7 +163,7 @@ Spectrogram(
         return;
     }
 
-    if(imag_ == NULL)
+    if(imag_ == nullptr)
     {
         cerr << "Nsound::Spectrogram::Spectrogram(): "
              << "failed to allocate memory for imag_"

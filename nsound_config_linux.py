@@ -31,22 +31,8 @@ class NsoundConfigLinux(NsoundConfig):
 
         d = self.env['NS_COMPILER']
 
-        if 'gcc' in d['compiler']:
-
-            longver = d['longver']
-
-            if longver >= 40600 and longver < 40700:
-                CXXFLAGS = ["-std=c++0x"]
-
-            elif longver >= 40700:
-                CXXFLAGS = ["-std=c++11"]
-
-        elif 'clang' in d['compiler']:
-
-            longver = d['longver']
-
-            if longver >= 40200:
-                CXXFLAGS = ["-std=c++11"]
+        if 'gcc' in d['compiler'] or 'clang' in d['compiler']:
+            CXXFLAGS = ["-std=c++20"]
 
         self.env.AppendUnique(CXXFLAGS = CXXFLAGS)
 

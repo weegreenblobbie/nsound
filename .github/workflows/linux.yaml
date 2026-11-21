@@ -10,17 +10,26 @@ on:
     - master
     - 'release/**'
 
+# Checks show as "<platform> / <build system> / <task>".
+
 jobs:
-  build:
+  scons:
+
+    name: scons / build-and-test
 
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
       name: Checkout source
+    # Python 3.11: the SCons build imports distutils, removed in Python 3.12.
+    - uses: actions/setup-python@v7
+      name: Install Python
+      with:
+        python-version: '3.11'
     - name: Install dependencies
       run: |
-        sudo apt-get update && sudo apt-get -y install portaudio19-dev libao-dev python3-virtualenv
+        sudo apt-get update && sudo apt-get -y install portaudio19-dev libao-dev python3-virtualenv swig
         python3 -m venv venv
         . venv/bin/activate
         pip install matplotlib scons wheel
@@ -36,3 +45,31 @@ jobs:
       run: |
         . venv/bin/activate
         scons --pytest --disable-libportaudio --config=force
+
+  bazel:
+
+    name: bazel / ${{ matrix.compiler }}
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc, clang]
+
+    steps:
+    - uses: actions/checkout@v7
+      name: Checkout source
+    - name: Install dependencies
+      run: |
+        sudo apt-get update && sudo apt-get -y install libomp-dev
+    - uses: bazel-contrib/setup-bazel@0.19.1
+      name: Setup Bazel
+      with:
+        bazelisk-cache: true
+        disk-cache: linux-${{ matrix.compiler }}
+        repository-cache: true
+    - name: Build nsound
+      run: bazel build --config=${{ matrix.compiler }} //...
+    - name: Run unit tests
+      run: bazel test --config=${{ matrix.compiler }} //...
