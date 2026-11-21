@@ -65,7 +65,7 @@ activatePlugin(LADSPA_Handle instance)
 
     plugin->nsound_guitar_bass_ = new Nsound::GuitarBass(sr);
 
-    if(plugin->nsound_guitar_bass_ == NULL)
+    if(plugin->nsound_guitar_bass_ == nullptr)
     {
         printf("%s:%d: failed to allocate Nsound::GuitarBass\n",
             __FILE__, __LINE__);
@@ -187,7 +187,7 @@ runPlugin(
 }
 
 //-----------------------------------------------------------------------------
-LADSPA_Descriptor * descriptor = NULL;
+LADSPA_Descriptor * descriptor = nullptr;
 
 void
 new_descriptor()
@@ -212,8 +212,8 @@ new_descriptor()
     descriptor->deactivate = deactivatePlugin;
     descriptor->instantiate = instantiatePlugin;
     descriptor->run = runPlugin;
-    descriptor->run_adding = NULL;
-    descriptor->set_run_adding_gain = NULL;
+    descriptor->run_adding = nullptr;
+    descriptor->set_run_adding_gain = nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -226,7 +226,7 @@ ladspa_descriptor (unsigned long index)
 
     if(index == 0)
     {
-        if(descriptor == NULL)
+        if(descriptor == nullptr)
         {
             new_descriptor();
         }
@@ -234,5 +234,5 @@ ladspa_descriptor (unsigned long index)
         return descriptor;
     }
 
-    return NULL;
+    return nullptr;
 }

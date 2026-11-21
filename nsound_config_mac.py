@@ -20,7 +20,7 @@ class NsoundConfigMac(NsoundConfig):
     def _customize_environment(self):
 
         self.env['NS_ON_MAC'] = True
-        self.env['NSUOND_PLATFORM_OS'] = "NSOUND_PLATFORM_OS_MAC"
+        self.env['NSOUND_PLATFORM_OS'] = "NSOUND_PLATFORM_OS_MAC"
 
         if self.env['NS_DEBUG_BUILD']:
             self.env.AppenduUnique(CXXFLAGS = ["-g"])
@@ -28,8 +28,8 @@ class NsoundConfigMac(NsoundConfig):
         else:
             self.env.AppendUnique(CXXFLAGS = ["-O2"])
 
-        # Enbale c++11.
-        self.env.AppendUnique(CXXFLAGS = ['-std=c++11'])
+        # Enable C++20.
+        self.env.AppendUnique(CXXFLAGS = ['-std=c++20'])
 
         #---------------------------------------------------------
         # rpath Hack, g++ on OSX doesn't use -Wl,-rpath=somepath

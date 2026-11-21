@@ -46,9 +46,7 @@
     struct PaStream {};
 #endif
 
-#ifdef NSOUND_CPP11
-    #include <atomic>
-#endif
+#include <atomic>
 
 namespace Nsound
 {
@@ -185,11 +183,7 @@ class AudioPlaybackRt
     Pool::iterator pool_begin_;
     Pool::iterator pool_end_;
 
-    #ifdef NSOUND_CPP11
-        std::atomic_uint n_ready_;
-    #else
-        uint32 n_ready_;
-    #endif
+    std::atomic_uint n_ready_;
 
     Pool::iterator rd_ptr_;
     Pool::iterator wr_ptr_;
@@ -200,8 +194,8 @@ class AudioPlaybackRt
     {
         Driver()
             :
-            out_params_(NULL),
-            stream_(NULL),
+            out_params_(nullptr),
+            stream_(nullptr),
             n_frames_per_buffer_(64),
             n_samples_per_buffer_(64),
             driver_id_(0){}

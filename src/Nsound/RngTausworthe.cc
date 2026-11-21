@@ -43,7 +43,7 @@ RngTausworthe()
     s2_(0),
     s3_(0)
 {
-    setSeed(static_cast<uint32>(time(NULL)));
+    setSeed(static_cast<uint32>(time(nullptr)));
 }
 
 uint32

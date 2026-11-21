@@ -405,7 +405,7 @@ read(
     FILE * fd;
     fd = fopen(filename.c_str(), "rb");
 
-    if(fd == NULL)
+    if(fd == nullptr)
     {
         M_THROW("Wavefile::read(): unable to open file '" << filename << "'");
 
@@ -565,7 +565,7 @@ read(
         n_samples = data_length / channels / (bits_per_sample / 8);
     }
 
-    if(ss != NULL)
+    if(ss != nullptr)
     {
         *ss << "'"
             << filename
@@ -733,7 +733,7 @@ read(
     // Read the pulse code modulation (PCM) data.
 
     // If we are only doing a readHeader.
-    if(ss != NULL)
+    if(ss != nullptr)
     {
         // Only read and print out 10 samples per channel.
         if(n_samples > 10)
@@ -799,7 +799,7 @@ read(
     }
 
     // If we are really reading in the data.
-    else if(b_vector != NULL)
+    else if(b_vector != nullptr)
     {
         int64 sample;
         for(uint32 i = 0; i < n_samples; ++i)
@@ -861,7 +861,7 @@ read(
             }
         }
     }
-    else if(as != NULL)
+    else if(as != nullptr)
     {
         int64 sample;
         as->setSampleRate(sample_rate);
@@ -919,7 +919,7 @@ boolean
 Wavefile::
 read(const std::string & filename, AudioStream & as)
 {
-    boolean was_successful = read(filename, NULL, &as, NULL);
+    boolean was_successful = read(filename, nullptr, &as, nullptr);
 
     return was_successful;
 }
@@ -936,7 +936,7 @@ readHeader(
     std::string & info)
 {
     std::stringstream ss;
-    boolean success = Wavefile::read(filename, NULL, NULL, &ss);
+    boolean success = Wavefile::read(filename, nullptr, nullptr, &ss);
     info = ss.str();
     return success;
 }
@@ -969,7 +969,7 @@ write(const string & filename,
     FILE * output;
     output = fopen(filename.c_str(), "wb");
 
-    if(output == NULL)
+    if(output == nullptr)
     {
         M_THROW("Wavefile::write(): "
             << "unable to open file '"
@@ -1151,7 +1151,7 @@ write(
 
     FILE * output;
     output = fopen(filename.c_str(), "wb");
-    if(output == NULL)
+    if(output == nullptr)
     {
         M_THROW("Wavefile::write(): "
              << "unable to open file '"
@@ -1478,7 +1478,7 @@ operator<<(Buffer & lhs, const char * rhs)
 
     b_vector.push_back(&lhs);
 
-    Wavefile::read(rhs,&b_vector, NULL, NULL);
+    Wavefile::read(rhs,&b_vector, nullptr, nullptr);
 
     return lhs;
 }
@@ -1499,7 +1499,7 @@ AudioStream &
 Nsound::
 operator<<(AudioStream & lhs, const char * rhs)
 {
-    Wavefile::read(rhs, NULL, &lhs, NULL);
+    Wavefile::read(rhs, nullptr, &lhs, nullptr);
 
     return lhs;
 }
@@ -1562,7 +1562,7 @@ findID3v1Tag(FILE * fin)
     uint32 count = 0;
 
     M_CHECK_PTR(fin);
-    if(fin == NULL) return IO_ERROR;
+    if(fin == nullptr) return IO_ERROR;
 
     fseek(fin, 0, SEEK_SET);
 
@@ -1664,7 +1664,7 @@ read(const std::string & filename, boolean show_warnings)
 {
     FILE * fin = fopen(filename.c_str(), "rb");
 
-    if(fin == NULL)
+    if(fin == nullptr)
     {
         M_THROW("ID3v1Tag::read(): could not open the file '"
              << filename
@@ -1765,7 +1765,7 @@ write(const std::string & filename, boolean show_warnings)
 {
     FILE * fin = fopen(filename.c_str(), "r+b");
 
-    if(fin == NULL)
+    if(fin == nullptr)
     {
         M_THROW("ID3v1Tag::write(): could not open the file '"
              << filename

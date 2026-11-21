@@ -1024,7 +1024,6 @@ void
 Buffer::
 mul(const Buffer & buffer, uint32 offset, uint32 n_samples)
 {
-    M_ASSERT_VALUE(offset, >=, 0);
     M_ASSERT_VALUE(offset, <, getLength());
 
     uint32 b0 = offset;

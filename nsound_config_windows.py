@@ -40,7 +40,7 @@ class NsoundConfigWindows(NsoundConfig):
         # Defaults
         CPPDEFINES = ["_CRT_SECURE_NO_WARNINGS"]
         CPPPATH = [Dir('external/include')]
-        CXXFLAGS = "/nologo /O2 /W3 /EHsc /MD /Gd /TP /Zm256 /std:c++14".split()
+        CXXFLAGS = "/nologo /O2 /W3 /EHsc /MD /Gd /TP /Zm256 /std:c++20".split()
         LIBPATH = [Dir('external/win32/lib/%s' % cpu)]
         LIBS = []
         LINKFLAGS = ["/nologo"]

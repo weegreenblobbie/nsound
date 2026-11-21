@@ -97,9 +97,6 @@ libNsound_SRC_list = Split("""
 if lib_env['NS_HAVE_LIBPORTAUDIO']:
     libNsound_SRC_list.append("AudioBackendLibportaudio.cc")
 
-#~    if lib_env['NS_HAVE_CPP11']:
-#~        libNsound_SRC_list.append("AudioPlaybackRt.cc")
-
 if lib_env['NS_HAVE_LIBAO']:
     libNsound_SRC_list.append("AudioBackendLibao.cc")
 

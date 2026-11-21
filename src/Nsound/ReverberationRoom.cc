@@ -99,10 +99,10 @@ ReverberationRoom(
     sample_rate_(sample_rate),
     wet_percent_(wet_percent),
     dry_percent_(dry_percent),
-    comb_left_(NULL),
-    comb_right_(NULL),
-    allpass_left_(NULL),
-    allpass_right_(NULL)
+    comb_left_(nullptr),
+    comb_right_(nullptr),
+    allpass_left_(nullptr),
+    allpass_right_(nullptr)
 {
     // Bounds checks:
     if(wet_percent_ < 0.0)
@@ -192,10 +192,10 @@ ReverberationRoom(const ReverberationRoom & copy)
     sample_rate_(copy.sample_rate_),
     wet_percent_(copy.wet_percent_),
     dry_percent_(copy.dry_percent_),
-    comb_left_(NULL),
-    comb_right_(NULL),
-    allpass_left_(NULL),
-    allpass_right_(NULL)
+    comb_left_(nullptr),
+    comb_right_(nullptr),
+    allpass_left_(nullptr),
+    allpass_right_(nullptr)
 {
     *this = copy;
 }

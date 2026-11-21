@@ -51,8 +51,8 @@ FilterAllPass(
     const float64 & gain)
     :
     Filter(sample_rate),
-    x_delay_(NULL),
-    y_delay_(NULL),
+    x_delay_(nullptr),
+    y_delay_(nullptr),
     gain_(gain),
     y_history_(0.0)
 {
@@ -67,8 +67,8 @@ FilterAllPass::
 FilterAllPass(const FilterAllPass & copy)
     :
     Filter(copy.sample_rate_),
-    x_delay_(NULL),
-    y_delay_(NULL),
+    x_delay_(nullptr),
+    y_delay_(nullptr),
     gain_(copy.gain_),
     y_history_(0.0)
 {

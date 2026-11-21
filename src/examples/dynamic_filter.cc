@@ -6,12 +6,15 @@
 
 // Nsound headers
 #include <Nsound/NsoundAll.h>
+#include "run_from_examples_dir.h"
 
 using namespace Nsound;
 
 int
 main(void)
 {
+    run_from_examples_dir();
+
     // Read in the wavefile.
     AudioStream input("Temperature_in.wav");
 

@@ -10,19 +10,27 @@ on:
     - master
     - 'release/**'
 
+# Checks show as "<platform> / <build system> / <task>".
+
 jobs:
 
-  windows:
+  scons:
+
+    name: scons / build-and-test
 
     runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v2
       name: Checkout source
-    - uses: actions/setup-python@v2
+    # Python 3.11: the SCons build imports distutils, removed in Python 3.12.
+    - uses: actions/setup-python@v7
       name: Install Python
+      with:
+        python-version: '3.11'
     - name: Install dependencies
       run: |
+        choco install swig -y
         pip3 install matplotlib scons wheel
     - name: Build nsound
       run: |
@@ -33,3 +41,23 @@ jobs:
     - name: Run python tests
       run: |
         scons --pytest --disable-libportaudio --config=force
+
+  bazel:
+
+    name: bazel / msvc
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v7
+      name: Checkout source
+    - uses: bazel-contrib/setup-bazel@0.19.1
+      name: Setup Bazel
+      with:
+        bazelisk-cache: true
+        disk-cache: windows-msvc
+        repository-cache: true
+    - name: Build nsound
+      run: bazel build //...
+    - name: Run unit tests
+      run: bazel test //...

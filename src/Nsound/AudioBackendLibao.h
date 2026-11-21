@@ -114,7 +114,7 @@ class AudioBackendLibao : public AudioBackend
         options_(),
         error_buffer_(""),
         driver_id_(-1),
-        device_ptr_(NULL){};
+        device_ptr_(nullptr){};
 
     AudioBackendLibao & operator=(const AudioBackendLibao & rhs){return *this;};
 

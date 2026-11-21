@@ -6,12 +6,15 @@
 
 // Nsound headers
 #include <Nsound/NsoundAll.h>
+#include "run_from_examples_dir.h"
 
 using namespace Nsound;
 
 int
 main(void)
 {
+    run_from_examples_dir();
+
     AudioStream as0("mynameis.wav");
 
     float64 sr = as0.getSampleRate();

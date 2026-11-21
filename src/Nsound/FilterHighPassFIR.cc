@@ -180,7 +180,8 @@ makeKernel(const float64 & cutoff_frequency_Hz)
 
     if(cutoff_frequency_Hz < 0.10)
     {
-        // Create All pass filter.
+        // Create All pass filter: 1.0 followed by zeros.
+        memset(new_kernel.b_, 0, sizeof(float64) * kernel_size_);
         new_kernel.b_[0] = 1.0;
 
         b_ = new_kernel.b_;

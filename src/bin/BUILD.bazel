@@ -1,0 +1,15 @@
+"""Nsound command line programs."""
+
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+[
+    cc_binary(
+        name = name,
+        srcs = [name + ".cc"],
+        deps = ["//src/Nsound:nsound"],
+    )
+    for name in [
+        "ns_readwaveheader",
+        "ns_vocoder",
+    ]
+]

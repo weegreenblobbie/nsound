@@ -96,9 +96,9 @@ searchForBestMatch_f64(
 
     // Copy vectors to device
     // Copy source & rss_array to device
-    double * gpuA   = NULL;
-    double * gpuB   = NULL;
-    double * gpuRSS = NULL;
+    double * gpuA   = nullptr;
+    double * gpuB   = nullptr;
+    double * gpuRSS = nullptr;
 
     const unsigned int ABSIZE = sizeof(double) * (max_delta + window_length);
     const unsigned int RSSIZE = sizeof(double) * (max_delta);
@@ -169,9 +169,9 @@ searchForBestMatch_f32(
 
     // Copy vectors to device
     // Copy source & rss_array to device
-    float * gpuA   = NULL;
-    float * gpuB   = NULL;
-    float * gpuRSS = NULL;
+    float * gpuA   = nullptr;
+    float * gpuB   = nullptr;
+    float * gpuRSS = nullptr;
 
     const unsigned int ABSIZE = sizeof(float) * (max_delta + window_length);
     const unsigned int RSSIZE = sizeof(float) * (max_delta);

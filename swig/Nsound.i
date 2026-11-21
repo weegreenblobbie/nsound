@@ -50,7 +50,7 @@ using std::vector;
     }
     catch (const Nsound::Exception & e) {
         PyErr_SetString(PyExc_RuntimeError, e.what());
-        return NULL;
+        return nullptr;
     }
 }
 

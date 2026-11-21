@@ -1,0 +1,92 @@
+# Common settings ------------------------------------------------------------
+
+# Bazel adds build:linux or build:windows for the host it runs on.
+common --enable_platform_specific_config
+
+# Show test output on failure.
+test --test_output=errors
+
+# Linux ----------------------------------------------------------------------
+
+# Nsound is C++20, matching the SCons build.
+build:linux --cxxopt=-std=c++20
+build:linux --copt=-Wall
+build:linux --copt=-Wextra
+
+# Same code generation flags as the SCons build.
+build:linux --copt=-fno-strict-aliasing
+build:linux --copt=-fwrapv
+
+# libstdc++ bounds checks (e.g. vector::operator[]), which newer Ubuntu gcc
+# turns on by default, so local builds catch what the CI runner catches.
+build:linux --copt=-D_GLIBCXX_ASSERTIONS
+
+# gcc is the default.
+build:linux --repo_env=CC=gcc
+
+# macOS ----------------------------------------------------------------------
+
+# Apple clang, with the same flags as Linux.
+build:macos --cxxopt=-std=c++20
+build:macos --copt=-Wall
+build:macos --copt=-Wextra
+build:macos --copt=-fno-strict-aliasing
+build:macos --copt=-fwrapv
+
+# libc++ bounds checks, the macOS version of _GLIBCXX_ASSERTIONS above.
+build:macos --copt=-D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE
+
+# OpenMP is off on macOS, as in the SCons build: Apple clang needs Homebrew's
+# libomp and its paths for -fopenmp.
+build:macos --//bazel:openmp=false
+
+# Windows --------------------------------------------------------------------
+
+# MSVC, with the same flags as the SCons build.  The toolchain's own
+# /std:c++17 is turned off so cl doesn't warn about two /std flags (D9025).
+build:windows --features=-default_cpp_std
+build:windows --cxxopt=/std:c++20
+build:windows --copt=/W3
+build:windows --copt=/EHsc
+build:windows --copt=/D_CRT_SECURE_NO_WARNINGS
+
+# Bazel creates the runfiles tree the tests read their gold files from.
+build:windows --enable_runfiles
+
+# Compilers (Linux) ----------------------------------------------------------
+
+build:gcc --repo_env=CC=gcc
+build:clang --repo_env=CC=clang
+# Bazel links with clang, not clang++, so ask for the sanitizers' C++
+# runtimes (ubsan needs them), this does nothing without a sanitizer.
+build:clang --linkopt=-fsanitize-link-c++-runtime
+
+# Compilation modes ----------------------------------------------------------
+
+build:debug --compilation_mode=dbg
+build:opt --compilation_mode=opt
+
+# Sanitizers -----------------------------------------------------------------
+
+build:asan --copt=-fsanitize=address
+build:asan --copt=-fno-omit-frame-pointer
+build:asan --copt=-g
+build:asan --strip=never
+build:asan --linkopt=-fsanitize=address
+
+build:ubsan --copt=-fsanitize=undefined
+build:ubsan --copt=-fno-sanitize-recover=undefined
+build:ubsan --copt=-fno-omit-frame-pointer
+build:ubsan --copt=-g
+build:ubsan --strip=never
+build:ubsan --linkopt=-fsanitize=undefined
+
+# Coverage -------------------------------------------------------------------
+
+# `bazel coverage` always uses this config.
+coverage --config=coverage
+build:coverage --combined_report=lcov
+build:coverage --instrumentation_filter=^//src[/:]
+
+# Local overrides, not checked in.
+try-import %workspace%/user.bazelrc

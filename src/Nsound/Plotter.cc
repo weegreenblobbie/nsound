@@ -118,6 +118,7 @@ operator=(const Axes & rhs)
         );                                  \
     }
 
+#ifdef NSOUND_C_PYLAB
 bool import_numpy_success()
 {
     // Reference:
@@ -126,6 +127,7 @@ bool import_numpy_success()
     import_ufunc();
     return true;
 }
+#endif
 
 
 //-----------------------------------------------------------------------------

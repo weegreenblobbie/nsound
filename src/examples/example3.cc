@@ -10,6 +10,7 @@
 
 // Nsound headers
 #include <Nsound/NsoundAll.h>
+#include "run_from_examples_dir.h"
 
 // C++ header
 #include <iostream>
@@ -116,6 +117,8 @@ my_main(void)
 int
 main(void)
 {
+    run_from_examples_dir();
+
     try
     {
         my_main();

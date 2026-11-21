@@ -46,8 +46,8 @@ Hat::
 Hat(const float64 & sample_rate)
     :
     Instrument(sample_rate),
-    square_(NULL),
-    hpf_(NULL)
+    square_(nullptr),
+    hpf_(nullptr)
 {
     square_ = new Square(sample_rate_);
     hpf_ = new FilterHighPassIIR(sample_rate_, 2, 4872.0, 0.05);
@@ -58,8 +58,8 @@ Hat::
 Hat(const Hat & rhs)
     :
     Instrument(rhs.sample_rate_),
-    square_(NULL),
-    hpf_(NULL)
+    square_(nullptr),
+    hpf_(nullptr)
 {
     square_ = new Square(*rhs.square_);
     hpf_ = new FilterHighPassIIR(*rhs.hpf_);

@@ -71,7 +71,6 @@ class NsoundConfig(SConfBase):
             env['NS_DISABLE_OPENMP'] = True
 
         env['NS_HAVE_BOOST']        = False
-        env['NS_HAVE_CPP11']        = False
         env['NS_HAVE_CUDA']         = False
         env['NS_HAVE_LIBAO']        = False
         env['NS_HAVE_LIBPORTAUDIO'] = False
@@ -497,76 +496,6 @@ class NsoundConfig(SConfBase):
                 #endif
 
             return 0;
-            }
-
-        """, ".cpp")
-
-        ecode, stdout = self._get_result(r)
-
-        if ecode == SUCCESS and stdout == "yes":
-            context.Result(stdout)
-            self.env[key] = True
-            return True
-
-        elif ecode == SUCCESS:
-           context.Result("no")
-           self.env[key] = False
-           return False
-
-        context.Result("error, check config.log for details!")
-        self.env[key] = False
-        return False
-
-    def check_for_cpp11(self):
-
-        context = self._make_check_context()
-
-        context.Message("checking for C++11 features ... ")
-
-        key = 'NS_HAVE_CPP11'
-
-        r = context.TryRun("""
-            #include <iostream>
-
-            #include <atomic>
-            #include <chrono>
-            #include <thread>
-            #include <vector>
-
-            void my_atomic_init(std::atomic_uint & a, unsigned int v)
-            {
-                // Windows
-                #ifdef __WIN32__
-                    std::atomic_init(&a, v);
-                #else
-                    a = v;
-                #endif
-            }
-
-            int main(void)
-            {
-                // sleep for 0.100 seconds
-                std::chrono::milliseconds duration( 100 );
-
-                std::this_thread::sleep_for( duration );
-
-                std::atomic_uint a_count;
-
-                my_atomic_init(a_count, 0u);
-
-                a_count.fetch_add(1u);
-
-                std::cout << "yes" << std::endl;
-                std::cout << "count = " << a_count.load();
-
-                std::vector<int> v = {1,2,3,4,5};
-
-                for(auto x : v)
-                {
-                    std::cout << "x = " << x << std::endl;
-                }
-
-                return 0;
             }
 
         """, ".cpp")

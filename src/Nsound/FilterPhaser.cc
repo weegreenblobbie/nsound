@@ -54,9 +54,9 @@ FilterPhaser(
     Filter(sample_rate),
     n_stages_(n_stages),
     max_delay_(max_delay_time_seconds),
-    filters_(NULL),
+    filters_(nullptr),
     frequencies_(),
-    waveform_(NULL),
+    waveform_(nullptr),
     waveform_position_()
 {
     M_ASSERT_VALUE(n_stages_, >, 0);
@@ -97,9 +97,9 @@ FilterPhaser(const FilterPhaser & copy)
     Filter(copy.sample_rate_),
     n_stages_(copy.n_stages_),
     max_delay_(copy.max_delay_),
-    filters_(NULL),
+    filters_(nullptr),
     frequencies_(),
-    waveform_(NULL),
+    waveform_(nullptr),
     waveform_position_(copy.waveform_position_)
 {
     filters_= new FilterAllPass * [n_stages_];

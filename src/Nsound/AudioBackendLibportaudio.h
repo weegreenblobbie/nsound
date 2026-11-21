@@ -115,8 +115,8 @@ class AudioBackendLibportaudio : public AudioBackend
         AudioBackend(),
         options_(),
         error_buffer_(""),
-        out_params_(NULL),
-        stream_(NULL),
+        out_params_(nullptr),
+        stream_(nullptr),
 //~        pos_(0),
         n_frames_per_buffer_(64),
         driver_id_(0){};

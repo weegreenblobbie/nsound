@@ -72,10 +72,6 @@ class FFTransform
     //! \endcode
     FFTransform(const float64 & sample_rate);
 
-
-    //! Destructor
-    ~FFTransform(){};
-
     //! Transforms the time_domain signal and calculates the FFT.
     //
     //! The size of the FFT is determined to be a power of 2 greater than or

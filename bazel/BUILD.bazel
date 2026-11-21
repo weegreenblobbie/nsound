@@ -1,0 +1,56 @@
+"""Build settings that turn optional Nsound features on or off."""
+
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
+
+package(default_visibility = ["//visibility:public"])
+
+# Audio backend using libao, links -lao.
+bool_flag(
+    name = "libao",
+    build_setting_default = False,
+)
+
+config_setting(
+    name = "libao_enabled",
+    flag_values = {":libao": "True"},
+)
+
+# Audio backend using portaudio v19, links -lportaudio.
+bool_flag(
+    name = "portaudio",
+    build_setting_default = False,
+)
+
+config_setting(
+    name = "portaudio_enabled",
+    flag_values = {":portaudio": "True"},
+)
+
+# OpenMP parallel loops in Stretcher.cc, compiles and links with -fopenmp.
+bool_flag(
+    name = "openmp",
+    build_setting_default = True,
+)
+
+config_setting(
+    name = "openmp_enabled",
+    flag_values = {":openmp": "True"},
+)
+
+# MSVC spells the OpenMP flag differently.
+config_setting(
+    name = "openmp_enabled_windows",
+    constraint_values = ["@platforms//os:windows"],
+    flag_values = {":openmp": "True"},
+)
+
+# Plotter uses the matplotlib C API, needs the Python and numpy headers.
+bool_flag(
+    name = "c_pylab",
+    build_setting_default = False,
+)
+
+config_setting(
+    name = "c_pylab_enabled",
+    flag_values = {":c_pylab": "True"},
+)

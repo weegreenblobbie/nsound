@@ -45,7 +45,11 @@ class RandomNumberGenerator
     public:
 
     virtual
-    ~RandomNumberGenerator(){};
+    ~RandomNumberGenerator() = default;
+
+    RandomNumberGenerator() = default;
+    RandomNumberGenerator(const RandomNumberGenerator &) = default;
+    RandomNumberGenerator & operator=(const RandomNumberGenerator &) = default;
 
     //! Get a random number.
     virtual

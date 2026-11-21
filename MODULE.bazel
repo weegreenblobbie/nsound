@@ -1,0 +1,10 @@
+"""Bazel module for Nsound, a C++ library for audio synthesis."""
+
+module(name = "nsound")
+
+# The macOS C++ toolchain, which rules_cc leaves to apple_support with
+# Bazel 9.  It must come before rules_cc.
+bazel_dep(name = "apple_support", version = "2.11.0")
+bazel_dep(name = "rules_cc", version = "0.2.27")
+bazel_dep(name = "bazel_skylib", version = "1.9.2")
+bazel_dep(name = "platforms", version = "1.1.0")

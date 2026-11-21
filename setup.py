@@ -119,7 +119,6 @@ def process_nsound_h():
 
     d = {
         'ao' : 'no',
-        'c++11' : 'no',
         'cuda' : 'no',
         'float64' : 'no',
         'little-endian' : 'no',
@@ -138,9 +137,6 @@ def process_nsound_h():
 
         if '#define NSOUND_LIBAO 1' in l:
             d['ao'] = 'yes'
-
-        elif '#define NSOUND_CPP11 1' in l:
-            d['c++11'] = 'yes'
 
         elif '#define NSOUND_CUDA 1' in l:
             d['cuda'] = 'yes'
@@ -164,7 +160,7 @@ def process_nsound_h():
             release = l.strip().split()[-1]
             release = release.replace('"', '')
 
-    if d['c++11'] == 'yes' and d['portaudio'] == 'yes':
+    if d['portaudio'] == 'yes':
         d['real-time-audio'] = 'yes'
 
     #--------------------------------------------------------------------------

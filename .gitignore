@@ -37,3 +37,28 @@ src/test/test_wavefile1.wav
 src/test/test_wavefile2.wav
 swig/Nsound.py
 swig/nsound_wrap.cxx
+
+# Bazel output folders
+/bazel-*
+
+# tools/coverage.sh HTML report
+/coverage_html/
+
+# Claude Code config and history, mounted by start-claude.ps1
+/claude-cfg/
+
+# .wav files written by the examples (C++ and Python), not their inputs
+src/examples/Temperature_*_Shifted_*.wav
+src/examples/Temperature_out.wav
+src/examples/bebot.wav
+src/examples/bebot-*.wav
+src/examples/delayline-rt-*.wav
+src/examples/example*.wav
+src/examples/interstellar-theme.wav
+src/examples/moogvcf-rt-*.wav
+src/examples/mynameis-*.wav
+src/examples/recording.wav
+src/examples/tapedeck-rt-*.wav
+
+# .wav files written by the unit tests and test programs, gold/ is tracked
+src/test/*.wav

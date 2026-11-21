@@ -6,6 +6,7 @@
 
 // Nsound headers
 #include <Nsound/NsoundAll.h>
+#include "run_from_examples_dir.h"
 
 using namespace Nsound;
 
@@ -37,6 +38,8 @@ softTones(
 int
 main(void)
 {
+    run_from_examples_dir();
+
     float64 sr = 44100;
 
     Sine sine(sr);

@@ -56,9 +56,9 @@ Stretcher(
     const float64 & window_size_seconds,
     const float64 & max_delta_window)
     :
-    frames_(NULL),
+    frames_(nullptr),
     sample_rate_(sample_rate),
-    window_(NULL),
+    window_(nullptr),
     window_length_(0),
     max_delta_(0),
     show_progress_(false)
@@ -76,9 +76,9 @@ Stretcher(
 Stretcher::
 Stretcher(const Stretcher & copy)
     :
-    frames_(NULL),
+    frames_(nullptr),
     sample_rate_(copy.sample_rate_),
-    window_(NULL),
+    window_(nullptr),
     window_length_(copy.window_length_),
     max_delta_(copy.max_delta_),
     show_progress_(copy.show_progress_)
@@ -218,22 +218,46 @@ searchForBestMatch(
         uint32 t = 0;
         float64 min_score = 1.0e100;
 
+        // Windows OpenMP (MSVC /openmp) requires a signed loop counter.
+        const int32 n_deltas = static_cast<int32>(max_delta_);
+
         #ifdef NSOUND_OPENMP
-            #pragma omp parallel for shared(t, min_score)
+            #pragma omp parallel
         #endif
-        for(uint32 i = 0; i < max_delta_; ++i)
         {
-            Buffer b_test = input.subbuffer(search_index + i, window_length_)
-                          - b_source;
+            // Each thread finds its own best match, then the threads merge
+            // them one at a time.  Ties go to the lowest offset, so the
+            // result is the same as running the loop on one thread.
+            uint32 thread_t = 0;
+            float64 thread_min_score = 1.0e100;
 
-            b_test *= b_test;
-
-            float64 score = b_test.getSum();
-
-            if(score < min_score)
+            #ifdef NSOUND_OPENMP
+                #pragma omp for
+            #endif
+            for(int32 i = 0; i < n_deltas; ++i)
             {
-                min_score = score;
-                t = i;
+                Buffer b_test = input.subbuffer(search_index + i, window_length_)
+                              - b_source;
+
+                b_test *= b_test;
+
+                float64 score = b_test.getSum();
+
+                if(score < thread_min_score)
+                {
+                    thread_min_score = score;
+                    thread_t = i;
+                }
+            }
+
+            #ifdef NSOUND_OPENMP
+                #pragma omp critical
+            #endif
+            if(thread_min_score < min_score
+                || (thread_min_score == min_score && thread_t < t))
+            {
+                min_score = thread_min_score;
+                t = thread_t;
             }
         }
     #endif

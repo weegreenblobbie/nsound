@@ -57,8 +57,8 @@ Kernel(uint32 b_length, uint32 a_length,
     f2_(f2),
     f3_(f3),
     f4_(f4),
-    b_(NULL),
-    a_(NULL)
+    b_(nullptr),
+    a_(nullptr)
 {
     b_ = new float64 [b_length];
     a_ = new float64 [a_length];
@@ -74,8 +74,8 @@ Kernel(const Kernel & copy)
     f2_(copy.f2_),
     f3_(copy.f3_),
     f4_(copy.f4_),
-    b_(NULL),
-    a_(NULL)
+    b_(nullptr),
+    a_(nullptr)
 {
     b_ = new float64 [b_length_];
     a_ = new float64 [a_length_];

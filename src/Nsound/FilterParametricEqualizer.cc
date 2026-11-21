@@ -56,12 +56,12 @@ FilterParametricEqualizer(
     boost_(boost),
     a_(new float64 [N_POLES]),
     b_(new float64 [N_POLES]),
-    x_history_(NULL),
-    x_ptr_(NULL),
-    x_end_ptr_(NULL),
-    y_history_(NULL),
-    y_ptr_(NULL),
-    y_end_ptr_(NULL),
+    x_history_(nullptr),
+    x_ptr_(nullptr),
+    x_end_ptr_(nullptr),
+    y_history_(nullptr),
+    y_ptr_(nullptr),
+    y_end_ptr_(nullptr),
     kernel_cache_()
 {
     x_history_ = new float64 [N_POLES + 1];

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <Nsound/NsoundAll.h>
+#include "run_from_examples_dir.h"
 
 using namespace Nsound;
 using std::cout;
@@ -38,6 +39,8 @@ AudioStream operator*(const Asdr & lhs, const AudioStream & rhs){return rhs * lh
 
 int main(void)
 {
+    run_from_examples_dir();
+
     auto sr = 48000.0;
 
     auto out = AudioStream(sr, 2);

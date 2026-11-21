@@ -6,6 +6,7 @@
 
 // Nsound headers
 #include <Nsound/NsoundAll.h>
+#include "run_from_examples_dir.h"
 
 // C++ header
 #include <iostream>
@@ -19,6 +20,8 @@ using std::endl;
 int
 main(void)
 {
+    run_from_examples_dir();
+
     AudioStream a("Temperature_in.wav");
 
     // Grab sample rate.

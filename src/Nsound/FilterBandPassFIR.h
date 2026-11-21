@@ -133,8 +133,8 @@ class FilterBandPassFIR : public Filter
     FilterBandPassFIR(const FilterBandPassFIR & copy)
         :
         Filter(copy.sample_rate_),
-        low_(NULL),
-        high_(NULL)
+        low_(nullptr),
+        high_(nullptr)
     {
     };
 

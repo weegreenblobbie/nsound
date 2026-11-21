@@ -61,8 +61,8 @@ Mesh2D(
     tau_(tau),
     delta_(delta),
     gamma_(gamma),
-    mesh_(NULL),
-    center_(NULL),
+    mesh_(nullptr),
+    center_(nullptr),
     dump_mesh_(false),
     dirname_("."),
     prefix_("mesh")
@@ -91,8 +91,8 @@ Mesh2D(const Mesh2D & copy)
     tau_(0.0),
     delta_(0.0),
     gamma_(0.0),
-    mesh_(NULL),
-    center_(NULL),
+    mesh_(nullptr),
+    center_(nullptr),
     dump_mesh_(false),
     dirname_("."),
     prefix_("mesh")
@@ -289,7 +289,7 @@ writeMeshMap()
     {
         for(uint32 x = 0; x < X_; ++x)
         {
-            if(mesh(x,y) != NULL)
+            if(mesh(x,y) != nullptr)
             {
                 fprintf(f_out, " %5d", x + y * X_);
             }

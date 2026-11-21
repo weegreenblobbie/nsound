@@ -68,7 +68,7 @@ allocate_backend(
     const uint32 channels,
     const uint32 bits_per_sample)
 {
-    AudioBackend * backend = NULL;
+    AudioBackend * backend = nullptr;
 
     switch(type)
     {
@@ -120,7 +120,7 @@ AudioPlayback(
     sample_rate_(static_cast<uint32>(sample_rate)),
     channels_(channels),
     bits_per_sample_(bits_per_sample),
-    backend_(NULL)
+    backend_(nullptr)
 {
     backend_ = allocate_backend(
         backend_type_,
@@ -128,7 +128,7 @@ AudioPlayback(
         channels_,
         bits_per_sample_);
 
-    if(BACKEND_TYPE_NONE != backend_type_ && backend_ == NULL)
+    if(BACKEND_TYPE_NONE != backend_type_ && backend_ == nullptr)
     {
         M_THROW("Nsound::AudioPlayback::AudioPlayback():"
             << ": failed to create AudioBackend!");
@@ -138,7 +138,7 @@ AudioPlayback(
 AudioPlayback::
 ~AudioPlayback()
 {
-    if(backend_ != NULL)
+    if(backend_ != nullptr)
     {
         backend_->shutdown();
         delete backend_;
@@ -149,7 +149,7 @@ uint32
 AudioPlayback::
 getBitsPerSample()
 {
-    if(backend_ != NULL)
+    if(backend_ != nullptr)
     {
         return backend_->getBitsPerSample();
     }
@@ -161,7 +161,7 @@ uint32
 AudioPlayback::
 getChannels()
 {
-    if(backend_ != NULL)
+    if(backend_ != nullptr)
     {
         return backend_->getChannels();
     }
@@ -173,7 +173,7 @@ std::string
 AudioPlayback::
 getError()
 {
-    if(backend_ != NULL)
+    if(backend_ != nullptr)
     {
         return backend_->getError();
     }
@@ -192,7 +192,7 @@ std::string
 AudioPlayback::
 getInfo()
 {
-    if(backend_ != NULL)
+    if(backend_ != nullptr)
     {
         return backend_->getInfo();
     }
@@ -211,7 +211,7 @@ uint32
 AudioPlayback::
 getSampleRate()
 {
-    if(backend_ != NULL)
+    if(backend_ != nullptr)
     {
         return backend_->getSampleRate();
     }
@@ -223,7 +223,7 @@ AudioBackend::State
 AudioPlayback::
 getState()
 {
-    if(backend_ != NULL)
+    if(backend_ != nullptr)
     {
         return backend_->getState();
     }
@@ -235,7 +235,7 @@ std::string
 AudioPlayback::
 getStateString()
 {
-    if(backend_ != NULL)
+    if(backend_ != nullptr)
     {
         return backend_->getStateString();
     }
@@ -261,8 +261,8 @@ initialize()
         return;
     }
 
-    // If the backend is currently NULL, recreate it with current settings
-    if(backend_ == NULL)
+    // If the backend is currently nullptr, recreate it with current settings
+    if(backend_ == nullptr)
     {
         backend_ = allocate_backend(
             backend_type_,
@@ -271,7 +271,7 @@ initialize()
             bits_per_sample_);
     }
 
-    if(backend_ == NULL)
+    if(backend_ == nullptr)
     {
         M_THROW("Nsound::AudioPlayback::initialize():"
             << ": failed to initialize AudioBackend!");
@@ -342,18 +342,11 @@ play_int(
         return;
     }
 
-    T * array = NULL;
+    T * array = nullptr;
 
     uint32 n_samples = a.getLength();
 
     array = new T [n_samples * n_channels];
-
-    if(array == NULL)
-    {
-        M_THROW("Nsound::AudioPlayback::play():"
-            << ": failed allocate memory");
-        return;
-    }
 
     uint32 k = 0;
     for(uint32 i = 0; i < n_samples; ++i)
@@ -369,7 +362,7 @@ play_int(
         reinterpret_cast<void *>(array),
         n_samples * n_channels * sizeof(T));
 
-    delete array;
+    delete [] array;
 }
 
 template <typename T>
@@ -408,7 +401,7 @@ _play(AudioPlayback * pb, AudioBackend ** be, const T & audio)
 {
     pb->initialize();
 
-    if(*be == NULL) return;
+    if(*be == nullptr) return;
 
     uint32 bits = (*be)->getBitsPerSample();
 
@@ -509,10 +502,10 @@ void
 AudioPlayback::
 setOption(const std::string & key, const std::string & value)
 {
-    if(backend_ == NULL)
+    if(backend_ == nullptr)
     {
         M_THROW("Nsound::AudioPlayback::setOption():"
-            << ": backend is NULL");
+            << ": backend is nullptr");
         return;
     }
     else if(AudioBackend::BACKEND_NOT_INITIALIZED != backend_->getState())
@@ -529,11 +522,11 @@ void
 AudioPlayback::
 shutdown()
 {
-    if(backend_ != NULL)
+    if(backend_ != nullptr)
     {
         backend_->shutdown();
         delete backend_;
-        backend_ = NULL;
+        backend_ = nullptr;
     }
 }
 

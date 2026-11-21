@@ -56,8 +56,8 @@ FilterFlanger(
     Filter(sample_rate),
     frequency_(frequency),
     max_delay_(max_delay_time_seconds),
-    delay_(NULL),
-    gen_(NULL)
+    delay_(nullptr),
+    gen_(nullptr)
 {
     M_ASSERT_VALUE(frequency_, >, 0.0);
     M_ASSERT_VALUE(max_delay_, >, 0.0);
@@ -78,8 +78,8 @@ FilterFlanger(const FilterFlanger & copy)
     Filter(copy.sample_rate_),
     frequency_(copy.frequency_),
     max_delay_(copy.max_delay_),
-    delay_(NULL),
-    gen_(NULL)
+    delay_(nullptr),
+    gen_(nullptr)
 {
     delay_ = new FilterDelay(sample_rate_, max_delay_);
 

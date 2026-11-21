@@ -56,13 +56,13 @@ FilterLeastSquaresFIR(
     const float64 & beta)
     :
     Filter(sample_rate),
-    b_(NULL),
-    window_(NULL),
-    x_history_(NULL),
-    x_ptr_(NULL),
-    x_end_ptr_(NULL),
-    f_axis_(NULL),
-    a_axis_(NULL)
+    b_(nullptr),
+    window_(nullptr),
+    x_history_(nullptr),
+    x_ptr_(nullptr),
+    x_end_ptr_(nullptr),
+    f_axis_(nullptr),
+    a_axis_(nullptr)
 {
     kernel_size_ = kernel_size;
 
@@ -95,13 +95,13 @@ FilterLeastSquaresFIR::
     FilterLeastSquaresFIR(const FilterLeastSquaresFIR & copy)
     :
     Filter(copy.sample_rate_),
-    b_(NULL),
-    window_(NULL),
-    x_history_(NULL),
-    x_ptr_(NULL),
-    x_end_ptr_(NULL),
-    f_axis_(NULL),
-    a_axis_(NULL)
+    b_(nullptr),
+    window_(nullptr),
+    x_history_(nullptr),
+    x_ptr_(nullptr),
+    x_end_ptr_(nullptr),
+    f_axis_(nullptr),
+    a_axis_(nullptr)
 {
     kernel_size_ = copy.kernel_size_;
 
