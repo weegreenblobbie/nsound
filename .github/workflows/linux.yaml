@@ -13,34 +13,27 @@ on:
 # Checks show as "<platform> / <build system> / <task>".
 
 jobs:
-  scons:
+  pip:
 
-    name: scons / build-and-test
+    name: pip / python ${{ matrix.python }}
 
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        # The oldest and newest Python the package supports.
+        python: ['3.10', '3.14']
+
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v7
       name: Checkout source
-    # Python 3.11: the SCons build imports distutils, removed in Python 3.12.
     - uses: actions/setup-python@v7
       name: Install Python
       with:
-        python-version: '3.11'
-    - name: Install dependencies
-      run: |
-        sudo apt-get update && sudo apt-get -y install portaudio19-dev libao-dev python3-virtualenv swig
-        python3 -m venv venv
-        . venv/bin/activate
-        pip install matplotlib scons wheel
-    - name: Build nsound
-      run: |
-        . venv/bin/activate
-        scons
-    - name: Run python tests
-      run: |
-        . venv/bin/activate
-        scons --pytest --disable-libportaudio --config=force
+        python-version: ${{ matrix.python }}
+    - name: Install nsound in a new venv and run the python tests
+      run: python tools/test_pip_install.py
 
   bazel:
 

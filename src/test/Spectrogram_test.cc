@@ -4,6 +4,12 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <Nsound/Nsound.h>
+
+#ifdef NSOUND_C_PYLAB
+    #include "plot_check.h"
+#endif
+
 #include <Nsound/AudioStream.h>
 #include <Nsound/Buffer.h>
 #include <Nsound/Sine.h>
@@ -152,7 +158,42 @@ TEST_CASE("Spectrogram checks its arguments and plots")
 
     Spectrogram s(x, SR, WINDOW, STEP, HANNING);
 
-    CHECK_NOTHROW(s.plot("dB"));
-    CHECK_NOTHROW(s.plot("squashed", false, 0.5));
-    CHECK_NOTHROW(s.plot("neither", false, 0.0));
+    #ifdef NSOUND_C_PYLAB
+    {
+        using namespace plot_check;
+
+        pyplot().attr("close")("all");
+
+        // An image with a row per frequency bin and a column per frame.
+        s.plot("dB");
+
+        REQUIRE(n_figures() == 1);
+
+        auto axes = gca();
+        auto image = axes.attr("get_images")().cast<std::vector<py::object>>().back();
+        auto shape = image.attr("get_array")().attr("shape").cast<std::vector<std::size_t>>();
+
+        CHECK(shape == std::vector<std::size_t>({
+            s.getFrequencyAxis().getLength(), s.getTimeAxis().getLength()}));
+
+        CHECK(text(axes.attr("title")) == "dB");
+        CHECK(text(axes.attr("xaxis").attr("label")) == "Time (sec)");
+        CHECK(text(axes.attr("yaxis").attr("label")) == "Frequency (Hz)");
+
+        s.plot("squashed", false, 0.5);
+
+        CHECK(n_figures() == 2);
+
+        // Neither dB nor squashed plots nothing.
+        s.plot("neither", false, 0.0);
+
+        CHECK(n_figures() == 2);
+
+        pyplot().attr("close")("all");
+    }
+    #else
+        CHECK_NOTHROW(s.plot("dB"));
+        CHECK_NOTHROW(s.plot("squashed", false, 0.5));
+        CHECK_NOTHROW(s.plot("neither", false, 0.0));
+    #endif
 }

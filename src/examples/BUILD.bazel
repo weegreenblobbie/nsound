@@ -1,4 +1,4 @@
-"""Nsound example programs, the same list the SCons build makes.
+"""Nsound example programs.
 
 They read and write .wav files in this folder, which they change into when
 started with `bazel run` (see run_from_examples_dir.h), for example:

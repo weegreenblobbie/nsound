@@ -752,28 +752,6 @@ select(const uint32 start_index, const uint32 stop_index)
 
 void
 AudioStream::
-_set_at_index(int32 i, const Buffer & b)
-{
-    int32 len = getNChannels();
-
-    if(i >= 0 && i < len)
-    {
-        *buffers_[i] = b;
-    }
-    else
-    if(i < 0 && i >= -len)
-    {
-        *buffers_[len + i] = b;
-    }
-    else
-    {
-        M_THROW(
-            "IndexError: " << i << " is out of bounds (0 : " << len << ")");
-    }
-}
-
-void
-AudioStream::
 setNChannels(uint32 channels)
 {
     if(channels_ != channels)

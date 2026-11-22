@@ -67,52 +67,25 @@ You can also use the module in Python interactively::
     ns.Plotter().ylim(-0.5, 1.5)
 
 
-Using The C++ Library And SCons
+Using The C++ Library And Bazel
 ===============================
 
-Nsound uses the SCons build system (http://www.scons.org).  SCons is written in
-Python and the "Makefiles" are Python scripts.
+Nsound builds with Bazel (https://bazel.build), see
+:doc:`build_and_installing`.  The BUILD.bazel files say what each folder
+builds, ``//...`` is everything::
 
-SCons looks for a special file called SConstruct that serves as the master
-"Makefile" that tells SCons how to build everything.  Nsound's SConstruct file
-is located in the root of the archive.
+    bazel build //...
 
-.. pyexec::
+Suppose you are modifying one of the examples, say src/examples/example2.cc.
+Build just that example by naming its target, from anywhere in the nsound
+folder::
 
-    from Nsound import PACKAGE_RELEASE
-    template = """
-    The Nsound C++ library and examples are compiled by default when you invoke
-    scons without any arguments::
+    bazel build //src/examples:example2
 
-        cd %s
-        scons
-    """ % PACKAGE_RELEASE
+Or build it and run it, the examples read and write their .wav files in
+src/examples::
 
-Sopose you are modifying one of the examples and wish to recompile it, you could
-issue scons in the root and it will recompile everything that needs to be
-rebuilt.  Now suppose you want work in the src/example directory.  Running
-SCons in this directory results in the following error message::
+    bazel run //src/examples:example2
 
-    scons: *** No SConstruct file found.
-    File "/usr/lib/scons/SCons/Script/Main.py", line 858, in _main
-
-This is because Nsound only contains one SConstruct file, and it only lives in
-the root of the archive.  This is a common scenario and so the folks that make
-SCons include a command line switch to tell it to look else where for the
-SConstruct file.  So now try this::
-
-    scons -u
-
-This will tell scons to search up the directory structure to search for the
-SConstruct file.
-
-You can also tell SCons to build a specific target.  Suppose you are in the
-examples directory and modified example2.cc.  You may have changes in other
-example files but you only want to compile example2.cc.  You can specify the
-target like so::
-
-    scons -u example2
-
-Or if you are on Windows::
-
-    scons -u example2.exe
+Bazel rebuilds only what changed.  Programs using the library depend on
+``//src/Nsound:nsound`` in their BUILD.bazel file.

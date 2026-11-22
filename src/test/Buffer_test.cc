@@ -4,6 +4,12 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <Nsound/Nsound.h>
+
+#ifdef NSOUND_C_PYLAB
+    #include "plot_check.h"
+#endif
+
 #include <Nsound/AudioStream.h>
 #include <Nsound/Buffer.h>
 #include <Nsound/BufferSelection.h>
@@ -801,19 +807,6 @@ TEST_CASE("Buffer speedUp()")
     }
 }
 
-TEST_CASE("Buffer _set_at_index()")
-{
-    Buffer b({1.0, 2.0, 3.0});
-
-    b._set_at_index(0, 9.0);
-    b._set_at_index(-1, 7.0);
-
-    check_close(b, Buffer({9.0, 2.0, 7.0}), 0.0);
-
-    CHECK_THROWS_AS(b._set_at_index(3, 0.0), Exception);
-    CHECK_THROWS_AS(b._set_at_index(-4, 0.0), Exception);
-}
-
 TEST_CASE("Buffer zeros(), rand()")
 {
     check_close(Buffer::zeros(4), Buffer({0.0, 0.0, 0.0, 0.0}), 0.0);
@@ -893,10 +886,35 @@ TEST_CASE("Buffer edge cases")
     }
 }
 
+#ifdef NSOUND_C_PYLAB
+
+TEST_CASE("Buffer plot()")
+{
+    using namespace plot_check;
+
+    Buffer b({1.0, 2.0, 4.0});
+
+    b.plot("the title");
+
+    // A new figure with the samples and the title.
+    REQUIRE(figure_axes().size() == 1);
+
+    auto axes = gca();
+
+    CHECK(text(axes.attr("title")) == "the title");
+    check_data(ydata(lines(axes)[0]), b);
+
+    pyplot().attr("close")("all");
+}
+
+#else
+
 TEST_CASE("Buffer plot() without matplotlib")
 {
     CHECK_NOTHROW(Buffer({1.0, 2.0}).plot("title"));
 }
+
+#endif
 
 // The brute force add() test below is the old one, unchanged, except its
 // reportError() is now a Catch2 failure that names the arguments.

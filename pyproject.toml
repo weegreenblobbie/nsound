@@ -1,0 +1,60 @@
+# The Nsound Python package, built by setup.py with setuptools and pybind11:
+#
+#     pip install .
+
+[build-system]
+requires = ["setuptools>=77", "pybind11>=3.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Nsound"
+dynamic = ["version"]
+description = """\
+Nsound is a C++ library and Python module for audio synthesis featuring \
+dynamic digital filters. Nsound lets you easily shape waveforms and write \
+to disk or plot them. Nsound aims to be as powerful as Csound but easy to \
+use."""
+readme = "README.rst"
+license = "GPL-2.0-or-later"
+requires-python = ">=3.10"
+authors = [{ name = "Nick Hilton et al", email = "weegreenblobbie2@gmail.com" }]
+keywords = [
+    "audio",
+    "wav",
+    "music",
+    "dsp",
+    "PortAudio",
+    "cross-platform",
+    "filters",
+    "synthesis",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Environment :: MacOS X",
+    "Environment :: Win32 (MS Windows)",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "Intended Audience :: Science/Research",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Multimedia :: Sound/Audio :: Analysis",
+    "Topic :: Multimedia :: Sound/Audio :: Sound Synthesis",
+    "Topic :: Multimedia :: Sound/Audio",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Libraries",
+]
+
+[project.optional-dependencies]
+# Plotter draws with matplotlib, Nsound works without it.
+plot = ["matplotlib"]
+
+[project.urls]
+Homepage = "https://github.com/weegreenblobbie/nsound"

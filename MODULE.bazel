@@ -11,3 +11,37 @@ bazel_dep(name = "platforms", version = "1.1.0")
 
 # Test-only dependencies.
 bazel_dep(name = "catch2", version = "3.15.1", dev_dependency = True)
+
+# The Python module: a hermetic Python and pybind11.
+bazel_dep(name = "rules_python", version = "2.5.1")
+bazel_dep(name = "pybind11_bazel", version = "3.0.3")
+
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python.toolchain(
+    is_default = True,
+    python_version = "3.12",
+)
+
+# Python packages from PyPI: matplotlib, which Plotter imports in C++
+# programs, and numpy for the Python tests.
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+pip.parse(
+    hub_name = "nsound_pypi",
+    python_version = "3.12",
+    requirements_lock = "//:requirements_lock.txt",
+)
+use_repo(pip, "nsound_pypi")
+
+# pybind11's headers, for Plotter, which embeds Python.
+pybind11_configure = use_extension(
+    "@pybind11_bazel//:internal_configure.bzl",
+    "internal_configure_extension",
+)
+use_repo(pybind11_configure, "pybind11")
+
+# Python packages need their own __init__.py, rules_python doesn't make them.
+rules_python_config = use_extension(
+    "@rules_python//python/extensions:config.bzl",
+    "config",
+)
+rules_python_config.explicit_init_py(default = True)

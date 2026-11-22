@@ -308,13 +308,11 @@ public:
     AudioStream & operator/=(float64 d);
     AudioStream & operator^=(float64 d);
 
-    #ifndef SWIG
     //  Output Operator << AudioStream
     // DOXME
     friend
     std::ostream &
     operator<<(std::ostream & out, const AudioStream & rhs);
-    #endif
 
     //! Pads the AudioStream so that each channel has exactly the same number of samples.
     //
@@ -467,14 +465,12 @@ public:
     bytearray
     write() const;
 
-    #ifndef SWIG
         //! Constructs an AudioStream from seralized data in the inputstream.
         //
         //! \param in the std::istream to read bytes from
         //
         std::istream &
         read(std::istream & stream_in);
-    #endif
 
     void
     read(const void * data, std::size_t size);
@@ -575,12 +571,6 @@ public:
     void
     writeWavefile(const char * filename) const;
 
-    //! SWIG helper function
-    void _set_at_index(int32 i, const Buffer &);
-
-    //! SWIG helper function function to shadow.
-    void _swig_shadow(){};
-
     //! Returns an AudioStream full of ones of duration seconds.
     static
     AudioStream
@@ -634,10 +624,8 @@ private:
 //-----------------------------------------------------------------------------
 // Non class methods
 
-#ifndef SWIG
 std::ostream &
 operator<<(std::ostream & out, const AudioStream & rhs);
-#endif
 
 inline AudioStream operator+(const AudioStream & lhs, const AudioStream & rhs)
 {

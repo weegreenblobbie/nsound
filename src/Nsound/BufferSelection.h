@@ -81,7 +81,7 @@ public:
     BufferSelection & operator^=(const float64 & rhs);
     BufferSelection & operator=(const float64 & rhs);
 
-    // For SWIG
+    //! Sets the selected samples to rhs, Python can't overload =.
     void set(const float64 & rhs){this->operator=(rhs);};
 
 protected:

@@ -6,6 +6,7 @@
 
 // Include the Nsound headers
 #include <Nsound/NsoundAll.h>
+#include "run_from_examples_dir.h"
 
 #include <iostream>
 
@@ -191,6 +192,8 @@ my_main(void)
 
 int main(int /*argc*/, char ** /*argv*/)
 {
+	run_from_examples_dir();
+
 	try
 	{
 		my_main();

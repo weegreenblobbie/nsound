@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  Windows programs that link Nsound declare they handle paths longer than 260
+  characters, so the Python that Plotter starts can load matplotlib and numpy
+  from Bazel's deep runfiles folders.  Windows also needs long paths turned
+  on, setup-windows.ps1 does that.
+-->
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <application xmlns="urn:schemas-microsoft-com:asm.v3">
+    <windowsSettings xmlns:ws2="http://schemas.microsoft.com/SMI/2016/WindowsSettings">
+      <ws2:longPathAware>true</ws2:longPathAware>
+    </windowsSettings>
+  </application>
+</assembly>

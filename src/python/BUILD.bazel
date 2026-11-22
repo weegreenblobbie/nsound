@@ -1,0 +1,21 @@
+"""The Nsound Python module, pybind11 bindings for the C++ library."""
+
+load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
+load("@rules_python//python:defs.bzl", "py_library")
+
+pybind_extension(
+    name = "Nsound/_Nsound",
+    srcs = glob([
+        "*.cc",
+        "*.h",
+    ]),
+    deps = ["//src/Nsound:nsound_python"],
+)
+
+py_library(
+    name = "Nsound",
+    srcs = ["Nsound/__init__.py"],
+    data = [":Nsound/_Nsound"],
+    imports = ["."],
+    visibility = ["//visibility:public"],
+)

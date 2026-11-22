@@ -138,9 +138,7 @@ class Buffer
     //! \endcode
     Buffer(const Buffer & rhs);
 
-    #ifndef SWIG
     Buffer(Buffer && move);
-    #endif
 
     //! Modifies the Buffer by making any negative value positive.
     //
@@ -1226,12 +1224,10 @@ class Buffer
     //! \endcode
     Buffer & operator^=(float64 power);
 
-    #ifndef SWIG
         //! Sends the contents of the Buffer to the output stream.
         friend
         std::ostream &
         operator<<(std::ostream & out, const Buffer & rhs);
-    #endif
 
     //! Creates a BooleanVector where each value is true iff Buffer[n] > rhs.
     //
@@ -1620,14 +1616,12 @@ class Buffer
     bytearray
     write() const;
 
-    #ifndef SWIG
         //! Constructs a Buffer from seralized data in the inputstream.
         //
         //! \param in the std::istream to read bytes from
         //
         std::istream &
         read(std::istream & stream_in);
-    #endif
 
     void
     read(const void * data, std::size_t size);
@@ -1837,12 +1831,6 @@ class Buffer
     //! \endcode
     void
     writeWavefile(const char * filename) const;
-
-    //! SWIG helper function function to shadow.
-    void _set_at_index(int32 index, float64 x);
-
-    //! SWIG helper function function to shadow.
-    void _swig_shadow(){}
 
     //! Returns a Buffer full of ones of length n_samples.
     static

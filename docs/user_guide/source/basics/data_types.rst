@@ -4,7 +4,7 @@ Nsound Data Types
 
 When writing new features for Nsound, C++ typedefs are used to ensure the same
 bit width is used on all platforms.  To see how these types are defined, look
-at the file src/Nsound/Nsound.h after running SCons.
+at src/Nsound/Nsound.h.in, the template Nsound.h is generated from.
 
 If you are using the Python module, you won't need to know anything about these
 data types.

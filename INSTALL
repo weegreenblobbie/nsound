@@ -4,58 +4,24 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-Always check the Nsound User's Guide for the latest information on how to build
-and install Nsound:
+README.rst has the latest information on how to build and install Nsound.
 
-    http://nsound.sourceforge.net/users_guide/index.html
+The Python module needs Python 3.10 or newer and a C++20 compiler:
 
-Nsound has the following dependencies for build:
+    python3 -m pip install Nsound       # from PyPI
+    python3 -m pip install .            # from a source checkout
 
-    1) Python (www.python.org) $ apt-get install python
-    2) Scons (www.scons.org) $ apt-get install scons
+Plotting needs matplotlib:
 
-    Optional packages for plotting:
+    python3 -m pip install matplotlib
 
-    3) Python Numpy (for Matplotlib)
-    4) Python Matplotlib (Pylab)
+The C++ library, programs and unit tests build with Bazel
+(https://bazel.build) on Linux, macOS and Windows:
 
+    bazel build //...
+    bazel test //...
 
-How to build the Nsound C++ package on Linux or Mac:
-
-    1) Uncompress the package:
-
-        [~]$ tar xfz nsound-A.B.C.tar.gz
-
-    2) Execute Scons
-
-        [~]$ cd nsound-A.B.C
-        [nsound-A.B.C]$ scons
-
-        To compile with debug flags and no optimizations for debugging:
-
-        [nsound-A.B.C]$ CXXFLAGS=-g scons
-
-        To compile with optimizations:
-
-        [nsound-A.B.C]$ CXXFLAGS="-fno-strict-aliasing -fwrapv -O2" scons
-
-
-How to build the Nsound package on windows:
-
-    Please read _WINDOWS_README.txt.
-
-
-How to build the Python Nsound package on Linux or Mac:
-
-    1) Uncompress the package:
-
-        [~]$ tar xfz nsound-A.B.C.tar.gz
-
-    2) Execute Scons to generate setup.py
-
-        [~]$ cd nsound-A.B.C
-        [nsound-A.B.C]$ scons setup.py
-
-    3) Execute the Python disttools builder
-
-        [nsound-A.B.C]$ sudo python setup.py install
+On Windows, run .\setup-windows.ps1 from a PowerShell window first, it
+installs Bazel and the Visual Studio C++ Build Tools, and turns on Developer
+Mode and long paths, which the Python tests need for their symlinks and deep
+paths.

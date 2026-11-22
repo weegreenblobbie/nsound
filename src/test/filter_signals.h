@@ -6,6 +6,12 @@
 //-----------------------------------------------------------------------------
 #pragma once
 
+#include <Nsound/Nsound.h>
+
+#ifdef NSOUND_C_PYLAB
+    #include "plot_check.h"
+#endif
+
 #include <Nsound/AudioStream.h>
 #include <Nsound/Buffer.h>
 #include <Nsound/Filter.h>
@@ -151,7 +157,7 @@ check_two_cutoff_overloads(
 }
 
 //! Checks the Filter base methods: the frequency axis, phase response,
-//! plot() without matplotlib and deleting through a Filter pointer.
+//! plot() and deleting through a Filter pointer.
 template <class F, class... Args>
 void
 check_filter_base(Nsound::float64 sample_rate, Args... args)
@@ -176,12 +182,41 @@ check_filter_base(Nsound::float64 sample_rate, Args... args)
         if(std::isnan(phase[i])) FAIL("phase response is NaN at " << i);
     }
 
-    CHECK_NOTHROW(f.plot());
-    // Filters with a cutoff also have plot(show_fc, show_phase).
-    if constexpr(requires { f.plot(true, true); })
+    #ifdef NSOUND_C_PYLAB
     {
-        CHECK_NOTHROW(f.plot(true, true));
+        using namespace plot_check;
+
+        // The frequency response in dB against the frequency axis.
+        f.plot();
+
+        auto axes = figure_axes();
+
+        REQUIRE(axes.size() == 1);
+        REQUIRE_FALSE(lines(axes[0]).empty());
+
+        check_data(xdata(lines(axes[0])[0]), f.getFrequencyAxis());
+        check_data(ydata(lines(axes[0])[0]), f.getFrequencyResponse().getdB());
+
+        // Most filters also have plot(show_fc, show_phase): a title on the
+        // frequency response and the phase response below.
+        if constexpr(requires { f.plot(true, true); })
+        {
+            f.plot(true, true);
+
+            axes = figure_axes();
+
+            REQUIRE(axes.size() == 2);
+
+            CHECK_FALSE(text(axes[0].attr("title")).empty());
+
+            check_data(ydata(lines(axes[1])[0]), f.getPhaseResponse().getdB());
+        }
+
+        pyplot().attr("close")("all");
     }
+    #else
+        CHECK_NOTHROW(f.plot());
+    #endif
 
     // In real time mode a filter keeps its state between calls, so it can't
     // filter several channels.

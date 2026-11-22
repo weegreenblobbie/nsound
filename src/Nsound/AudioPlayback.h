@@ -132,10 +132,8 @@ class AudioPlayback
     void
     shutdown();
 
-    #ifndef SWIG
     friend void operator>>(const AudioStream & lhs, AudioPlayback & rhs);
     friend void operator>>(const Buffer & lhs, AudioPlayback & rhs);
-    #endif
 
     private:
 
