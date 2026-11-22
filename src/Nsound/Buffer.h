@@ -30,8 +30,7 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_BUFFER_H_
-#define _NSOUND_BUFFER_H_
+#pragma once
 
 #include <Nsound/Nsound.h>
 #include <Nsound/BufferSelection.h>
@@ -123,9 +122,6 @@ class Buffer
 
     template <class T>
     Buffer(std::initializer_list<T> c);
-
-    //! Destroys the Buffer.
-    ~Buffer();
 
     //! Copy constructor, must be used in Python to copy Buffers.
     //
@@ -2079,4 +2075,3 @@ operator<<(std::ostream & out, const Buffer & rhs);
 } // namespace
 
 // :mode=c++: jEdit modeline
-#endif

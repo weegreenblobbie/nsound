@@ -31,8 +31,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef _NSOUND_TEST_H_
-#define _NSOUND_TEST_H_
+#pragma once
 
 #define TEST_HEADER2(line) \
     THIS_FILE << ":"; cout.width(4); cout << line \
@@ -51,4 +50,3 @@
     << ": ***Error!  "; cerr.width(0); cout
 
 
-#endif

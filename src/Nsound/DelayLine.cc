@@ -45,8 +45,7 @@ DelayLine(float64 sample_rate, float64 max_delay_in_seconds)
     delay_time_(max_delay_in_seconds),
     buffer_(
         static_cast<uint64>(sample_rate * max_delay_in_seconds + 1),
-        0.0),
-    wr_idx_(0)
+        0.0)
 {
     M_ASSERT_VALUE(sample_rate, >, 0.0);
     M_ASSERT_VALUE(max_delay_in_seconds, >, 0.0);
@@ -77,8 +76,13 @@ float64
 DelayLine::
 delay(float64 x, float64 delay_time)
 {
+    // Read before writing x, so the sample delay_time ago isn't moved on a
+    // sample by x.
+    float64 y = read(delay_time);
+
     write(x);
-    return read(delay_time);
+
+    return y;
 }
 
 
@@ -101,7 +105,11 @@ read()
         "delay time exceeds maximum ("
         << delay_time_ << " > " << max_delay_time_ << ")");
 
+    // The sample offset writes ago, at least the last one written; 0 would be
+    // the oldest.
     uint32 offset = static_cast<uint32>(sample_rate_ * delay_time_ + 0.5);
+
+    if(offset < 1) offset = 1;
 
     if(offset > wr_idx_)
     {

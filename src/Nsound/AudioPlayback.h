@@ -30,8 +30,7 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_AUDIO_PLAYBACK_H_
-#define _NSOUND_AUDIO_PLAYBACK_H_
+#pragma once
 
 #include <Nsound/Nsound.h>
 #include <Nsound/AudioBackend.h>
@@ -211,4 +210,3 @@ std::vector< AudioBackendType > getBackendTypes();
 } // namespace Nsound
 
 // :mode=c++: jEdit modeline
-#endif

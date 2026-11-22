@@ -56,62 +56,12 @@ Stretcher(
     const float64 & window_size_seconds,
     const float64 & max_delta_window)
     :
-    frames_(nullptr),
-    sample_rate_(sample_rate),
-    window_(nullptr),
-    window_length_(0),
-    max_delta_(0),
-    show_progress_(false)
+    sample_rate_(sample_rate)
 {
-    frames_ = new Buffer(1024);
-    window_ = new Buffer(1024);
-
     Sine sin(sample_rate);
-    *window_ = sin.drawWindowHanning(window_size_seconds);
-    window_length_ = window_->getLength();
+    window_ = sin.drawWindowHanning(window_size_seconds);
+    window_length_ = window_.getLength();
     max_delta_ = uint32(float64(window_length_) * max_delta_window);
-}
-
-//-----------------------------------------------------------------------------
-Stretcher::
-Stretcher(const Stretcher & copy)
-    :
-    frames_(nullptr),
-    sample_rate_(copy.sample_rate_),
-    window_(nullptr),
-    window_length_(copy.window_length_),
-    max_delta_(copy.max_delta_),
-    show_progress_(copy.show_progress_)
-{
-    frames_ = new Buffer(1024);
-    window_ = new Buffer(window_length_);
-
-    *this = copy;
-}
-
-//-----------------------------------------------------------------------------
-Stretcher::
-~Stretcher()
-{
-    delete frames_;
-    delete window_;
-}
-
-//-----------------------------------------------------------------------------
-Stretcher &
-Stretcher::
-operator=(const Stretcher & rhs)
-{
-    if(this == & rhs) return *this;
-
-    sample_rate_   = rhs.sample_rate_;
-    window_length_ = rhs.window_length_;
-    max_delta_     = rhs.max_delta_;
-    *frames_       = *rhs.frames_;
-    *window_       = *rhs.window_;
-    show_progress_ = rhs.show_progress_;
-
-    return *this;
 }
 
 void
@@ -128,6 +78,17 @@ void
 Stretcher::
 analyize(const Buffer & input, const Buffer & factor)
 {
+    // The frames step through the input by window / 2 / factor until a window
+    // no longer fits, so both have to make progress.
+    M_ASSERT_MSG(
+        input.getLength() > window_length_,
+        "The input (" << input.getLength() << " samples) must be longer than "
+        "the window (" << window_length_ << " samples)!");
+
+    M_ASSERT_MSG(
+        factor.getLength() > 0 && factor.getAbs().getMin() > 0.0,
+        "The factors must not be 0!");
+
     // Always calculate time shift.
 
     Buffer::const_circular_iterator ifactor = factor.cbegin();
@@ -136,12 +97,12 @@ analyize(const Buffer & input, const Buffer & factor)
 
     uint32 input_length = input.getLength();
 
-    *frames_ = Buffer(256);
+    frames_ = Buffer(256);
 
     uint32 i = 0;
     while(i < input_length - window_length_)
     {
-        *frames_ << i;
+        frames_ << i;
         i += tau;
 
         ifactor += tau;
@@ -149,7 +110,7 @@ analyize(const Buffer & input, const Buffer & factor)
         tau = static_cast<uint32>(window_length_ / 2.0 / ::fabs(*ifactor));
     }
 
-    uint32 n_frames = frames_->getLength();
+    uint32 n_frames = frames_.getLength();
 
     uint32 mod_frames = n_frames / 100;
 
@@ -190,10 +151,12 @@ analyize(const Buffer & input, const Buffer & factor)
             fflush(stdout);
         }
 
-        (*frames_)[j] = searchForBestMatch(
+        // WSOLA: frame j + 1 is the candidate near its own position that
+        // best continues frame j, half a window on from it.
+        frames_[j + 1] = searchForBestMatch(
             input,
-            uint32((*frames_)[j]),
-            uint32((*frames_)[j+1]));
+            uint32(frames_[j]) + window_length_ / 2,
+            uint32(frames_[j + 1]));
     }
 
     if(show_progress_)
@@ -311,13 +274,13 @@ overlapAdd(const Buffer & input) const
     uint32 half_length = window_length_ / 2;
 
     Buffer window_start = sin.drawLine(half_window_seconds, 1.0, 1.0)
-                       << window_->subbuffer(half_length, half_length);
+                       << window_.subbuffer(half_length, half_length);
 
     Buffer window_finish = window_start.getReverse();
 
-    Buffer output = input.subbuffer(0, window_length_) * (*window_);
+    Buffer output = input.subbuffer(0, window_length_) * window_;
 
-    uint32 n_frames = frames_->getLength();
+    uint32 n_frames = frames_.getLength();
 
     uint32 mod_frames = n_frames / 100;
 
@@ -338,10 +301,10 @@ overlapAdd(const Buffer & input) const
             fflush(stdout);
         }
 
-        uint32 frame = uint32((*frames_)[i]);
+        uint32 frame = uint32(frames_[i]);
 
         Buffer next_window = input.subbuffer(frame, window_length_)
-                           * (*window_);
+                           * window_;
 
         // overlap & add
         output.add(next_window, i * half_length);

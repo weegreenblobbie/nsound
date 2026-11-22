@@ -52,24 +52,9 @@ FilterBandPassVocoder(
     :
     Filter(sample_rate),
     frequency_low_(frequency_low),
-    frequency_high_(frequency_high),
-    omega2_(0.0),
-    f_(0.0),
-    att_(0.0),
-    low1_(0.0),
-    low2_(0.0),
-    mid1_(0.0),
-    mid2_(0.0),
-    high1_(0.0),
-    high2_(0.0)
+    frequency_high_(frequency_high)
 {
     reset();
-}
-
-//-----------------------------------------------------------------------------
-FilterBandPassVocoder::
-~FilterBandPassVocoder()
-{
 }
 
 AudioStream
@@ -94,6 +79,11 @@ filter(
     const Buffer & frequencies_Hz_high)
 {
     uint32 n_channels = x.getNChannels();
+
+    if(is_realtime_ && n_channels > 1)
+    {
+        M_THROW("In real-time mode, a filter per audio channel must be used!");
+    }
 
     AudioStream y(x.getSampleRate(), n_channels);
 
@@ -129,6 +119,8 @@ filter(
     const Buffer & frequencies_Hz_low,
     const Buffer & frequencies_Hz_high)
 {
+    if(!is_realtime_) reset();
+
     Buffer::const_circular_iterator low  = frequencies_Hz_low.cbegin();
     Buffer::const_circular_iterator high = frequencies_Hz_high.cbegin();
 

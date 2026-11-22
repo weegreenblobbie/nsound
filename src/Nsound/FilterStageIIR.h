@@ -30,12 +30,12 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_FILTER_STAGE_IIR_H_
-#define _NSOUND_FILTER_STAGE_IIR_H_
+#pragma once
 
 #include <Nsound/Filter.h>
 
 #include <set>
+#include <vector>
 
 namespace Nsound
 {
@@ -65,8 +65,6 @@ class FilterStageIIR : public Filter
 
     FilterStageIIR(const FilterStageIIR & copy);
 
-    virtual ~FilterStageIIR();
-
     AudioStream
     filter(const AudioStream & x);
 
@@ -86,10 +84,10 @@ class FilterStageIIR : public Filter
     filter(const Buffer & x, const Buffer & frequencies);
 
     float64
-    filter(const float64 & x);
+    filter(const float64 & x) override;
 
     float64
-    filter(const float64 & x, const float64 & frequency);
+    filter(const float64 & x, const float64 & frequency) override;
 
     void
     makeKernel(const float64 & frequency);
@@ -98,9 +96,13 @@ class FilterStageIIR : public Filter
     operator=(const FilterStageIIR & rhs);
 
     void
-    reset();
+    reset() override;
 
     protected:
+
+    //! (Re)allocates the x and y histories, n_poles_ + 1 samples each.
+    void
+    allocateHistory_();
 
     void
     makeIIRKernelHelper(
@@ -114,16 +116,17 @@ class FilterStageIIR : public Filter
     float64 frequency_;
     float64 percent_ripple_;
 
-    float64 * a_;
-    float64 * b_;
+    // The current kernel, in the cache.
+    const float64 * a_ = nullptr;
+    const float64 * b_ = nullptr;
 
-    float64 * x_history_;
-    float64 * x_ptr_;
-    float64 * x_end_ptr_;
+    std::vector<float64> x_history_;
+    float64 * x_ptr_ = nullptr;
+    float64 * x_end_ptr_ = nullptr;
 
-    float64 * y_history_;
-    float64 * y_ptr_;
-    float64 * y_end_ptr_;
+    std::vector<float64> y_history_;
+    float64 * y_ptr_ = nullptr;
+    float64 * y_end_ptr_ = nullptr;
 
     #ifndef SWIG
     //! A class to store calculated kernels.
@@ -133,8 +136,8 @@ class FilterStageIIR : public Filter
 
         bool operator<(const Kernel & rhs) const;
 
-        float64 * b_;
-        float64 * a_;
+        std::vector<float64> b_;
+        std::vector<float64> a_;
 
         uint32 frequency_;
     };
@@ -149,4 +152,3 @@ class FilterStageIIR : public Filter
 
 // :mode=c++: jEdit modeline
 
-#endif

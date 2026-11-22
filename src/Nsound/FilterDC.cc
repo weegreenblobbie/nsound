@@ -36,9 +36,7 @@ using namespace Nsound;
 FilterDC::
 FilterDC(const float64 & feedback_gain)
     :
-    feedback_gain_(feedback_gain),
-    last_input_(0.0),
-    last_output_(0.0)
+    feedback_gain_(feedback_gain)
 {
 }
 
@@ -50,9 +48,12 @@ filter(const AudioStream & x)
 
     AudioStream y(x.getSampleRate(), n_channels);
 
+    // Each channel starts from this filter's state, so one channel doesn't
+    // carry on from the last sample of the one before.
     for(uint32 channel = 0; channel < n_channels; ++channel)
     {
-        y[channel] = filter(x[channel]);
+        FilterDC f(*this);
+        y[channel] = f.filter(x[channel]);
     }
 
     return y;

@@ -51,39 +51,11 @@ FilterAllPass(
     const float64 & gain)
     :
     Filter(sample_rate),
-    x_delay_(nullptr),
-    y_delay_(nullptr),
-    gain_(gain),
-    y_history_(0.0)
+    x_delay_(sample_rate, max_delay_time_seconds),
+    y_delay_(sample_rate, max_delay_time_seconds),
+    gain_(gain)
 {
-    x_delay_ = new FilterDelay(sample_rate_, max_delay_time_seconds);
-    y_delay_ = new FilterDelay(sample_rate_, max_delay_time_seconds);
-
     FilterAllPass::reset();
-}
-
-//-----------------------------------------------------------------------------
-FilterAllPass::
-FilterAllPass(const FilterAllPass & copy)
-    :
-    Filter(copy.sample_rate_),
-    x_delay_(nullptr),
-    y_delay_(nullptr),
-    gain_(copy.gain_),
-    y_history_(0.0)
-{
-    x_delay_ = new FilterDelay(*copy.x_delay_);
-    y_delay_ = new FilterDelay(*copy.y_delay_);
-
-    *this = copy;
-}
-
-//-----------------------------------------------------------------------------
-FilterAllPass::
-~FilterAllPass()
-{
-    delete x_delay_;
-    delete y_delay_;
 }
 
 AudioStream
@@ -132,9 +104,10 @@ float64
 FilterAllPass::
 filter(const float64 & x)
 {
-    float64 y = gain_ * x + x_delay_->filter(x)
-              - gain_ * y_delay_->filter(y_history_);
+    float64 y = gain_ * x + x_delay_.filter(x_history_)
+              - gain_ * y_delay_.filter(y_history_);
 
+    x_history_ = x;
     y_history_ = y;
 
     return y;
@@ -144,31 +117,13 @@ float64
 FilterAllPass::
 filter(const float64 & x, const float64 & delay)
 {
-    float64 y = gain_ * x + x_delay_->filter(x, delay)
-              - gain_ * y_delay_->filter(y_history_, delay);
+    float64 y = gain_ * x + x_delay_.filter(x_history_, delay)
+              - gain_ * y_delay_.filter(y_history_, delay);
 
+    x_history_ = x;
     y_history_ = y;
 
     return y;
-}
-
-//-----------------------------------------------------------------------------
-FilterAllPass &
-FilterAllPass::
-operator=(const FilterAllPass & rhs)
-{
-    if(this == &rhs)
-    {
-        return *this;
-    }
-
-    *x_delay_ = *rhs.x_delay_;
-    *y_delay_ = *rhs.y_delay_;
-
-    gain_ = rhs.gain_;
-    y_history_ = rhs.y_history_;
-
-    return *this;
 }
 
 void
@@ -205,7 +160,8 @@ void
 FilterAllPass::
 reset()
 {
-    x_delay_->reset();
-    y_delay_->reset();
+    x_delay_.reset();
+    y_delay_.reset();
+    x_history_ = 0.0;
     y_history_ = 0.0;
 }

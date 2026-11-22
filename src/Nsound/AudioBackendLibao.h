@@ -30,8 +30,7 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_AUDIO_BACKEND_LIBAO_H_
-#define _NSOUND_AUDIO_BACKEND_LIBAO_H_
+#pragma once
 
 #include <Nsound/Nsound.h>
 #include <Nsound/AudioBackend.h>
@@ -56,25 +55,25 @@ class AudioBackendLibao : public AudioBackend
         uint32 channels        = 1,
         uint32 bits_per_sample = 16);
 
-    ~AudioBackendLibao();
+    ~AudioBackendLibao() override;
 
     AudioBackendType
-    getBackendType();
+    getBackendType() override;
 
     std::string
-    getError();
+    getError() override;
 
     std::string
-    getInfo();
+    getInfo() override;
 
     void
-    initialize();
+    initialize() override;
 
     void
-    play(void * data, uint32 n_bytes);
+    play(void * data, uint32 n_bytes) override;
 
     void
-    scanDevices(AudioPlayback & pb, const AudioStream & test_clip);
+    scanDevices(AudioPlayback & pb, const AudioStream & test_clip) override;
 
     //! Set libao options.
     //
@@ -100,10 +99,10 @@ class AudioBackendLibao : public AudioBackend
     //! documentation for the options
     //! <a href="http://xiph.org/ao/doc/drivers.html">here</a>.
     void
-    setOption(const std::string & key, const std::string & value);
+    setOption(const std::string & key, const std::string & value) override;
 
     void
-    shutdown();
+    shutdown() override;
 
     private:
 
@@ -128,4 +127,3 @@ class AudioBackendLibao : public AudioBackend
 } // namespace Nsound
 
 // :mode=c++: jEdit modeline
-#endif

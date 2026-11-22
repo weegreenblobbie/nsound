@@ -35,8 +35,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef _NSOUND_ORGAN_PIPE_H_
-#define _NSOUND_ORGAN_PIPE_H_
+#pragma once
 
 #include <Nsound/Instrument.h>
 
@@ -63,14 +62,11 @@ class OrganPipe : public Instrument
     //! Creates an OrganPipe
     OrganPipe(const float64 & sample_rate);
 
-    //! Destructor
-    ~OrganPipe();
-
     //! Plays a demo for this instrument.
-    AudioStream play();
+    AudioStream play() override;
 
     //! Plays a static note for this instrument.
-    AudioStream play(const float64 & duration, const float64 & frequency);
+    AudioStream play(const float64 & duration, const float64 & frequency) override;
 
     //! Static play method.
     AudioStream play(
@@ -79,7 +75,7 @@ class OrganPipe : public Instrument
         const float64 & pan);
 
     //! Nsound::OrganPipe information.
-    std::string getInfo()
+    std::string getInfo() const override
     {
         return
             "Nsound::OrganPipe by Nick Hilton on 2009-10-25\n"
@@ -92,4 +88,3 @@ class OrganPipe : public Instrument
 };
 
 // :mode=c++: jEdit modeline
-#endif

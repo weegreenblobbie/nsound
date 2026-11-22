@@ -57,61 +57,10 @@ Kernel(uint32 b_length, uint32 a_length,
     f2_(f2),
     f3_(f3),
     f4_(f4),
-    b_(nullptr),
-    a_(nullptr)
+    // The coefficients start at 0.
+    b_(b_length, 0.0),
+    a_(a_length, 0.0)
 {
-    b_ = new float64 [b_length];
-    a_ = new float64 [a_length];
-}
-
-//-----------------------------------------------------------------------------
-Kernel::
-Kernel(const Kernel & copy)
-    :
-    b_length_(copy.b_length_),
-    a_length_(copy.a_length_),
-    f1_(copy.f1_),
-    f2_(copy.f2_),
-    f3_(copy.f3_),
-    f4_(copy.f4_),
-    b_(nullptr),
-    a_(nullptr)
-{
-    b_ = new float64 [b_length_];
-    a_ = new float64 [a_length_];
-
-    *this = copy;
-}
-
-//-----------------------------------------------------------------------------
-Kernel::
-~Kernel()
-{
-    delete [] b_;
-    delete [] a_;
-}
-
-//-----------------------------------------------------------------------------
-Kernel &
-Kernel::
-operator=(const Kernel & rhs)
-{
-    if(this == & rhs)
-    {
-        return *this;
-    }
-
-    setLength(rhs.b_length_, rhs.a_length_);
-
-    memcpy(b_, rhs.b_, sizeof(float64) * b_length_);
-    memcpy(a_, rhs.a_, sizeof(float64) * a_length_);
-
-    f1_ = rhs.f1_;
-    f2_ = rhs.f2_;
-    f3_ = rhs.f3_;
-    f4_ = rhs.f4_;
-
-    return *this;
 }
 
 boolean
@@ -210,7 +159,7 @@ void
 Kernel::
 setA(const float64 * a)
 {
-    memcpy(a_, a, sizeof(float64) * a_length_);
+    memcpy(a_.data(), a, sizeof(float64) * a_length_);
 }
 
 void
@@ -232,7 +181,7 @@ void
 Kernel::
 setB(const float64 * b)
 {
-    memcpy(b_, b, sizeof(float64) * b_length_);
+    memcpy(b_.data(), b, sizeof(float64) * b_length_);
 }
 
 void
@@ -257,15 +206,13 @@ setLength(uint32 b_length, uint32 a_length)
     if(b_length_ != b_length)
     {
         b_length_ = b_length;
-        delete [] b_;
-        b_ = new float64 [b_length_];
+        b_.assign(b_length_, 0.0);
     }
 
     if(a_length_ != a_length)
     {
         a_length_ = a_length;
-        delete [] a_;
-        a_ = new float64 [a_length_];
+        a_.assign(a_length_, 0.0);
     }
 
 }

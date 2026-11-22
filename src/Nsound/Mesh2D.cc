@@ -60,12 +60,7 @@ Mesh2D(
     leak_gain_(leak_gain),
     tau_(tau),
     delta_(delta),
-    gamma_(gamma),
-    mesh_(nullptr),
-    center_(nullptr),
-    dump_mesh_(false),
-    dirname_("."),
-    prefix_("mesh")
+    gamma_(gamma)
 {
     // Range check
     if(tau_ < 0.0)
@@ -77,46 +72,30 @@ Mesh2D(
         tau_ = 0.5;
     }
 
+    M_ASSERT_VALUE(X_, >, 0);
+    M_ASSERT_VALUE(Y_, >, 0);
+
     allocMemory();
 }
 
 //-----------------------------------------------------------------------------
 Mesh2D::
 Mesh2D(const Mesh2D & copy)
-    :
-    sample_rate_(0.0),
-    X_(0),
-    Y_(0),
-    leak_gain_(0.0),
-    tau_(0.0),
-    delta_(0.0),
-    gamma_(0.0),
-    mesh_(nullptr),
-    center_(nullptr),
-    dump_mesh_(false),
-    dirname_("."),
-    prefix_("mesh")
 {
     *this = copy;
-}
-
-//-----------------------------------------------------------------------------
-Mesh2D::
-~Mesh2D()
-{
-    freeMemory();
 }
 
 void
 Mesh2D::
 allocMemory()
 {
-    mesh_ = new MeshJunction * [X_ * Y_];
+    // Sized once, the neighbors point into it.
+    mesh_.reserve(X_ * Y_);
 
     // Allocate new MeshJunctions
     for(uint32 i = 0; i < X_ * Y_; ++i)
     {
-        mesh_[i] = new MeshJunction(leak_gain_, tau_, delta_, gamma_);
+        mesh_.emplace_back(leak_gain_, tau_, delta_, gamma_);
     }
 
     // Set neighbors.
@@ -160,7 +139,7 @@ clear()
 {
     for(uint32 i = 0; i < X_ * Y_; ++i)
     {
-        mesh_[i]->clear();
+        mesh_[i].clear();
     }
 }
 
@@ -168,13 +147,7 @@ void
 Mesh2D::
 freeMemory()
 {
-    // delete junctions
-    for(uint32 i = 0; i < X_ * Y_; ++i)
-    {
-        delete mesh_[i];
-    }
-
-    delete [] mesh_;
+    mesh_.clear();
 }
 
 float64
@@ -185,7 +158,7 @@ getEnergy() const
 
     for(uint32 i = 0; i < X_ * Y_; ++i)
     {
-        float64 v = mesh_[i]->getVelocity();
+        float64 v = mesh_[i].getVelocity();
         energy +=  v * v;
     }
 
@@ -216,7 +189,7 @@ mesh(uint32 x, uint32 y)
     // || 0,0 || 1,0 || 2,0 ||
     // -----------------------
 
-    return mesh_[y * X_ + x];
+    return &mesh_[y * X_ + x];
 }
 
 //-----------------------------------------------------------------------------
@@ -240,6 +213,17 @@ operator=(const Mesh2D & rhs)
     Y_ = rhs.Y_;
 
     allocMemory();
+
+    // The junctions' state, their neighbors are this mesh's.
+    for(uint32 i = 0; i < X_ * Y_; ++i)
+    {
+        mesh_[i] = rhs.mesh_[i];
+    }
+
+    sample_rate_ = rhs.sample_rate_;
+    dump_mesh_   = rhs.dump_mesh_;
+    dirname_     = rhs.dirname_;
+    prefix_      = rhs.prefix_;
 
     return *this;
 }
@@ -388,18 +372,15 @@ tick(
     const float64 & y_pos,
     const float64 & velocity)
 {
-    float64 x_max = static_cast<float64>(X_);
-    float64 y_max = static_cast<float64>(Y_);
 
-    float64 x_strike = x_pos * x_max;
-    float64 y_strike = y_pos * y_max;
+    // The mesh spans 0 to 0.5 (see dx below).
+    float64 x_strike = x_pos * 0.5;
+    float64 y_strike = y_pos * 0.5;
 
     if(velocity > 0.0)
     {
         float64 dx = 0.5 / (X_ - 1);
 
-        x_strike = 0.5 / 3.0;
-        y_strike = 0.5 / 3.0;
 
         for(uint32 x = 2; x < X_; ++x)
         {
@@ -423,12 +404,12 @@ tick(
 
     for(uint32 i = 0; i < X_ * Y_; ++i)
     {
-        mesh_[i]->saveState();
+        mesh_[i].saveState();
     }
 
     for(uint32 i = 0; i < X_ * Y_; ++i)
     {
-        mesh_[i]->updateVelocity();
+        mesh_[i].updateVelocity();
     }
 
     return center_->getVelocity();

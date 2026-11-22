@@ -30,12 +30,37 @@
 #include <Nsound/Generator.h>
 #include <Nsound/Triangle.h>
 
+#include <cmath>
 #include <iostream>
 
 using namespace Nsound;
 
 using std::cout;
 using std::endl;
+
+//-----------------------------------------------------------------------------
+//! Appends a line from y1 to y2 between the fractions of a wavelength from
+//! and to.
+//
+//! Both ends are rounded to whole samples, so lines that meet add up to
+//! exactly one wavelength.  A line with no samples adds nothing.
+static
+void
+draw_segment(
+    Buffer & waveform,
+    const Generator & line,
+    const float64 & sample_rate,
+    const float64 & from,
+    const float64 & to,
+    const float64 & y1,
+    const float64 & y2)
+{
+    float64 n = std::round(to * sample_rate) - std::round(from * sample_rate);
+
+    if(n == 0.0) return;
+
+    waveform << line.drawLine(n / sample_rate, y1, y2);
+}
 
 Triangle::
 Triangle(const float64 & sample_rate) : Generator(sample_rate)
@@ -74,17 +99,11 @@ Triangle(
 
     Buffer waveform;
 
-    if(attack_time > 0)
-    {
-        waveform <<  drawLine(attack_time, 0, 1.0);
-    }
+    float64 release_start = 1.0 - release_time;
 
-    waveform << drawLine(1.0 - attack_time - release_time, 1.0, -1.0);
-
-    if(release_time > 0)
-    {
-        waveform << drawLine(release_time, -1.0, 0.0);
-    }
+    draw_segment(waveform, *this, sample_rate, 0.0, attack_time, 0.0, 1.0);
+    draw_segment(waveform, *this, sample_rate, attack_time, release_start, 1.0, -1.0);
+    draw_segment(waveform, *this, sample_rate, release_start, 1.0, -1.0, 0.0);
 
     ctor(sample_rate, waveform);
 }
@@ -127,33 +146,19 @@ drawTriangle(
     Generator line(sample_rate);
 
     // Line 1
-    waveform << line.drawLine(percent_lambda_1,
-                                0.0,
-                                0.0);
+    draw_segment(waveform, line, sample_rate, 0.0, percent_lambda_1, 0.0, 0.0);
     // Line 2
-    waveform << line.drawLine(percent_lambda_2 - percent_lambda_1,
-                                0.0,
-                                amplitude_2);
+    draw_segment(waveform, line, sample_rate, percent_lambda_1, percent_lambda_2, 0.0, amplitude_2);
     // Line 3
-    waveform << line.drawLine(percent_lambda_3 - percent_lambda_2,
-                                amplitude_2,
-                                0.0);
+    draw_segment(waveform, line, sample_rate, percent_lambda_2, percent_lambda_3, amplitude_2, 0.0);
     // Line 4
-    waveform << line.drawLine(percent_lambda_4 - percent_lambda_3,
-                                0.0,
-                                0.0);
+    draw_segment(waveform, line, sample_rate, percent_lambda_3, percent_lambda_4, 0.0, 0.0);
     // Line 5
-    waveform << line.drawLine(percent_lambda_5 - percent_lambda_4,
-                                0.0,
-                                amplitude_5);
+    draw_segment(waveform, line, sample_rate, percent_lambda_4, percent_lambda_5, 0.0, amplitude_5);
     // Line 6
-    waveform << line.drawLine(percent_lambda_6 - percent_lambda_5,
-                                amplitude_5,
-                                0.0);
+    draw_segment(waveform, line, sample_rate, percent_lambda_5, percent_lambda_6, amplitude_5, 0.0);
     // Line 7
-    waveform << line.drawLine(1.0 - percent_lambda_6,
-                                0.0,
-                                0.0);
+    draw_segment(waveform, line, sample_rate, percent_lambda_6, 1.0, 0.0, 0.0);
 
     return waveform;
 }

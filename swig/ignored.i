@@ -45,24 +45,13 @@
 %ignore Nsound::CircularBuffer::operator=;
 %ignore Nsound::EnvelopeAdsr::operator=;
 %ignore Nsound::FFTChunk::operator=;
-%ignore Nsound::FilterAllPass::operator=;
-%ignore Nsound::FilterCombLowPassFeedback::operator=;
-%ignore Nsound::FilterDelay::operator=;
-%ignore Nsound::FilterFlanger::operator=;
 %ignore Nsound::FilterIIR::operator=;
-%ignore Nsound::FilterLeastSquaresFIR::operator=;
-%ignore Nsound::FilterMovingAverage::operator=;
-%ignore Nsound::FilterPhaser::operator=;
 %ignore Nsound::FilterStageIIR::operator=;
 %ignore Nsound::Generator::operator=;
 %ignore Nsound::Granulator::operator=;
-%ignore Nsound::Hat::operator=;
 %ignore Nsound::Mesh2D::operator=;
 %ignore Nsound::Plotter::show;
-%ignore Nsound::ReverberationRoom::operator=;
 %ignore Nsound::RngTausworthe::operator=;
-%ignore Nsound::Spectrogram::operator=;
-%ignore Nsound::Stretcher::operator=;
 
 // Nsound.h macros for C++ error messages, they expand to stream expressions
 // (__FILE__ << ":" << ...), which newer SWIG turns into constants that don't

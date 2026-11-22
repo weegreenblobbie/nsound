@@ -30,6 +30,7 @@
 #include <Nsound/Buffer.h>
 #include <Nsound/FilterStageIIR.h>
 
+#include <algorithm>
 #include <cmath>
 #include <string.h>
 #include <iostream>
@@ -52,16 +53,7 @@ FilterStageIIR(
     type_(type),
     n_poles_(n_poles),
     frequency_(frequency),
-    percent_ripple_(percent_ripple),
-    a_(nullptr),
-    b_(nullptr),
-    x_history_(nullptr),
-    x_ptr_(nullptr),
-    x_end_ptr_(nullptr),
-    y_history_(nullptr),
-    y_ptr_(nullptr),
-    y_end_ptr_(nullptr),
-    kernel_cache_()
+    percent_ripple_(percent_ripple)
 {
     if(n_poles_ > 20)
     {
@@ -77,13 +69,7 @@ FilterStageIIR(
         ++n_poles_;
     }
 
-    x_history_ = new float64 [n_poles_ + 1];
-    x_ptr_     = x_history_;
-    x_end_ptr_ = x_history_ + n_poles_ + 1;
-
-    y_history_ = new float64 [n_poles_ + 1];
-    y_ptr_     = y_history_;
-    y_end_ptr_ = y_history_ + n_poles_ + 1;
+    allocateHistory_();
 
     reset();
 }
@@ -96,36 +82,23 @@ FilterStageIIR(const FilterStageIIR & copy)
     type_(copy.type_),
     n_poles_(copy.n_poles_),
     frequency_(copy.frequency_),
-    percent_ripple_(copy.percent_ripple_),
-    a_(nullptr),
-    b_(nullptr),
-    x_history_(nullptr),
-    x_ptr_(nullptr),
-    x_end_ptr_(nullptr),
-    y_history_(nullptr),
-    y_ptr_(nullptr),
-    y_end_ptr_(nullptr),
-    kernel_cache_()
+    percent_ripple_(copy.percent_ripple_)
 {
     *this = copy;
 }
 
 //-----------------------------------------------------------------------------
+void
 FilterStageIIR::
-~FilterStageIIR()
+allocateHistory_()
 {
-    delete [] x_history_;
-    delete [] y_history_;
+    x_history_.assign(n_poles_ + 1, 0.0);
+    x_ptr_     = x_history_.data();
+    x_end_ptr_ = x_history_.data() + x_history_.size();
 
-    FilterStageIIR::KernelCache::iterator itor = kernel_cache_.begin();
-    FilterStageIIR::KernelCache::iterator end = kernel_cache_.end();
-
-    while(itor != end)
-    {
-        delete [] itor->b_;
-        delete [] itor->a_;
-        ++itor;
-    }
+    y_history_.assign(n_poles_ + 1, 0.0);
+    y_ptr_     = y_history_.data();
+    y_end_ptr_ = y_history_.data() + y_history_.size();
 }
 
 AudioStream
@@ -203,49 +176,13 @@ operator=(const FilterStageIIR & rhs)
     frequency_      = rhs.frequency_;
     percent_ripple_ = rhs.percent_ripple_;
 
-    // Clear the kernal cache.
-    KernelCache::iterator itor = kernel_cache_.begin();
+    // Copy the kernel cache, reset() points b_ and a_ into this one.
+    kernel_cache_ = rhs.kernel_cache_;
 
-    while(itor != kernel_cache_.end())
+    // Setup history memory, the copy constructor has none yet.
+    if(n_poles_orig != rhs.n_poles_ || x_history_.empty())
     {
-        delete [] itor->b_;
-        delete [] itor->a_;
-        ++itor;
-    }
-
-    kernel_cache_.clear();
-
-    // Copy kernal cache.
-    itor = rhs.kernel_cache_.begin();
-    while(itor != rhs.kernel_cache_.end())
-    {
-        Kernel new_kernel(static_cast<uint32>(itor->frequency_));
-
-        // Allocate new kernel memory.
-        new_kernel.b_ = new float64 [n_poles_ + 1];
-        new_kernel.a_ = new float64 [n_poles_ + 1];
-
-        // Copy values.
-        memcpy(new_kernel.b_, itor->b_, sizeof(float64) * (n_poles_ + 1));
-        memcpy(new_kernel.a_, itor->a_, sizeof(float64) * (n_poles_ + 1));
-
-        // Insert into cache.
-        kernel_cache_.insert(new_kernel);
-    }
-
-    // Setup history memory.
-    if(n_poles_orig != rhs.n_poles_)
-    {
-        delete [] x_history_;
-        delete [] y_history_;
-
-        x_history_ = new float64 [n_poles_ + 1];
-        x_ptr_     = x_history_;
-        x_end_ptr_ = x_history_ + n_poles_ + 1;
-
-        y_history_ = new float64 [n_poles_ + 1];
-        y_ptr_     = y_history_;
-        y_end_ptr_ = y_history_ + n_poles_ + 1;
+        allocateHistory_();
     }
 
     reset();
@@ -257,11 +194,11 @@ void
 FilterStageIIR::
 reset()
 {
-    memset(x_history_, 0, sizeof(float64) * (n_poles_ + 1));
-    memset(y_history_, 0, sizeof(float64) * (n_poles_ + 1));
+    std::fill(x_history_.begin(), x_history_.end(), 0.0);
+    std::fill(y_history_.begin(), y_history_.end(), 0.0);
 
-    x_ptr_ = x_history_;
-    y_ptr_ = y_history_;
+    x_ptr_ = x_history_.data();
+    y_ptr_ = y_history_.data();
 
     makeKernel(frequency_);
 }
@@ -279,18 +216,18 @@ filter(const float64 & x)
     // Bounds check
     if(x_ptr_ >= x_end_ptr_)
     {
-        x_ptr_ = x_history_;
+        x_ptr_ = x_history_.data();
     }
 
     float64 y = 0.0;
     float64 * x_hist = x_ptr_;
-    for(float64 * b = b_; b != b_ + n_poles_ + 1; ++b)
+    for(const float64 * b = b_; b != b_ + n_poles_ + 1; ++b)
     {
         // When we enter this loop, x_hist is pointing at x[n + 1]
         --x_hist;
 
         // Bounds check
-        if(x_hist < x_history_)
+        if(x_hist < x_history_.data())
         {
             x_hist = x_end_ptr_ - 1;
         }
@@ -299,13 +236,13 @@ filter(const float64 & x)
     }
 
     float64 * y_hist = y_ptr_;
-    for(float64 * a = a_ + 1; a != a_ + n_poles_ + 1; ++a)
+    for(const float64 * a = a_ + 1; a != a_ + n_poles_ + 1; ++a)
     {
         // When we enter this loop, y_hist is pointing at y[n + 1]
         --y_hist;
 
         // Bounds check
-        if(y_hist < y_history_)
+        if(y_hist < y_history_.data())
         {
             y_hist = y_end_ptr_ - 1;
         }
@@ -323,7 +260,7 @@ filter(const float64 & x)
     // Bounds check
     if(y_ptr_ >= y_end_ptr_)
     {
-        y_ptr_ = y_history_;
+        y_ptr_ = y_history_.data();
     }
 
     return y;
@@ -351,51 +288,48 @@ makeKernel(const float64 & frequency)
 
     if(itor != kernel_cache_.end())
     {
-        b_ = itor->b_;
-        a_ = itor->a_;
+        b_ = itor->b_.data();
+        a_ = itor->a_.data();
 
         return;
     }
 
-    // Allocate new kernel.
-    new_kernel.b_ = new float64 [n_poles_ + 1];
-    new_kernel.a_ = new float64 [n_poles_ + 1];
-
-    b_ = new_kernel.b_;
-    a_ = new_kernel.a_;
+    // The new kernel, it starts at 0.
+    new_kernel.b_.assign(n_poles_ + 1, 0.0);
+    new_kernel.a_.assign(n_poles_ + 1, 0.0);
 
     // No kernel in cache, must make it.
 
     if(type_ == LOW_PASS && frequency < 1.0)
     {
         // create no pass filter
-        memset(new_kernel.b_, 0, sizeof(float64) * (n_poles_ + 1));
-        memset(new_kernel.a_, 0, sizeof(float64) * (n_poles_ + 1));
+        std::fill(new_kernel.b_.begin(), new_kernel.b_.end(), 0.0);
+        std::fill(new_kernel.a_.begin(), new_kernel.a_.end(), 0.0);
     }
 
     else if(type_ == LOW_PASS && frequency >= (sample_rate_ / 2.0))
     {
         // create all pass
-        memset(new_kernel.b_, 0, sizeof(float64) * (n_poles_ + 1));
-        memset(new_kernel.a_, 0, sizeof(float64) * (n_poles_ + 1));
+        std::fill(new_kernel.b_.begin(), new_kernel.b_.end(), 0.0);
+        std::fill(new_kernel.a_.begin(), new_kernel.a_.end(), 0.0);
 
-        b_[0] = 1.0;
+        new_kernel.b_[0] = 1.0;
     }
 
     else if(type_ == HIGH_PASS && frequency < 1.0)
     {
         // create all pass
-        memset(new_kernel.b_, 0, sizeof(float64) * (n_poles_ + 1));
-        memset(new_kernel.a_, 0, sizeof(float64) * (n_poles_ + 1));
+        std::fill(new_kernel.b_.begin(), new_kernel.b_.end(), 0.0);
+        std::fill(new_kernel.a_.begin(), new_kernel.a_.end(), 0.0);
 
-        b_[0] = 1.0;
+        new_kernel.b_[0] = 1.0;
     }
 
     else if(type_ == HIGH_PASS && frequency >= (sample_rate_ / 2.0))
     {
         // create no pass filter
-        memset(new_kernel.b_, 0, sizeof(float64) * (n_poles_ + 1));
-        memset(new_kernel.a_, 0, sizeof(float64) * (n_poles_ + 1));
+        std::fill(new_kernel.b_.begin(), new_kernel.b_.end(), 0.0);
+        std::fill(new_kernel.a_.begin(), new_kernel.a_.end(), 0.0);
     }
 
     else
@@ -461,12 +395,16 @@ makeKernel(const float64 & frequency)
             B[i] /= gain;
         }
 
-        memcpy(b_, B, sizeof(float64) * (n_poles_ + 1));
-        memcpy(a_, A, sizeof(float64) * (n_poles_ + 1));
+        std::copy(B, B + n_poles_ + 1, new_kernel.b_.begin());
+        std::copy(A, A + n_poles_ + 1, new_kernel.a_.begin());
     }
 
-    // Add the new kernel to the cache.
-    kernel_cache_.insert(new_kernel);
+    // Add the new kernel to the cache and point to it there.
+    KernelCache::const_iterator cached =
+        kernel_cache_.insert(std::move(new_kernel)).first;
+
+    b_ = cached->b_.data();
+    a_ = cached->a_.data();
 }
 
 void
@@ -596,8 +534,6 @@ FilterStageIIR::
 Kernel::
 Kernel(const uint32 & frequency)
     :
-    b_(nullptr),
-    a_(nullptr),
     frequency_(frequency)
 {
 }

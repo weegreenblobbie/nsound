@@ -30,10 +30,11 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_FILTER_DELAY_H_
-#define _NSOUND_FILTER_DELAY_H_
+#pragma once
 
 #include <Nsound/Filter.h>
+
+#include <vector>
 
 namespace Nsound
 {
@@ -51,10 +52,6 @@ class FilterDelay : public Filter
     FilterDelay(
         const float64 & sample_rate,
         const float64 & max_delay_time_seconds);
-
-    FilterDelay(const FilterDelay & copy);
-
-    ~FilterDelay();
 
     AudioStream
     filter(const AudioStream & x);
@@ -75,31 +72,26 @@ class FilterDelay : public Filter
     filter(const Buffer & x, const Buffer & delay_in_seconds);
 
     float64
-    filter(const float64 & x);
+    filter(const float64 & x) override;
 
     float64
-    filter(const float64 & x, const float64 & delay_in_seconds);
-
-    FilterDelay &
-    operator=(const FilterDelay & rhs);
+    filter(const float64 & x, const float64 & delay_in_seconds) override;
 
     void
-    reset();
+    reset() override;
 
     protected:
 
-    float64 * buffer_;
-    float64 * buffer_end_ptr_;
-    float64 * read_ptr_;
-    float64 * write_ptr_;
+    //! The delay line, a circular buffer.
+    std::vector<float64> buffer_;
+
+    //! Where the next sample is written.
+    uint32 write_index_ = 0;
 
     float64 delay_;
-
-    uint32 n_samples_;
 
 };
 
 };
 
 // :mode=c++:  jEdit modeline
-#endif

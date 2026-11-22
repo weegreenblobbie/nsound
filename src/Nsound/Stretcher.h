@@ -32,16 +32,15 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_STRETCHER_H_
-#define _NSOUND_STRETCHER_H_
+#pragma once
 
+#include <Nsound/Buffer.h>
 #include <Nsound/Nsound.h>
 
 namespace Nsound
 {
 
 class AudioStream;
-class Buffer;
 class FFTChunk;
 
 //-----------------------------------------------------------------------------
@@ -59,16 +58,6 @@ class Stretcher
         const float64 & sample_rate,
         const float64 & window_size_seconds = 0.08,
         const float64 & max_delta_window = 0.25);
-
-    //! Copy constructor.
-    Stretcher(const Stretcher & copy);
-
-    //! Destructor.
-    virtual ~Stretcher();
-
-    //! Assignment.
-    Stretcher &
-    operator=(const Stretcher & rhs);
 
     AudioStream
     pitchShift(const AudioStream & x, const float64 & factor);
@@ -114,17 +103,16 @@ class Stretcher
     Buffer
     overlapAdd(const Buffer & input) const;
 
-    Buffer * frames_;
+    Buffer   frames_;
     float64  sample_rate_;
-    Buffer * window_;
-    uint32   window_length_;
-    uint32   max_delta_;
-    boolean  show_progress_;
+    Buffer   window_;
+    uint32   window_length_ = 0;
+    uint32   max_delta_ = 0;
+    boolean  show_progress_ = false;
 
 };
 
 } // namespace
 
-#endif
 // :mode=c++: jEdit modeline
 

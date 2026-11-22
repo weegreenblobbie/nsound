@@ -31,8 +31,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef _NSOUND_INSTRUMENT_H_
-#define _NSOUND_INSTRUMENT_H_
+#pragma once
 
 #include <Nsound/Nsound.h>
 
@@ -69,7 +68,7 @@ class Instrument
     //! Returns information about who wrote this instrument and how to use it.
     virtual
     std::string
-    getInfo() = 0;
+    getInfo() const = 0;
 
     protected:
 
@@ -79,4 +78,3 @@ class Instrument
 };
 
 // :mode=c++: jEdit modeline
-#endif

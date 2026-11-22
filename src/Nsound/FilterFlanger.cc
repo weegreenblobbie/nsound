@@ -47,6 +47,17 @@ using std::cout;
 using std::endl;
 
 //-----------------------------------------------------------------------------
+//! The sweep, a second of a sine from 0 to 1.
+static
+Buffer
+sweep_waveform(const float64 & sample_rate)
+{
+    Sine sin(sample_rate);
+
+    return (1.0 + sin.generate(1.0, 1.0)) / 2.0;
+}
+
+//-----------------------------------------------------------------------------
 FilterFlanger::
 FilterFlanger(
     const float64 & sample_rate,
@@ -56,48 +67,11 @@ FilterFlanger(
     Filter(sample_rate),
     frequency_(frequency),
     max_delay_(max_delay_time_seconds),
-    delay_(nullptr),
-    gen_(nullptr)
+    delay_(sample_rate, max_delay_time_seconds),
+    gen_(sample_rate, sweep_waveform(sample_rate))
 {
     M_ASSERT_VALUE(frequency_, >, 0.0);
     M_ASSERT_VALUE(max_delay_, >, 0.0);
-
-    delay_ = new FilterDelay(sample_rate_, max_delay_);
-
-    Sine sin(sample_rate_);
-
-    Buffer waveform = (1.0 + sin.generate(1.0, 1.0)) / 2.0;
-
-    gen_ = new Generator(sample_rate_, waveform);
-}
-
-//-----------------------------------------------------------------------------
-FilterFlanger::
-FilterFlanger(const FilterFlanger & copy)
-    :
-    Filter(copy.sample_rate_),
-    frequency_(copy.frequency_),
-    max_delay_(copy.max_delay_),
-    delay_(nullptr),
-    gen_(nullptr)
-{
-    delay_ = new FilterDelay(sample_rate_, max_delay_);
-
-    Sine sin(sample_rate_);
-
-    Buffer waveform = (1.0 + sin.generate(1.0, 1.0)) / 2.0;
-
-    gen_ = new Generator(sample_rate_, waveform);
-
-    *this = copy;
-}
-
-//-----------------------------------------------------------------------------
-FilterFlanger::
-~FilterFlanger()
-{
-    delete delay_;
-    delete gen_;
 }
 
 AudioStream
@@ -123,6 +97,11 @@ filter(
 {
     uint32 n_channels = x.getNChannels();
 
+    if(is_realtime_ && n_channels > 1)
+    {
+        M_THROW("In real-time mode, a filter per audio channel must be used!");
+    }
+
     AudioStream y(x.getSampleRate(), n_channels);
 
     for(uint32 channel = 0; channel < n_channels; ++channel)
@@ -142,6 +121,11 @@ filter(
 {
     uint32 n_channels = x.getNChannels();
 
+    if(is_realtime_ && n_channels > 1)
+    {
+        M_THROW("In real-time mode, a filter per audio channel must be used!");
+    }
+
     AudioStream y(x.getSampleRate(), n_channels);
 
     for(uint32 channel = 0; channel < n_channels; ++channel)
@@ -156,7 +140,7 @@ Buffer
 FilterFlanger::
 filter(const Buffer & x)
 {
-    reset();
+    if(!is_realtime_) reset();
 
     Buffer y(x.getLength());
 
@@ -174,7 +158,7 @@ Buffer
 FilterFlanger::
 filter(const Buffer & x, const float64 & frequency)
 {
-    reset();
+    if(!is_realtime_) reset();
 
     Buffer y(x.getLength());
 
@@ -192,7 +176,7 @@ Buffer
 FilterFlanger::
 filter(const Buffer & x, const float64 & frequency, const float64 & delay)
 {
-    reset();
+    if(!is_realtime_) reset();
 
     Buffer y(x.getLength());
 
@@ -210,7 +194,7 @@ Buffer
 FilterFlanger::
 filter(const Buffer & x, const Buffer & frequency, const Buffer & delay)
 {
-    reset();
+    if(!is_realtime_) reset();
 
     Buffer y(x.getLength());
 
@@ -222,6 +206,8 @@ filter(const Buffer & x, const Buffer & frequency, const Buffer & delay)
     for(uint32 i = 0; i < x_samples; ++i)
     {
         y << filter(x[i], *f, *d);
+        ++f;
+        ++d;
     }
 
     return y;
@@ -247,32 +233,11 @@ float64
 FilterFlanger::
 filter(const float64 & x, const float64 & frequency, const float64 & delay)
 {
-    float64 f = gen_->generate(frequency);
+    float64 f = gen_.generate(frequency);
 
-    float64 y = delay_->filter(x, f*delay);
+    float64 y = delay_.filter(x, f*delay);
 
     return (y+x) / 2.0;
-}
-
-///////////////////////////////////////////////////////////////////////////
-FilterFlanger &
-FilterFlanger::
-operator=(const FilterFlanger & rhs)
-{
-    if(this == &rhs)
-    {
-        return *this;
-    }
-
-    sample_rate_ = rhs.sample_rate_;
-    frequency_   = rhs.frequency_;
-    max_delay_   = rhs.max_delay_;
-    *delay_      = *rhs.delay_;
-    *gen_        = *rhs.gen_;
-
-    reset();
-
-    return *this;
 }
 
 void
@@ -310,6 +275,6 @@ void
 FilterFlanger::
 reset()
 {
-    delay_->reset();
-    gen_->reset();
+    delay_.reset();
+    gen_.reset();
 }

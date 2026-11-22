@@ -30,8 +30,7 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_RNG_TAUSWORTHE_H_
-#define _NSOUND_RNG_TAUSWORTHE_H_
+#pragma once
 
 #include <Nsound/Nsound.h>
 #include <Nsound/RandomNumberGenerator.h>
@@ -51,7 +50,7 @@ class RngTausworthe : public RandomNumberGenerator
 
     //! Get a random number.
     uint32
-    get();
+    get() override;
 
     //! Get a random float64 between min & max.
     int32
@@ -59,7 +58,7 @@ class RngTausworthe : public RandomNumberGenerator
 
     //! Get a random float64 between min & max.
     float64
-    get(const Nsound::float64 & min, const Nsound::float64 & max);
+    get(const Nsound::float64 & min, const Nsound::float64 & max) override;
 
     //! assignment operator
     RngTausworthe &
@@ -67,7 +66,7 @@ class RngTausworthe : public RandomNumberGenerator
 
     //! Set the seed to use.
     void
-    setSeed(Nsound::uint32 seed);
+    setSeed(Nsound::uint32 seed) override;
 
     private:
 
@@ -78,6 +77,5 @@ class RngTausworthe : public RandomNumberGenerator
 
 } // namespace
 
-#endif
 
 // :mode=c++: jEdit modeline

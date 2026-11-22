@@ -31,8 +31,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef _NSOUND_COSINE_H_
-#define _NSOUND_COSINE_H_
+#pragma once
 
 #include <Nsound/Generator.h>
 
@@ -53,4 +52,3 @@ class Cosine : public Generator
 };// namespace Nsound
 
 // :mode=c++: jEdit modeline
-#endif

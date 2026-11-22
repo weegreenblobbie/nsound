@@ -33,8 +33,7 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_MESH_JUNCTION_H_
-#define _NSOUND_MESH_JUNCTION_H_
+#pragma once
 
 #include <Nsound/Nsound.h>
 
@@ -57,9 +56,6 @@ class MeshJunction
 
     //! This operator can not assign neighbor pointers.
     MeshJunction(const MeshJunction & copy);
-
-    //! Deconstructor
-    ~MeshJunction();
 
     //! Clears all velicityes in the junctino.
     void
@@ -99,29 +95,29 @@ class MeshJunction
     void
     updateBoundry();             //! updates junction velocity.
 
-    float64 leak_gain_;          //! Leak gain
+    float64 leak_gain_ = 0.0;          //! Leak gain
 
-    float64 velocity_;           //! This junction's velocity.
+    float64 velocity_ = 0.0;           //! This junction's velocity.
 
-    float64 velocity_north_;     //! Velocity going north.
-    float64 velocity_south_;     //! Velocity going south.
-    float64 velocity_east_;      //! Velocity going east.
-    float64 velocity_west_;      //! Velocity going west.
+    float64 velocity_north_ = 0.0;     //! Velocity going north.
+    float64 velocity_south_ = 0.0;     //! Velocity going south.
+    float64 velocity_east_ = 0.0;      //! Velocity going east.
+    float64 velocity_west_ = 0.0;      //! Velocity going west.
 
-    float64 previous_velocity_;
-    float64 previous_velocity_north_;
-    float64 previous_velocity_south_;
-    float64 previous_velocity_east_;
-    float64 previous_velocity_west_;
+    float64 previous_velocity_ = 0.0;
+    float64 previous_velocity_north_ = 0.0;
+    float64 previous_velocity_south_ = 0.0;
+    float64 previous_velocity_east_ = 0.0;
+    float64 previous_velocity_west_ = 0.0;
 
-    float64 vc_;
-    float64 yj_;
-    float64 yc_;
+    float64 vc_ = 0.0;
+    float64 yj_ = 0.0;
+    float64 yc_ = 0.0;
 
-    MeshJunction * neighbor_north_;
-    MeshJunction * neighbor_south_;
-    MeshJunction * neighbor_east_;
-    MeshJunction * neighbor_west_;
+    MeshJunction * neighbor_north_ = nullptr;
+    MeshJunction * neighbor_south_ = nullptr;
+    MeshJunction * neighbor_east_ = nullptr;
+    MeshJunction * neighbor_west_ = nullptr;
 
 }; // class MeshJunction
 
@@ -129,4 +125,3 @@ class MeshJunction
 } // namespace Nsound
 
 // :mode=c++: jEdit modeline
-#endif

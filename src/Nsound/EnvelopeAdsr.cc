@@ -44,15 +44,10 @@ EnvelopeAdsr(
     const float64 & release_time)
     :
     sample_rate_(sample_rate),
-    attack_slope_(0.0),
     attack_time_(attack_time),
-    delay_slope_(0.0),
     delay_time_(delay_time),
     sustain_amp_(sustain_amplitude),
-    release_slope_(0.0),
-    release_time_(release_time),
-    scale_(0.0),
-    mode_(attacking)
+    release_time_(release_time)
 {
     M_ASSERT_VALUE(sample_rate, >, 0.0);
     M_ASSERT_VALUE(attack_time, >=, 0.0);
@@ -76,19 +71,27 @@ reset()
     scale_ = 0.0;
 }
 
+//! The number of samples a phase of time seconds lasts, at least one, so a
+//! phase of no time is instant.
+static
+float64
+phase_samples(const float64 & time, const float64 & sample_rate)
+{
+    M_ASSERT_VALUE(time, >=, 0.0);
+
+    uint32 n_samples = static_cast<uint32>(time * sample_rate + 0.5);
+
+    if(n_samples < 1) n_samples = 1;
+
+    return static_cast<float64>(n_samples);
+}
+
 void
 EnvelopeAdsr::
 setAttackTime(const float64 & time)
 {
-    M_ASSERT_VALUE(time, >=, 0.0);
-
-    uint32 n_samples = static_cast<uint32>(time * sample_rate_ + 0.5);
-
-    n_samples -= 1;
-
-    M_ASSERT_VALUE(n_samples, >, 0);
-
-    attack_slope_ = 1.0 / static_cast<float64>(n_samples);
+    // From 0 to 1.
+    attack_slope_ = 1.0 / phase_samples(time, sample_rate_);
     attack_time_ = time;
 }
 
@@ -96,15 +99,8 @@ void
 EnvelopeAdsr::
 setDelayTime(const float64 & time)
 {
-    M_ASSERT_VALUE(time, >=, 0.0);
-
-    uint32 n_samples = static_cast<uint32>(time * sample_rate_ + 0.5);
-
-    n_samples -= 1;
-
-    M_ASSERT_VALUE(n_samples, >, 0);
-
-    delay_slope_ = -1.0 / static_cast<float64>(n_samples);
+    // From 1 down to the sustain level.
+    delay_slope_ = -(1.0 - sustain_amp_) / phase_samples(time, sample_rate_);
     delay_time_ = time;
 }
 
@@ -113,23 +109,21 @@ EnvelopeAdsr::
 setSustainAmplitude(const float64 & amp)
 {
     M_ASSERT_VALUE(amp, >, 0.0);
+    M_ASSERT_VALUE(amp, <=, 1.0);
 
     sustain_amp_ = amp;
+
+    // The delay and release slopes go to and from the sustain level.
+    setDelayTime(delay_time_);
+    setReleaseTime(release_time_);
 }
 
 void
 EnvelopeAdsr::
 setReleaseTime(const float64 & time)
 {
-    M_ASSERT_VALUE(time, >=, 0.0);
-
-    uint32 n_samples = static_cast<uint32>(time * sample_rate_ + 0.5);
-
-    n_samples -= 1;
-
-    M_ASSERT_VALUE(n_samples, >, 0);
-
-    release_slope_ = -1.0 / static_cast<float64>(n_samples);
+    // From the sustain level down to 0.
+    release_slope_ = -sustain_amp_ / phase_samples(time, sample_rate_);
     release_time_ = time;
 }
 
@@ -160,7 +154,8 @@ shape(const Buffer & buf)
 
     uint32 sustain_samples = static_cast<uint32>(sustain_time * sample_rate_);
 
-    mode_ = attacking;
+    // Each Buffer starts from silence.
+    reset();
 
     Buffer::const_iterator itor = buf.begin();
     Buffer::const_iterator end = buf.end();
@@ -186,9 +181,10 @@ shape(const Buffer & buf)
         ++count;
     }
 
-    // Relase
+    // Release, then silence to the end, so the output is as long as the
+    // input.
 
-    while(!is_done() && itor != end)
+    while(itor != end)
     {
         out << shape(*itor, false);
         ++itor;
@@ -201,17 +197,24 @@ float64
 EnvelopeAdsr::
 shape(float64 sample, bool key_on)
 {
+    // Letting go of the key releases from this sample on.
+    if(!key_on && mode_ != done)
+    {
+        mode_ = releasing;
+    }
+
     switch(mode_)
     {
         case attacking:
         {
             scale_ += attack_slope_;
-            if(scale_ >= 1.0)
+            // The slopes are added up, so each phase ends within a rounding of
+            // its level, and then is exactly at it.
+            if(scale_ >= 1.0 - 1e-9)
             {
-                scale_ = 0.999;
+                scale_ = 1.0;
                 mode_ = delaying;
             }
-            if(!key_on) mode_ = releasing;
 
             break;
         }
@@ -219,8 +222,11 @@ shape(float64 sample, bool key_on)
         case delaying:
         {
             scale_ += delay_slope_;
-            if(scale_ <= sustain_amp_) mode_ = sustaining;
-            if(!key_on) mode_ = releasing;
+            if(scale_ <= sustain_amp_ + 1e-9)
+            {
+                scale_ = sustain_amp_;
+                mode_ = sustaining;
+            }
 
             break;
         }
@@ -228,7 +234,6 @@ shape(float64 sample, bool key_on)
         case sustaining:
         {
             scale_ = sustain_amp_;
-            if(!key_on) mode_ = releasing;
 
             break;
         }
@@ -237,7 +242,7 @@ shape(float64 sample, bool key_on)
         {
             scale_ += release_slope_;
 
-            if(scale_ <= 0.0)
+            if(scale_ <= 1e-9)
             {
                 scale_ = 0.0;
                 mode_ = done;
@@ -252,7 +257,7 @@ shape(float64 sample, bool key_on)
         }
     }
 
-    M_ASSERT_VALUE(scale_, <, 1.0);
+    M_ASSERT_VALUE(scale_, <=, 1.0);
 
     return sample * scale_;
 }

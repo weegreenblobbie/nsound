@@ -31,8 +31,8 @@
 #include <Nsound/FilterLowPassFIR.h>
 #include <Nsound/Plotter.h>
 
+#include <algorithm>
 #include <cmath>
-#include <cstring>
 #include <cstdio>
 #include <iostream>
 
@@ -51,13 +51,7 @@ FilterLowPassFIR(
     const float64 & cutoff_frequency_Hz)
     :
     Filter(sample_rate),
-    b_(nullptr),
-    window_(nullptr),
-    x_history_(nullptr),
-    x_ptr_(nullptr),
-    x_end_ptr_(nullptr),
-    frequency_1_Hz_(cutoff_frequency_Hz),
-    lp_cache_()
+    frequency_1_Hz_(cutoff_frequency_Hz)
 {
     kernel_size_ = kernel_size;
 
@@ -67,13 +61,13 @@ FilterLowPassFIR(
         ++kernel_size_;
     }
 
-    x_history_ = new float64[kernel_size_ + 1];
-    x_ptr_ = x_history_;
-    x_end_ptr_ = x_history_ + kernel_size_ + 1;
+    x_history_.assign(kernel_size_ + 1, 0.0);
+    x_ptr_ = x_history_.data();
+    x_end_ptr_ = x_history_.data() + x_history_.size();
 
     // Create the Blackman window.
     float64 ks = static_cast<float64>(kernel_size_);
-    window_ = new float64[kernel_size_];
+    window_.resize(kernel_size_);
     for(uint32 i = 0; i < kernel_size_; ++i)
     {
         float64 di = static_cast<float64>(i);
@@ -85,38 +79,6 @@ FilterLowPassFIR(
     }
 
     FilterLowPassFIR::reset();
-}
-
-//-----------------------------------------------------------------------------
-// This is private and therefor disabled
-FilterLowPassFIR::
-    FilterLowPassFIR(const FilterLowPassFIR & copy)
-    :
-    Filter(copy.sample_rate_),
-    b_(nullptr),
-    window_(nullptr),
-    x_history_(nullptr),
-    x_ptr_(nullptr),
-    x_end_ptr_(nullptr),
-    frequency_1_Hz_(0.0),
-    lp_cache_()
-{}
-
-//-----------------------------------------------------------------------------
-FilterLowPassFIR::
-~FilterLowPassFIR()
-{
-    delete [] window_;
-    delete [] x_history_;
-
-    KernelCache::iterator itor = lp_cache_.begin();
-    KernelCache::iterator  end = lp_cache_.end();
-
-    while(itor != end)
-    {
-        delete [] itor->b_;
-        ++itor;
-    }
 }
 
 AudioStream
@@ -190,7 +152,7 @@ filter(const float64 & x)
     // Bounds check.
     if(x_ptr_ >= x_end_ptr_)
     {
-        x_ptr_ = x_history_;
+        x_ptr_ = x_history_.data();
     }
 
     // Perform the convolution.
@@ -203,13 +165,13 @@ filter(const float64 & x)
 
     float64 y = 0.0;
     float64 * history = x_ptr_;
-    for(float64 * b = b_; b != b_ + kernel_size_; ++b)
+    for(const float64 * b = b_; b != b_ + kernel_size_; ++b)
     {
         // When we enter this loop, history is pointing at x[n + 1].
         --history;
 
         // Bounds check
-        if(history < x_history_)
+        if(history < x_history_.data())
         {
             history = x_end_ptr_ - 1;
         }
@@ -287,12 +249,12 @@ makeKernel(const float64 & cutoff_frequency_Hz)
     if(itor != lp_cache_.end())
     {
         // The kernel was found in the cache.
-        b_ = itor->b_;
+        b_ = itor->b_.data();
         return;
     }
 
     // The filter wasn't in the cache, need to make it.
-    new_kernel.b_ = new float64[kernel_size_];
+    new_kernel.b_.resize(kernel_size_);
 
     // Makes a Windowed-sinc filter with cutoff frequency specified.
     //
@@ -310,19 +272,21 @@ makeKernel(const float64 & cutoff_frequency_Hz)
     if(cutoff_frequency_Hz < 0.10)
     {
         // Create no pass filter.
-        memset(new_kernel.b_, 0, kernel_size_ * sizeof(float64));
+        std::fill(new_kernel.b_.begin(), new_kernel.b_.end(), 0.0);
     }
     else
     {
         float64 sum = 0.0;
 
-        float64 ks_2 = ks / 2.0;
+        // The center tap of the odd sized kernel, where the window peaks, so
+        // the kernel is symmetric (linear phase).
+        float64 center = (ks - 1.0) / 2.0;
 
-        float64 * b = new_kernel.b_;
-        float64 * w = window_;
+        float64 * b = new_kernel.b_.data();
+        const float64 * w = window_.data();
         for(float64 i = 0.0; i < ks; i += 1.0)
         {
-            float64 x = i - ks_2 + 1e-16;
+            float64 x = i - center + 1e-16;
 
             *b = std::sin(omega * x) / x * *w;
 
@@ -333,17 +297,14 @@ makeKernel(const float64 & cutoff_frequency_Hz)
         }
 
         // Normalize kernel.
-        for(float64 * b = new_kernel.b_; b < new_kernel.b_ + kernel_size_; ++b)
+        for(float64 & b : new_kernel.b_)
         {
-            *b /= sum;
+            b /= sum;
         }
     }
 
-    // Point to the new kernel.
-    b_ = new_kernel.b_;
-
-    // Add the new kernel to the cache.
-    lp_cache_.insert(new_kernel);
+    // Add the new kernel to the cache and point to it there.
+    b_ = lp_cache_.insert(std::move(new_kernel)).first->b_.data();
 
 //~    for(int i = 0; i < kernel_size_; ++i)
 //~    {
@@ -355,8 +316,8 @@ void
 FilterLowPassFIR::
 reset()
 {
-    memset(x_history_, 0, sizeof(float64) * (kernel_size_ + 1));
-    x_ptr_ = x_history_;
+    std::fill(x_history_.begin(), x_history_.end(), 0.0);
+    x_ptr_ = x_history_.data();
 
     FilterLowPassFIR::makeKernel(frequency_1_Hz_);
 }
@@ -374,7 +335,6 @@ FilterLowPassFIR::
 Kernel::
 Kernel(const uint32 & frequency)
     :
-    b_(nullptr),
     frequency_(frequency)
 {
 }

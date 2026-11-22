@@ -84,7 +84,8 @@ MSVC.  The compiler, sanitizer and coverage configs below are Linux only.
     bazel test --config=ubsan //...     # UndefinedBehaviorSanitizer
     bazel build --config=debug //...    # -c dbg
     bazel build --config=opt //...      # -c opt
-    tools/coverage.sh                   # coverage report in coverage_html/
+    tools/coverage.sh                   # coverage report in coverage_html/,
+                                        # fails below the minimum
 
 Main targets:
 
@@ -94,7 +95,7 @@ Target                            Description
 ``//src/Nsound:nsound``           The Nsound C++ library
 ``//src/bin:ns_readwaveheader``   Prints a wave file header
 ``//src/bin:ns_vocoder``          Vocoder command line program
-``//src/test:unit_tests``         The C++ unit tests
+``//src/test:<Class>_test``       Catch2 unit tests, one per class
 ``//src/test:test_*``             Test programs, run by hand (tagged manual)
 ``//src/examples:*``              Examples, e.g.
                                   ``bazel run //src/examples:mynameis``,
@@ -124,3 +125,11 @@ For example, ``bazel build --//bazel:libao --//bazel:portaudio //...``.
 The CUDA sources (``*.cu``) are not built with Bazel.  ``Nsound.h`` is
 generated from ``src/Nsound/Nsound.h.in`` with the version from
 ``version.bzl``.  Local options can go in ``user.bazelrc``.
+
+``tools/coverage.sh`` measures the line coverage of ``src/Nsound`` and the
+``linux / bazel / coverage`` check fails if it drops below
+``MINIMUM_PERCENT`` in ``tools/check_coverage.py``; raise it as tests are
+added.  Code that needs a sound card or an optional library (audio
+playback and the libao and portaudio backends) is not measured, see
+``EXCLUDED_PREFIXES`` there.  Bazel can't collect C++ coverage with MSVC, so
+on Windows ``tools\coverage.ps1`` only says where to run it instead.

@@ -31,17 +31,22 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef _NSOUND_GENERATOR_H_
-#define _NSOUND_GENERATOR_H_
+#pragma once
 
+#include <Nsound/Buffer.h>
 #include <Nsound/Nsound.h>
+#include <Nsound/RngTausworthe.h>
 #include <Nsound/WindowType.h>
+
+#include <memory>
+#include <set>
+#include <vector>
 
 namespace Nsound
 {
 
-// Forwared declarion of Buffer
-class Buffer;
+// SWIG doesn't follow #includes, this tells it getRandomNumberGenerator()'s
+// type is Nsound::RandomNumberGenerator.
 class RandomNumberGenerator;
 
 //-----------------------------------------------------------------------------
@@ -593,8 +598,8 @@ class Generator
 
     protected:
 
-    //! DOXME
-    Generator();
+    //! An empty Generator, with no sample rate, waveform or random numbers.
+    Generator() = default;
 
     //! DOXME
     virtual
@@ -608,32 +613,36 @@ class Generator
         const float64 & sample_rate,
         const Buffer & wavetable);
 
-    bool is_realtime_;
+    //! Tells each sync slave to restart on this sample.
+    void
+    syncSlaves();
 
-    float64  last_frequency_;  //! Used for phase offset adjustment.
-    float64  position_;        //! The number of samples into the wavefrom
-    float64  sync_pos_;        //! Used to determine when to create a sync sample.
-    float64  sample_rate_;     //! The number of samples per second to generate.
-    float64  sample_time_;     //! The time step between samples in seconds.
-    float64  t_;               //! The current time (for real time draw functions.)
-    Buffer * waveform_;        //! The waveform to ossicialate.
+    bool is_realtime_ = false;
 
-    RandomNumberGenerator * rng_; //! The random number generator.
+    float64  last_frequency_ = 0.0;  //! Used for phase offset adjustment.
+    float64  position_ = 0.0;        //! The number of samples into the wavefrom
+    float64  sync_pos_ = 0.0;        //! Used to determine when to create a sync sample.
+    float64  sample_rate_ = 0.0;     //! The number of samples per second to generate.
+    float64  sample_time_ = 0.0;     //! The time step between samples in seconds.
+    float64  t_ = 0.0;               //! The current time (for real time draw functions.)
+    std::unique_ptr<Buffer> waveform_;    //! The waveform to ossicialate.
+
+    std::unique_ptr<RngTausworthe> rng_; //! The random number generator.
 
     // buzz() stuff
-    uint32               buzz_max_harmonics_;
+    uint32               buzz_max_harmonics_ = 0;
     std::vector<float64> buzz_position_;
 
     // Chorus stuff
-    boolean              chorus_is_on_;
-    uint32               chorus_n_voices_;
+    boolean              chorus_is_on_ = false;
+    uint32               chorus_n_voices_ = 0;
     std::vector<float64> chorus_position_;
     std::vector<float64> chorus_factor_;
 
     // Sync stuff
-    boolean sync_is_master_;               //! Indicates if this generator is the master
-    boolean sync_is_slave_;                //! Indicates if this generator is a slave
-    uint32 sync_count_;                    //! Indicates the number of samples since reset
+    boolean sync_is_master_ = false;       //! Indicates if this generator is the master
+    boolean sync_is_slave_ = false;        //! Indicates if this generator is a slave
+    uint32 sync_count_ = 0;                //! Indicates the number of samples since reset
     std::vector<uint32> sync_vector_;      //! Stores sample counts when synced
     std::set<Generator *> sync_slaves_;    //! Holds pointers to the slaves.
 
@@ -642,4 +651,3 @@ class Generator
 }; // Nsound
 
 // :mode=c++: jEdit modeline
-#endif

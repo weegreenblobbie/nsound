@@ -55,8 +55,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef _NSOUND_ENVELOPE_ADSR_H_
-#define _NSOUND_ENVELOPE_ADSR_H_
+#pragma once
 
 namespace Nsound
 {
@@ -98,21 +97,20 @@ class EnvelopeAdsr
 	protected:
 
 	float64  sample_rate_;
-	float64  attack_slope_;
+	float64  attack_slope_ = 0.0;
 	float64  attack_time_;
-	float64  delay_slope_;
+	float64  delay_slope_ = 0.0;
 	float64  delay_time_;
 	float64  sustain_amp_;
-	float64  release_slope_;
+	float64  release_slope_ = 0.0;
 	float64  release_time_;
-	float64  scale_;
+	float64  scale_ = 0.0;
 
 	enum Mode { attacking, delaying, sustaining, releasing, done };
 
-	Mode mode_;
+	Mode mode_ = attacking;
 
 };
 
 };
 
-#endif

@@ -47,10 +47,13 @@ FilterSlinky(
     const float64 & delay_octave,
     const float64 & frequency_octave)
     :
-    Filter(sample_rate),
-    delay_lines_(),
-    filters_()
+    Filter(sample_rate)
 {
+    // Checked before anything is allocated. A 0 Hz octave would never
+    // reach Nyquist below.
+    M_ASSERT_VALUE(delay_octave, >, 0.0);
+    M_ASSERT_VALUE(frequency_octave, >, 0.0);
+
     float64 f = 0.0;
 
     while( f < sample_rate_ / 2.0)
@@ -72,7 +75,7 @@ FilterSlinky(
     float64 f_low  = f;
 
     filters_.push_back(
-        new FilterBandPassIIR(
+        std::make_unique<FilterBandPassIIR>(
             sample_rate_,
             6,
             f_low,
@@ -93,15 +96,14 @@ FilterSlinky(
         }
 
         filters_.push_back(
-        new FilterBandPassIIR(
+        std::make_unique<FilterBandPassIIR>(
             sample_rate_,
             6,
             f_low,
             f_high,
             0.01));
 
-        delay_lines_.push_back(
-            new FilterDelay(sample_rate_, dt));
+        delay_lines_.emplace_back(sample_rate_, dt);
 
         dt += delay_octave;
     }
@@ -111,42 +113,16 @@ FilterSlinky(
 }
 
 //-----------------------------------------------------------------------------
+// Defined here, where FilterBandPassIIR is complete, for the std::unique_ptrs.
 FilterSlinky::
-~FilterSlinky()
-{
-    FilterVector::iterator filter = filters_.begin();
-    FilterVector::iterator end    = filters_.end();
-
-    DelayVector::iterator delay = delay_lines_.begin();
-
-    delete *filter;
-    ++filter;
-
-    while(filter != end)
-    {
-        delete *filter;
-        delete *delay;
-
-        ++filter;
-        ++delay;
-    }
-}
+~FilterSlinky() = default;
 
 
 AudioStream
 FilterSlinky::
 filter(const AudioStream & x)
 {
-    uint32 n_channels = x.getNChannels();
-
-    AudioStream y(x.getSampleRate(), n_channels);
-
-    for(uint32 channel = 0; channel < n_channels; ++channel)
-    {
-        y[channel] = FilterSlinky::filter(x[channel]);
-    }
-
-    return y;
+    return Filter::filter(x);
 }
 
 AudioStream
@@ -160,16 +136,7 @@ Buffer
 FilterSlinky::
 filter(const Buffer & x)
 {
-    Buffer y;
-
-    uint32 n_samples = x.getLength();
-
-    for(uint32 n = 0; n < n_samples; ++n)
-    {
-        y << FilterSlinky::filter(x[n]);
-    }
-
-    return y;
+    return Filter::filter(x);
 }
 
 Buffer
@@ -199,7 +166,7 @@ filter(const float64 & x)
 
     while(filter != end)
     {
-        y += (*delay)->filter((*filter)->filter(x));
+        y += delay->filter((*filter)->filter(x));
 
         ++filter;
         ++delay;
@@ -230,7 +197,7 @@ reset()
     while(filter != end)
     {
         (*filter)->reset();
-        (*delay)->reset();
+        delay->reset();
 
         ++filter;
         ++delay;

@@ -32,7 +32,6 @@ src/examples/example6
 src/examples/interstellar
 src/examples/mynameis
 src/examples/stretcher
-src/test/Main
 src/test/test_wavefile1.wav
 src/test/test_wavefile2.wav
 swig/Nsound.py

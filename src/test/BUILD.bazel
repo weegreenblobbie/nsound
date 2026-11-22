@@ -1,15 +1,105 @@
 """Nsound C++ unit tests and manual test programs."""
 
-load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 
-# All unit tests, run in order by Main.cc, compared against the gold files.
-cc_test(
-    name = "unit_tests",
-    srcs = ["Main.cc", "UnitTest.h"] + glob(["*_UnitTest.cc"]),
-    size = "small",
-    data = glob(["gold/**"]),
+# main() for the Catch2 tests, runs them next to a copy of the gold files.
+cc_library(
+    name = "test_main",
+    testonly = True,
+    srcs = ["catch_main.cc"],
+    alwayslink = True,
+    deps = ["@catch2//:catch2"],
+)
+
+cc_library(
+    name = "gold_check",
+    testonly = True,
+    hdrs = ["gold_check.h"],
+    deps = [
+        "//src/Nsound:nsound",
+        "@catch2//:catch2",
+    ],
+)
+
+cc_library(
+    name = "filter_signals",
+    testonly = True,
+    hdrs = ["filter_signals.h"],
     deps = ["//src/Nsound:nsound"],
 )
+
+# One Catch2 test per class, //src/test:<Class>_test from <Class>_test.cc.
+[
+    cc_test(
+        name = name + "_test",
+        srcs = [name + "_test.cc"],
+        size = "small",
+        data = glob(["gold/**"]),
+        deps = [
+            ":filter_signals",
+            ":gold_check",
+            ":test_main",
+            "//src/Nsound:nsound",
+            "@catch2//:catch2",
+        ],
+    )
+    for name in [
+        "AudioStream",
+        "CircularBuffer",
+        "Buffer",
+        "BufferWindowSearch",
+        "BufferResample",
+        "DelayLine",
+        "FFTransform",
+        "FilterAllPass",
+        "FilterBandPassFIR",
+        "FilterBandPassIIR",
+        "FilterBandPassVocoder",
+        "FilterBandRejectFIR",
+        "FilterBandRejectIIR",
+        "FilterCombLowPassFeedback",
+        "FilterDC",
+        "FilterDelay",
+        "FilterFlanger",
+        "FilterIIR",
+        "FilterHighPassFIR",
+        "FilterHighPassIIR",
+        "FilterLeastSquaresFIR",
+        "FilterLowPassFIR",
+        "FilterLowPassIIR",
+        "FilterLowPassMoogVcf",
+        "FilterMedian",
+        "FilterMovingAverage",
+        "FilterParametricEqualizer",
+        "FilterPhaser",
+        "FilterSlinky",
+        "FilterStageIIR",
+        "FilterTone",
+        "EnvelopeAdsr",
+        "Generator",
+        "GeneratorDecay",
+        "Granulator",
+        "Hat",
+        "Instruments",
+        "Kernel",
+        "Mesh2D",
+        "Mixer",
+        "OrganPipe",
+        "Plotter",
+        "Pluck",
+        "Pulse",
+        "ReverberationRoom",
+        "Sawtooth",
+        "Sine",
+        "Spectrogram",
+        "Square",
+        "Stretcher",
+        "Triangle",
+        "Utilities",
+        "Vocoder",
+        "Wavefile",
+    ]
+]
 
 # Test programs that are run by hand, they are not built by `bazel build //...`.
 [

@@ -21,29 +21,9 @@ exe_env.AppendUnique(
 
 exe_env.AppendUnique(LIBS = ["Nsound"])
 
+# The unit tests are Catch2 tests built with Bazel, these are the test
+# programs that are run by hand.
 unit_tests = []
-
-source_list = Split(
-"""
-    BufferResample_UnitTest.cc
-    Buffer_UnitTest.cc
-    DelayLine_UnitTest.cc
-    FFTransform_UnitTest.cc
-    FilterCombLowPassFeedback_UnitTest.cc
-    FilterDelay_UnitTest.cc
-    FilterLeastSquaresFIR_UnitTest.cc
-    FilterMedian_UnitTest.cc
-    FilterParametricEqualizer_UnitTest.cc
-    Generator_UnitTest.cc
-    Main.cc
-    Sine_UnitTest.cc
-    Triangle_UnitTest.cc
-    Wavefile_UnitTest.cc
-""")
-
-prog = exe_env.Program(target = "Main", source = source_list)
-nsound_config.env.Depends(prog, nsound_h)
-unit_tests.append(prog)
 
 other_tests = Split(
 """

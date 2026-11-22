@@ -38,33 +38,10 @@ FilterMovingAverage::
 FilterMovingAverage(uint32 n_samples_to_average)
     :
     Filter(1.0),
-    init_sum_(true),
     n_samples_to_average_(n_samples_to_average),
-    running_sum_(0.0),
-    delay_(nullptr)
+    delay_(1.0, n_samples_to_average)
 {
-    delay_ = new FilterDelay(1.0, n_samples_to_average_);
-
     reset();
-}
-
-//-----------------------------------------------------------------------------
-FilterMovingAverage::
-FilterMovingAverage(const FilterMovingAverage & copy)
-    :
-    Filter(1.0),
-    init_sum_(copy.init_sum_),
-    n_samples_to_average_(copy.n_samples_to_average_),
-    running_sum_(copy.running_sum_),
-    delay_(new FilterDelay(*copy.delay_))
-{
-}
-
-//-----------------------------------------------------------------------------
-FilterMovingAverage::
-~FilterMovingAverage()
-{
-    delete delay_;
 }
 
 AudioStream
@@ -93,35 +70,18 @@ filter(const float64 & x)
 
         for(uint32 i = 0; i < static_cast<uint32>(n_samples_to_average_); ++i)
         {
-            delay_->filter(x);
+            delay_.filter(x);
         }
 
-        running_sum_ += (n_samples_to_average_ - 1.0) * x;
+        // The delay now holds n copies of x, so they sum to n * x.
+        running_sum_ += n_samples_to_average_ * x;
     }
 
-    float64 last_nth_x = delay_->filter(x);
+    float64 last_nth_x = delay_.filter(x);
 
     running_sum_ += x - last_nth_x;
 
     return running_sum_ / n_samples_to_average_;
-}
-
-//-----------------------------------------------------------------------------
-FilterMovingAverage &
-FilterMovingAverage::
-operator=(const FilterMovingAverage & rhs)
-{
-    if(this == & rhs)
-    {
-        return *this;
-    }
-    init_sum_ = rhs.init_sum_;
-    n_samples_to_average_ = rhs.n_samples_to_average_;
-    running_sum_ = rhs.running_sum_;
-
-    *delay_ = *rhs.delay_;
-
-    return *this;
 }
 
 void
@@ -130,5 +90,5 @@ reset()
 {
     init_sum_ = true;
     running_sum_ = 0;
-    delay_->reset();
+    delay_.reset();
 }

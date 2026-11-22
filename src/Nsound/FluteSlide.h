@@ -33,8 +33,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef _NSOUND_FLUTE_SLIDE_H_
-#define _NSOUND_FLUTE_SLIDE_H_
+#pragma once
 
 #include <Nsound/Instrument.h>
 
@@ -54,14 +53,11 @@ class FluteSlide : public Instrument
     //! Creates a Bass Kick Drum.
     FluteSlide(const float64 & sample_rate);
 
-    //! Destructor
-    ~FluteSlide();
-
     //! Plays a demo for this instrument.
-    AudioStream play();
+    AudioStream play() override;
 
     //! Plays a static note for this instrument.
-    AudioStream play(const float64 & duration, const float64 & frequency);
+    AudioStream play(const float64 & duration, const float64 & frequency) override;
 
     //! Plays a static note for this instrument.
     AudioStream play(
@@ -71,7 +67,7 @@ class FluteSlide : public Instrument
         const float64 & breath);
 
     //! Nsound::FluteSlide information.
-    std::string getInfo()
+    std::string getInfo() const override
     {
         return
             "Nsound::FluteSlide by Nick Hilton\n\n"
@@ -122,4 +118,3 @@ class FluteSlide : public Instrument
 };
 
 // :mode=c++: jEdit modeline
-#endif

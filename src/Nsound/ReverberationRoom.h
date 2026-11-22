@@ -32,18 +32,19 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_REVERBERATION_ROOM_H_
-#define _NSOUND_REVERBERATION_ROOM_H_
+#pragma once
 
+#include <Nsound/FilterAllPass.h>
+#include <Nsound/FilterCombLowPassFeedback.h>
 #include <Nsound/Nsound.h>
+
+#include <vector>
 
 namespace Nsound
 {
 
 class AudioStream;
 class Buffer;
-class FilterAllPass;
-class FilterCombLowPassFeedback;
 
 //-----------------------------------------------------------------------------
 class ReverberationRoom
@@ -67,9 +68,7 @@ class ReverberationRoom
         const float64 & low_pass_frequency_Hz = 7644.9,
         const float64 & stereo_spread_seconds = 0.0005215);
 
-    ReverberationRoom(const ReverberationRoom & copy);
-
-    virtual ~ReverberationRoom();
+    virtual ~ReverberationRoom() = default;
 
     AudioStream
     filter(const AudioStream & x);
@@ -87,9 +86,6 @@ class ReverberationRoom
     float64
     getSampleRate() const { return sample_rate_; };
 
-    ReverberationRoom &
-    operator=(const ReverberationRoom & rhs);
-
     void
     reset();
 
@@ -100,11 +96,11 @@ class ReverberationRoom
     float64 wet_percent_;
     float64 dry_percent_;
 
-    FilterCombLowPassFeedback ** comb_left_;
-    FilterCombLowPassFeedback ** comb_right_;
+    std::vector<FilterCombLowPassFeedback> comb_left_;
+    std::vector<FilterCombLowPassFeedback> comb_right_;
 
-    FilterAllPass ** allpass_left_;
-    FilterAllPass ** allpass_right_;
+    std::vector<FilterAllPass> allpass_left_;
+    std::vector<FilterAllPass> allpass_right_;
 
     static const float64 ROOM_FEEDBACK_SCALE_;  //  = 0.28;
     static const float64 ROOM_FEEDBACK_OFFSET_; // = 0.7;
@@ -121,4 +117,3 @@ class ReverberationRoom
 } // namespace
 
 // :mode=c++: jEdit modeline
-#endif

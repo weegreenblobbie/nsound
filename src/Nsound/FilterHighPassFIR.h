@@ -30,8 +30,7 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_FILTER_HIGH_PASS_FIR_H_
-#define _NSOUND_FILTER_HIGH_PASS_FIR_H_
+#pragma once
 
 #include <Nsound/FilterLowPassFIR.h>
 
@@ -47,8 +46,6 @@ class FilterHighPassFIR : public FilterLowPassFIR
         const float64 & sample_rate,
         uint32 kernel_size,
         const float64 & cutoff_frequency_Hz);
-
-    virtual ~FilterHighPassFIR();
 
     AudioStream
     filter(const AudioStream & x);
@@ -68,13 +65,11 @@ class FilterHighPassFIR : public FilterLowPassFIR
     Buffer
     filter(const Buffer & x, const Buffer & frequencies);
 
-    virtual
     float64
-    filter(const float64 & x);
+    filter(const float64 & x) override;
 
-    virtual
     float64
-    filter(const float64 & x, const float64 & frequency_Hz);
+    filter(const float64 & x, const float64 & frequency_Hz) override;
 
     float64
     getFrequency() const {return frequency_1_Hz_;};
@@ -90,20 +85,18 @@ class FilterHighPassFIR : public FilterLowPassFIR
 
     //! Resets interal history buffer and sets the cut off frequency to the one
     //! used at declaration.
-    virtual
     void
-    reset();
+    reset() override;
 
     protected:
 
     FilterLowPassFIR::KernelCache hp_cache_;
 
     void
-    spectraReversal_();
+    spectraReversal_(std::vector<float64> & kernel);
 
 }; // HighPassFilter
 
 }; // Nsound
 
 // :mode=c++: jEdit modeline
-#endif

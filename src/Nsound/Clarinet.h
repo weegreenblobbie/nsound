@@ -31,8 +31,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef _NSOUND_CLARINET_H_
-#define _NSOUND_CLARINET_H_
+#pragma once
 
 #include <Nsound/Instrument.h>
 
@@ -52,14 +51,11 @@ class Clarinet : public Instrument
     //! Creates a Bass Kick Drum.
     Clarinet(const float64 & sample_rate);
 
-    //! Destructor
-    ~Clarinet();
-
     //! Plays a demo for this instrument.
-    AudioStream play();
+    AudioStream play() override;
 
     //! Plays a static note for this instrument.
-    AudioStream play(const float64 & duration, const float64 & frequency);
+    AudioStream play(const float64 & duration, const float64 & frequency) override;
 
     //! Plays a static note for this instrument.
     AudioStream play(
@@ -70,7 +66,7 @@ class Clarinet : public Instrument
         const float64 & reed_stiffness);
 
     //! Nsound::Clarinet information.
-    std::string getInfo()
+    std::string getInfo() const override
     {
         return
             "Nsound::Clarinet by Nick Hilton\n\n"
@@ -106,4 +102,3 @@ class Clarinet : public Instrument
 };
 
 // :mode=c++: jEdit modeline
-#endif

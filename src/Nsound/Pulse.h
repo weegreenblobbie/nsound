@@ -30,8 +30,7 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_PULSE_H_
-#define _NSOUND_PULSE_H_
+#pragma once
 
 #include <Nsound/Generator.h>
 
@@ -68,8 +67,6 @@ class Pulse : public Generator
         const float64 & pulse_width,
         const PulseUnits & units = PULSE_PERCENT);
 
-    ~Pulse();
-
     //! Sets the PulseUnits to units for this Pulse Generator.
     //
     //! \param untis - the units that the pulse width is in (PULSE_SECONDS or
@@ -84,7 +81,7 @@ class Pulse : public Generator
     //! \return float64
     //!
     float64
-    generate(const float64 & frequency);
+    generate(const float64 & frequency) override;
 
     //! This is a real-time method for the Pulse generator.
     //
@@ -96,7 +93,7 @@ class Pulse : public Generator
     float64
     generate2(
         const float64 & frequency,
-        const float64 & pulse_width);
+        const float64 & pulse_width) override;
 
     using Generator::generate;
 
@@ -104,7 +101,7 @@ class Pulse : public Generator
     generate2(
         const float64 & duration,
         const float64 & frequency,
-        const float64 & pulse_width);
+        const float64 & pulse_width) override;
 
     //! This does nothing for now.
     Buffer
@@ -132,23 +129,23 @@ class Pulse : public Generator
     generate2(
         const float64 & duration,
         const float64 & frequency,
-        const Buffer &  pulse_width){return Buffer();};
+        const Buffer &  pulse_width) override {return Buffer();};
 
     //! This does nothing for now.
     Buffer
     generate2(
         const float64 & duration,
         const Buffer &  frequency,
-        const float64 & pulse_width){return Buffer();};
+        const float64 & pulse_width) override {return Buffer();};
 
     //! This does nothing for now.
     Buffer
     generate2(
         const float64 & duration,
         const Buffer &  frequency,
-        const Buffer &  pulse_width){return Buffer();};
+        const Buffer &  pulse_width) override {return Buffer();};
 
-    void reset();
+    void reset() override;
 
     float64 riseTime()
     {return rise_t_;};
@@ -158,8 +155,8 @@ class Pulse : public Generator
 
     protected:
 
-    float64    rise_t_;      //! The rising edge time for the pulse.
-    float64    fall_t_;      //! The falling edge time for the pulse.
+    float64    rise_t_ = 0.0;      //! The rising edge time for the pulse.
+    float64    fall_t_ = -1.0;      //! The falling edge time for the pulse.
     float64    pulse_width_; //! The default pulse width to use.
     PulseUnits units_;       //! The units the pulse width is in.
 
@@ -167,6 +164,5 @@ class Pulse : public Generator
 
 };
 
-#endif
 
 // :mode=c++: jEdit modeline

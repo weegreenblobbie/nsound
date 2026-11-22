@@ -33,8 +33,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef _NSOUND_DRUM_KICK_BASS_H_
-#define _NSOUND_DRUM_KICK_BASS_H_
+#pragma once
 
 #include <Nsound/Instrument.h>
 
@@ -57,14 +56,11 @@ class DrumKickBass : public Instrument
         const float64 & high_frequency,
         const float64 &  low_frequency);
 
-    //! Destructor
-    ~DrumKickBass();
-
     //! Plays a demo for this instrument.
-    AudioStream play();
+    AudioStream play() override;
 
     //! Plays a static note for this instrument.
-    AudioStream play(const float64 & duration, const float64 & frequency);
+    AudioStream play(const float64 & duration, const float64 & frequency) override;
 
     //! Static play method.
     AudioStream play(
@@ -79,7 +75,7 @@ class DrumKickBass : public Instrument
         const Buffer  &  low_frequency);
 
     //! Nsound::DrumKickBass information.
-    std::string getInfo()
+    std::string getInfo() const override
     {
         return
             "Nsound::DrumKickBass by Nick Hilton on 2008-10-14\n"
@@ -130,4 +126,3 @@ class DrumKickBass : public Instrument
 };
 
 // :mode=c++: jEdit modeline
-#endif

@@ -30,8 +30,7 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_BUFFER_WINDOW_SEARCH_H_
-#define _NSOUND_BUFFER_WINDOW_SEARCH_H_
+#pragma once
 
 #include <Nsound/Nsound.h>
 
@@ -50,8 +49,6 @@ class BufferWindowSearch
     BufferWindowSearch(const Buffer & buffer, uint32 window_size = 2048);
 
     BufferWindowSearch(const BufferWindowSearch & copy);
-
-    ~BufferWindowSearch(){};
 
     BufferWindowSearch &
     operator=(const BufferWindowSearch & rhs);
@@ -86,4 +83,3 @@ class BufferWindowSearch
 
 };
 
-#endif

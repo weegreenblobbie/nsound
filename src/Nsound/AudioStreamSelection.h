@@ -30,8 +30,7 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_AUDIO_STREAM_SELECTION_H_
-#define _NSOUND_AUDIO_STREAM_SELECTION_H_
+#pragma once
 
 #include <Nsound/Nsound.h>
 
@@ -55,7 +54,6 @@ public:
     AudioStreamSelection(AudioStream & as, const BooleanVectorVector & bv);
     AudioStreamSelection(const AudioStreamSelection & copy);
     AudioStreamSelection & operator=(const AudioStreamSelection & rhs);
-    ~AudioStreamSelection(){}
 
     AudioStreamSelection & operator+=(const float64 & rhs);
     AudioStreamSelection & operator-=(const float64 & rhs);
@@ -77,4 +75,3 @@ private:
 
 };
 
-#endif

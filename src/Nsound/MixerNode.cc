@@ -44,7 +44,7 @@ uint32 MixerNode::id_count_ = 0;
 ///////////////////////////////////////////////////////////////////////////
 Nsound::MixerNode::
 MixerNode(float64 time, float64 bpm, const AudioStream & as)
-    : audio_stream_(&as),
+    : audio_stream_(std::make_shared<const AudioStream>(as)),
       bpm_(bpm),
       first_beat_time_(time),
       id_(MixerNode::id_count_++)
@@ -68,13 +68,14 @@ boolean
 Nsound::MixerNode::
 operator<(const MixerNode & rhs) const
 {
-    if(first_beat_time_ < rhs.first_beat_time_
-        || id_ < rhs.id_)
+    // By time, then the order they were made, a strict weak ordering for
+    // the std::set.
+    if(first_beat_time_ != rhs.first_beat_time_)
     {
-        return true;
+        return first_beat_time_ < rhs.first_beat_time_;
     }
 
-    return false;
+    return id_ < rhs.id_;
 }
 
 ///////////////////////////////////////////////////////////////////////////

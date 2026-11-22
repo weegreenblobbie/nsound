@@ -30,8 +30,7 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_MACROS_H_
-#define _NSOUND_MACROS_H_
+#pragma once
 
 #define M_LINE_PREFIX __FILE__ << ":" << __LINE__ << ": "
 #define M_PRINT_LINE printf("%s:%4d: ", __FILE__, __LINE__)
@@ -113,6 +112,5 @@ inline void __throw__(const std::string & message)
 		Nsound::__throw__(ss.str());              \
 	}
 
-#endif
 
 // :mode=c++: jEdit modeline

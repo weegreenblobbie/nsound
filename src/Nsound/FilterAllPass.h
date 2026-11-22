@@ -30,10 +30,10 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_FILTER_ALL_PASS_H_
-#define _NSOUND_FILTER_ALL_PASS_H_
+#pragma once
 
 #include <Nsound/Filter.h>
+#include <Nsound/FilterDelay.h>
 
 namespace Nsound
 {
@@ -41,7 +41,6 @@ namespace Nsound
 // Forward class declarations
 class AudioStream;
 class Buffer;
-class FilterDelay;
 
 //-----------------------------------------------------------------------------
 class FilterAllPass : public Filter
@@ -53,10 +52,7 @@ class FilterAllPass : public Filter
         const float64 & max_delay_time_seconds,
         const float64 & gain);
 
-    FilterAllPass(const FilterAllPass & copy);
 
-    virtual
-    ~FilterAllPass();
 
     AudioStream
     filter(const AudioStream & x);
@@ -77,31 +73,30 @@ class FilterAllPass : public Filter
     filter(const Buffer & x, const Buffer & delay_in_seconds);
 
     float64
-    filter(const float64 & x);
+    filter(const float64 & x) override;
 
     float64
-    filter(const float64 & x, const float64 & delay_in_seconds);
-
-    FilterAllPass &
-    operator=(const FilterAllPass & rhs);
+    filter(const float64 & x, const float64 & delay_in_seconds) override;
 
     void
     plot(boolean show_fc = true, boolean show_phase = false);
 
     void
-    reset();
+    reset() override;
 
     protected:
 
-    FilterDelay * x_delay_;
-    FilterDelay * y_delay_;
+    FilterDelay x_delay_;
+    FilterDelay y_delay_;
 
     float64 gain_;
 
-    float64 y_history_;
+    // The last input and output, both delay lines are fed the previous
+    // sample so they delay the same D + 1 samples.
+    float64 x_history_ = 0.0;
+    float64 y_history_ = 0.0;
 };
 
 };
 
 // :mode=c++:  jEdit modeline
-#endif

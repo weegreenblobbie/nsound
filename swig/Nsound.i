@@ -34,6 +34,13 @@
 
 %feature("autodoc", "1");
 
+// Wrap the compiler's copy constructors too, so classes without a hand
+// written one can still be copied from Python, Hat(hat).
+%copyctor;
+
+// Its std::set needs MixerNode, which the wrapper doesn't see.
+%nocopyctor Nsound::Mixer;
+
 %include <exception.i>
 %include <std_string.i>
 %include <std_vector.i>

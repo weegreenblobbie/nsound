@@ -52,14 +52,9 @@ FilterCombLowPassFeedback(
     const float64 & low_pass_frequency_Hz)
     :
     Filter(sample_rate),
-    delay_(nullptr),
-    feedback_gain_(feedback_gain),
-    damp1_(0.0),
-    damp2_(0.0),
-    y_history_(0.0)
+    delay_(sample_rate, delay_time_seconds),
+    feedback_gain_(feedback_gain)
 {
-    delay_ = new FilterDelay(sample_rate_, delay_time_seconds);
-
     FilterCombLowPassFeedback::reset();
 
     if(feedback_gain_ < 0.0)
@@ -80,27 +75,6 @@ FilterCombLowPassFeedback(
     }
 
     damp2_ = 1.0 - damp1_;
-}
-
-//-----------------------------------------------------------------------------
-FilterCombLowPassFeedback::
-FilterCombLowPassFeedback(const FilterCombLowPassFeedback & copy)
-    :
-    Filter(copy.sample_rate_),
-    delay_(new FilterDelay(*copy.delay_)),
-    feedback_gain_(copy.feedback_gain_),
-    damp1_(copy.damp1_),
-    damp2_(copy.damp2_),
-    y_history_(copy.y_history_)
-{
-}
-
-
-//-----------------------------------------------------------------------------
-FilterCombLowPassFeedback::
-~FilterCombLowPassFeedback()
-{
-    delete delay_;
 }
 
 AudioStream
@@ -139,7 +113,7 @@ float64
 FilterCombLowPassFeedback::
 filter(const float64 & x)
 {
-    float64 d = delay_->filter(x + y_history_ * feedback_gain_);
+    float64 d = delay_.filter(x + y_history_ * feedback_gain_);
 
     y_history_ = d * damp2_ + y_history_ * damp1_;
 
@@ -160,20 +134,6 @@ filter(const float64 & x, const float64 & frequency_Hz)
     damp2_ = 1.0 - damp1_;
 
     return FilterCombLowPassFeedback::filter(x);
-}
-
-//-----------------------------------------------------------------------------
-FilterCombLowPassFeedback &
-FilterCombLowPassFeedback::
-operator=(const FilterCombLowPassFeedback & rhs)
-{
-    *delay_ = *rhs.delay_;
-    feedback_gain_ = rhs.feedback_gain_;
-    damp1_ = rhs.damp1_;
-    damp2_ = rhs.damp2_;
-    y_history_ = rhs.y_history_;
-
-    return *this;
 }
 
 void
@@ -213,6 +173,6 @@ void
 FilterCombLowPassFeedback::
 reset()
 {
-    delay_->reset();
+    delay_.reset();
     y_history_ = 0.0;
 }

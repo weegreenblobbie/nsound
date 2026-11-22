@@ -77,10 +77,7 @@ Vocoder(
     sample_rate_(sample_rate),
     window_size_(static_cast<uint32>(window_length * sample_rate_)),
     n_bands_(n_bands),
-    freq_max_(freq_max),
-    filters_input_(),
-    filters_output_(),
-    moving_average_()
+    freq_max_(freq_max)
 {
     M_ASSERT_VALUE(sample_rate_, >, 0.0);
 
@@ -152,33 +149,22 @@ Vocoder(
             f_hi = (freq + freq_centers[i + 1]) / 2.0;
         }
 
-        FilterBandPassIIR * bp = new FilterBandPassIIR(
+        filters_input_.push_back(std::make_unique<FilterBandPassIIR>(
             sample_rate_,
             order,
             f_lo,
             f_hi,
-            ripple);
+            ripple));
 
-        M_CHECK_PTR(bp);
-
-        filters_input_.push_back(bp);
-
-        bp = new FilterBandPassIIR(
+        filters_output_.push_back(std::make_unique<FilterBandPassIIR>(
             sample_rate_,
             order,
             f_lo,
             f_hi,
-            ripple);
+            ripple));
 
-        M_CHECK_PTR(bp);
-
-        filters_output_.push_back(bp);
-
-        FilterMovingAverage * ma = new FilterMovingAverage(window_size_);
-
-        M_CHECK_PTR(ma);
-
-        moving_average_.push_back(ma);
+        moving_average_.push_back(
+            std::make_unique<FilterMovingAverage>(window_size_));
     }
 
     if(plot_filter_bank)
@@ -207,26 +193,9 @@ Vocoder(
 }
 
 //-----------------------------------------------------------------------------
+// Defined here, where the filters are complete, for the std::unique_ptrs.
 Vocoder::
-~Vocoder()
-{
-    FilterVector::iterator fi = filters_input_.begin();
-    FilterVector::iterator fo = filters_output_.begin();
-    FilterVector::iterator ma = moving_average_.begin();
-
-    FilterVector::iterator end = filters_input_.end();
-
-    while(fi != end)
-    {
-        delete *fi;
-        delete *fo;
-        delete *ma;
-
-        ++fi;
-        ++fo;
-        ++ma;
-    }
-}
+~Vocoder() = default;
 
 Buffer
 Vocoder::

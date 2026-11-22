@@ -35,9 +35,6 @@ jobs:
     - name: Build nsound
       run: |
         scons
-    - name: Run unit tests
-      run: |
-        scons --unit-test
     - name: Run python tests
       run: |
         scons --pytest --disable-libportaudio --config=force

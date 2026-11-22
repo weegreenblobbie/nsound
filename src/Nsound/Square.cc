@@ -37,6 +37,30 @@
 using namespace Nsound;
 
 //-----------------------------------------------------------------------------
+//! Appends a line from y1 to y2 between the fractions of a wavelength from
+//! and to.
+//
+//! Both ends are rounded to whole samples, so lines that meet add up to
+//! exactly one wavelength.  A line with no samples adds nothing.
+static
+void
+draw_segment(
+    Buffer & waveform,
+    const Generator & line,
+    const float64 & sample_rate,
+    const float64 & from,
+    const float64 & to,
+    const float64 & y1,
+    const float64 & y2)
+{
+    float64 n = std::round(to * sample_rate) - std::round(from * sample_rate);
+
+    if(n == 0.0) return;
+
+    waveform << line.drawLine(n / sample_rate, y1, y2);
+}
+
+//-----------------------------------------------------------------------------
 Buffer
 drawSquare(
     const float64 & sample_rate,
@@ -65,25 +89,15 @@ drawSquare(
     Generator line(sample_rate);
 
     // Line 1
-    waveform << line.drawLine(percent_lambda_1, // pt1_time,
-                                0.0,
-                                0.0);
+    draw_segment(waveform, line, sample_rate, 0.0, percent_lambda_1, 0.0, 0.0);
     // Line 2
-    waveform << line.drawLine(percent_lambda_2 - percent_lambda_1, //pt2_time - pt1_time,
-                                amplitude_1,
-                                amplitude_1);
+    draw_segment(waveform, line, sample_rate, percent_lambda_1, percent_lambda_2, amplitude_1, amplitude_1);
     // Line 3
-    waveform << line.drawLine(percent_lambda_3 - percent_lambda_2, //pt3_time - pt2_time,
-                                0.0,
-                                0.0);
+    draw_segment(waveform, line, sample_rate, percent_lambda_2, percent_lambda_3, 0.0, 0.0);
     // Line 4
-    waveform << line.drawLine(percent_lambda_4 - percent_lambda_3, //pt4_time - pt3_time,
-                                amplitude_3,
-                                amplitude_3);
+    draw_segment(waveform, line, sample_rate, percent_lambda_3, percent_lambda_4, amplitude_3, amplitude_3);
     // Line 5
-    waveform << line.drawLine(1.0 - percent_lambda_4, //pt5_time - pt4_time,
-                                0.0,
-                                0.0);
+    draw_segment(waveform, line, sample_rate, percent_lambda_4, 1.0, 0.0, 0.0);
 
     return waveform;
 }
@@ -92,11 +106,8 @@ drawSquare(
 Square::
 Square(const float64 & sample_rate) : Generator(sample_rate)
 {
-    Buffer waveform;
-
-    waveform << drawLine(0.5, 1.0, 1.0) << drawLine(0.5, -1.0, -1.0);
-
-    ctor(sample_rate, waveform);
+    // Half a wavelength at 1, half at -1.
+    ctor(sample_rate, drawSquare(sample_rate, 0.0, 1.0, 0.5, 0.5, -1.0, 1.0));
 }
 
 //-----------------------------------------------------------------------------

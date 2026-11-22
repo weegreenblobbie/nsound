@@ -49,18 +49,7 @@ FilterLowPassMoogVcf(
     :
     Filter(sample_rate),
     resonance_(resonance),
-    cutoff_(cutoff_hz),
-    k_(0),
-    p_(0),
-    r_(0),
-    oldx_(0),
-    y0_(0),
-    y1_(0),
-    y2_(0),
-    y3_(0),
-    oldy0_(0),
-    oldy1_(0),
-    oldy2_(0)
+    cutoff_(cutoff_hz)
 {
     _make_filter(cutoff_hz, resonance);
 }

@@ -101,8 +101,7 @@
 //    All other RIFF WAVE chunk ids are skipped.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_WAVEFILE_H_
-#define _NSOUND_WAVEFILE_H_
+#pragma once
 
 #include <Nsound/Nsound.h>
 
@@ -270,7 +269,7 @@ class ID3v1Tag
     std::string album;
     std::string year;
     std::string comment;
-    char genre;
+    char genre = ' ';
 
     #ifndef SWIG
         ///////////////////////////////////////////////////////////////////////
@@ -286,7 +285,6 @@ operator<<(std::ostream & out, const ID3v1Tag & rhs);
 
 }; // Nsound
 
-#endif
 
 
 //-----------------------------------------------------------------------------

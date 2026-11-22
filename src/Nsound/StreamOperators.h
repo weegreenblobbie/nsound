@@ -31,8 +31,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef _NSOUND_STREAM_OPERATORS_H_
-#define _NSOUND_STREAM_OPERATORS_H_
+#pragma once
 
 #include <Nsound/Nsound.h>
 
@@ -72,4 +71,3 @@ T peek(std::istream & in)
 } // namespace
 
 // :mode=c++: jEdit modeline
-#endif

@@ -54,35 +54,18 @@ FilterParametricEqualizer(
     frequency_(frequency),
     resonance_(resonance),
     boost_(boost),
-    a_(new float64 [N_POLES]),
-    b_(new float64 [N_POLES]),
-    x_history_(nullptr),
-    x_ptr_(nullptr),
-    x_end_ptr_(nullptr),
-    y_history_(nullptr),
-    y_ptr_(nullptr),
-    y_end_ptr_(nullptr),
-    kernel_cache_()
+    a_(N_POLES, 0.0),
+    b_(N_POLES, 0.0),
+    x_history_(N_POLES + 1, 0.0),
+    y_history_(N_POLES + 1, 0.0)
 {
-    x_history_ = new float64 [N_POLES + 1];
-    x_ptr_     = x_history_;
-    x_end_ptr_ = x_history_ + N_POLES + 1;
+    x_ptr_     = x_history_.data();
+    x_end_ptr_ = x_history_.data() + x_history_.size();
 
-    y_history_ = new float64 [N_POLES + 1];
-    y_ptr_     = y_history_;
-    y_end_ptr_ = y_history_ + N_POLES + 1;
+    y_ptr_     = y_history_.data();
+    y_end_ptr_ = y_history_.data() + y_history_.size();
 
     reset();
-}
-
-//-----------------------------------------------------------------------------
-FilterParametricEqualizer::
-~FilterParametricEqualizer()
-{
-    delete [] a_;
-    delete [] b_;
-    delete [] x_history_;
-    delete [] y_history_;
 }
 
 AudioStream
@@ -90,6 +73,11 @@ FilterParametricEqualizer::
 filter(const AudioStream & x)
 {
     uint32 n_channels = x.getNChannels();
+
+    if(is_realtime_ && n_channels > 1)
+    {
+        M_THROW("In real-time mode, a filter per audio channel must be used!");
+    }
 
     AudioStream y(x.getSampleRate(), n_channels);
 
@@ -106,6 +94,11 @@ FilterParametricEqualizer::
 filter(const AudioStream & x, const Buffer & frequencies)
 {
     uint32 n_channels = x.getNChannels();
+
+    if(is_realtime_ && n_channels > 1)
+    {
+        M_THROW("In real-time mode, a filter per audio channel must be used!");
+    }
 
     AudioStream y(x.getSampleRate(), n_channels);
 
@@ -125,6 +118,11 @@ filter(
     const Buffer & resonance)
 {
     uint32 n_channels = x.getNChannels();
+
+    if(is_realtime_ && n_channels > 1)
+    {
+        M_THROW("In real-time mode, a filter per audio channel must be used!");
+    }
 
     AudioStream y(x.getSampleRate(), n_channels);
 
@@ -146,6 +144,11 @@ filter(
 {
     uint32 n_channels = x.getNChannels();
 
+    if(is_realtime_ && n_channels > 1)
+    {
+        M_THROW("In real-time mode, a filter per audio channel must be used!");
+    }
+
     AudioStream y(x.getSampleRate(), n_channels);
 
     for(uint32 channel = 0; channel < n_channels; ++channel)
@@ -161,7 +164,7 @@ Buffer
 FilterParametricEqualizer::
 filter(const Buffer & x)
 {
-    reset();
+    if(!is_realtime_) reset();
 
     uint32 n_samples = x.getLength();
 
@@ -179,7 +182,7 @@ Buffer
 FilterParametricEqualizer::
 filter(const Buffer & x, const Buffer & frequencies)
 {
-    reset();
+    if(!is_realtime_) reset();
 
     uint32 n_samples = x.getLength();
     uint32 n_freqs   = frequencies.getLength();
@@ -201,7 +204,7 @@ filter(
     const Buffer & frequencies,
     const Buffer & resonance)
 {
-    reset();
+    if(!is_realtime_) reset();
 
     uint32 n_samples = x.getLength();
     uint32 n_freqs   = frequencies.getLength();
@@ -225,7 +228,7 @@ filter(
     const Buffer & resonance,
     const Buffer & boost)
 {
-    reset();
+    if(!is_realtime_) reset();
 
     uint32 n_samples = x.getLength();
     uint32 n_freqs   = frequencies.getLength();
@@ -258,18 +261,18 @@ filter(const float64 & x)
     // Bounds check
     if(x_ptr_ >= x_end_ptr_)
     {
-        x_ptr_ = x_history_;
+        x_ptr_ = x_history_.data();
     }
 
     float64 y = 0.0;
     float64 * x_hist = x_ptr_;
-    for(float64 * b = b_; b < b_ + N_POLES; ++b)
+    for(float64 * b = b_.data(); b < b_.data() + N_POLES; ++b)
     {
         // When we enter this loop, x_hist is pointing at x[n + 1]
         --x_hist;
 
         // Bounds check
-        if(x_hist < x_history_)
+        if(x_hist < x_history_.data())
         {
             x_hist = x_end_ptr_ - 1;
         }
@@ -278,13 +281,13 @@ filter(const float64 & x)
     }
 
     float64 * y_hist = y_ptr_;
-    for(float64 * a = a_ + 1; a < a_ + N_POLES; ++a)
+    for(float64 * a = a_.data() + 1; a < a_.data() + N_POLES; ++a)
     {
         // When we enter this loop, y_hist is pointing at y[n + 1]
         --y_hist;
 
         // Bounds check
-        if(y_hist < y_history_)
+        if(y_hist < y_history_.data())
         {
             y_hist = y_end_ptr_ - 1;
         }
@@ -302,7 +305,7 @@ filter(const float64 & x)
     // Bounds check
     if(y_ptr_ >= y_end_ptr_)
     {
-        y_ptr_ = y_history_;
+        y_ptr_ = y_history_.data();
     }
 
     return y;
@@ -347,12 +350,12 @@ FilterParametricEqualizer::
 makeKernel(
     const float64 & frequency,
     const float64 & resonance,
-    const float64 & boost)
+    const float64 & boost_dB)
 {
     Kernel new_kernel(N_POLES, N_POLES,
         static_cast<int32>(std::fabs(frequency)),
         static_cast<int32>(resonance * 1e3),
-        static_cast<int32>(boost * 1e3));
+        static_cast<int32>(boost_dB * 1e3));
 
     // See if the kernel is in the cache.
     KernelCache::iterator itor = kernel_cache_.find(new_kernel);
@@ -360,14 +363,17 @@ makeKernel(
     // Kernel was found in the cache, set pointers and return.
     if(itor != kernel_cache_.end())
     {
-        memcpy(a_, itor->getA(), sizeof(float64) * N_POLES);
-        memcpy(b_, itor->getB(), sizeof(float64) * N_POLES);
+        memcpy(a_.data(), itor->getA(), sizeof(float64) * N_POLES);
+        memcpy(b_.data(), itor->getB(), sizeof(float64) * N_POLES);
 
         return;
     }
 
-    memset(a_, 0, sizeof(float64) * N_POLES);
-    memset(b_, 0, sizeof(float64) * N_POLES);
+    // The gain V of the formulas.
+    float64 boost = std::pow(10.0, boost_dB / 20.0);
+
+    memset(a_.data(), 0, sizeof(float64) * N_POLES);
+    memset(b_.data(), 0, sizeof(float64) * N_POLES);
 
     float64 omega = two_pi_over_sample_rate_ * frequency;
 
@@ -472,8 +478,8 @@ makeKernel(
     b_[1] *= a_[0];
     b_[2] *= a_[0];
 
-    new_kernel.setB(b_);
-    new_kernel.setA(a_);
+    new_kernel.setB(b_.data());
+    new_kernel.setA(a_.data());
 
     // Add the new kernel to the cache.
     kernel_cache_.insert(new_kernel);
@@ -507,11 +513,11 @@ void
 FilterParametricEqualizer::
 reset()
 {
-    memset(x_history_, 0, sizeof(float64) * (N_POLES + 1));
-    memset(y_history_, 0, sizeof(float64) * (N_POLES + 1));
+    memset(x_history_.data(), 0, sizeof(float64) * (N_POLES + 1));
+    memset(y_history_.data(), 0, sizeof(float64) * (N_POLES + 1));
 
-    x_ptr_ = x_history_;
-    y_ptr_ = y_history_;
+    x_ptr_ = x_history_.data();
+    y_ptr_ = y_history_.data();
 
     makeKernel(frequency_, resonance_, boost_);
 }

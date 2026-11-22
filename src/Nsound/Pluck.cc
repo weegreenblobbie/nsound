@@ -47,13 +47,6 @@ Pluck(const float64 & sample_rate, uint32 n_smooth_samples)
 {
 }
 
-//-----------------------------------------------------------------------------
-Nsound::
-Pluck::
-~Pluck()
-{
-}
-
 Buffer
 Pluck::
 generate(const float64 & duration, const float64 & frequency)

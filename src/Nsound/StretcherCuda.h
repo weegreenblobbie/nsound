@@ -30,8 +30,7 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_STRETCHER_CUDA_H_
-#define _NSOUND_STRETCHER_CUDA_H_
+#pragma once
 
 namespace Nsound
 {
@@ -56,5 +55,4 @@ searchForBestMatch_f32(
 
 } // namespace
 
-#endif
 // :mode=c++: jEdit modeline

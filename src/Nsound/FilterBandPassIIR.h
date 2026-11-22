@@ -30,11 +30,11 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_FILTER_BAND_PASS_IIR_H_
-#define _NSOUND_FILTER_BAND_PASS_IIR_H_
+#pragma once
 
 #include <Nsound/Filter.h>
 
+#include <memory>
 #include <set>
 
 namespace Nsound
@@ -107,13 +107,11 @@ class FilterBandPassIIR : public Filter
         const Buffer & frequencies_Hz_low,
         const Buffer & frequencies_Hz_high);
 
-    virtual
     float64
-    filter(const float64 & x);
+    filter(const float64 & x) override;
 
-    virtual
     float64
-    filter(const float64 & x, const float64 & frequency_Hz);
+    filter(const float64 & x, const float64 & frequency_Hz) override;
 
     virtual
     float64
@@ -128,24 +126,24 @@ class FilterBandPassIIR : public Filter
     //! Resets interal history buffer and sets the cut off frequency to the one
     //! used at declaration.
     void
-    reset();
+    reset() override;
 
     protected:
 
-    FilterLowPassIIR  * low_;
-    FilterHighPassIIR * high_;
-    float64 gain_;
+    std::unique_ptr<FilterLowPassIIR>  low_;
+    std::unique_ptr<FilterHighPassIIR> high_;
+    float64 gain_ = 1.0;
 
-    private:
+    public:
 
-    FilterBandPassIIR(const FilterBandPassIIR & copy);
+    // Not copyable.
+    FilterBandPassIIR(const FilterBandPassIIR & copy) = delete;
 
     FilterBandPassIIR &
-    operator=(const FilterBandPassIIR & rhs);
+    operator=(const FilterBandPassIIR & rhs) = delete;
 
 }; // class FilterBandPassIIR
 
 } // namespace Nsound
 
 // :mode=c++: jEdit modeline
-#endif

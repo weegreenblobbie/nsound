@@ -30,12 +30,12 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_FILTER_LOW_PASS_FIR_H_
-#define _NSOUND_FILTER_LOW_PASS_FIR_H_
+#pragma once
 
 #include <Nsound/Filter.h>
 
 #include <set>
+#include <vector>
 
 namespace Nsound
 {
@@ -49,8 +49,6 @@ class FilterLowPassFIR : public Filter
         const float64 & sample_rate,
         uint32 kernel_size,
         const float64 & cutoff_frequency_Hz);
-
-    virtual ~FilterLowPassFIR();
 
     AudioStream
     filter(const AudioStream & x);
@@ -70,12 +68,11 @@ class FilterLowPassFIR : public Filter
     Buffer
     filter(const Buffer & x, const Buffer & frequencies);
 
-    virtual
     float64
-    filter(const float64 & x);
+    filter(const float64 & x) override;
 
     float64
-    filter(const float64 & x, const float64 & frequency_Hz);
+    filter(const float64 & x, const float64 & frequency_Hz) override;
 
     float64
     getFrequency() const {return frequency_1_Hz_;};
@@ -90,7 +87,7 @@ class FilterLowPassFIR : public Filter
     //! Resets interal history buffer and sets the cut off frequency to the one
     //! used at declaration.
     void
-    reset();
+    reset() override;
 
     //! Sets the cut off frequency (Hz).
     void
@@ -101,13 +98,14 @@ class FilterLowPassFIR : public Filter
     void
     makeKernel(const float64 & frequency1);
 
-    float64 * b_;
-    float64 * window_;
+    // The current kernel, in the cache.
+    const float64 * b_ = nullptr;
+    std::vector<float64> window_;
 
     // These are for point by point filtering. filter_(float64)
-    float64 * x_history_;
-    float64 * x_ptr_;
-    float64 * x_end_ptr_;
+    std::vector<float64> x_history_;
+    float64 * x_ptr_ = nullptr;
+    float64 * x_end_ptr_ = nullptr;
 
     float64 frequency_1_Hz_;
 
@@ -119,7 +117,7 @@ class FilterLowPassFIR : public Filter
 
         bool operator<(const Kernel & rhs) const;
 
-        float64 * b_;
+        std::vector<float64> b_;
 
         uint32 frequency_;
     };
@@ -129,17 +127,16 @@ class FilterLowPassFIR : public Filter
     KernelCache lp_cache_;
     #endif
 
-    private:
+    public:
 
-    FilterLowPassFIR(const FilterLowPassFIR & copy);
+    // Not copyable.
+    FilterLowPassFIR(const FilterLowPassFIR & copy) = delete;
 
     FilterLowPassFIR &
-    operator=(const FilterLowPassFIR & rhs){return *this;};
-;
+    operator=(const FilterLowPassFIR & rhs) = delete;
 
 }; // LowPassFilter
 
 }; // Nsound
 
 // :mode=c++: jEdit modeline
-#endif

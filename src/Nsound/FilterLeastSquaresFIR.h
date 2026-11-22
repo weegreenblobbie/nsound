@@ -30,13 +30,14 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_FILTER_LEAST_SQUARES_FIR_H_
-#define _NSOUND_FILTER_LEAST_SQUARES_FIR_H_
+#pragma once
 
+#include <Nsound/Buffer.h>
 #include <Nsound/Filter.h>
 #include <Nsound/WindowType.h>
 
 #include <set>
+#include <vector>
 
 namespace Nsound
 {
@@ -55,10 +56,6 @@ class FilterLeastSquaresFIR : public Filter
         const Buffer & freq_axis,
         const Buffer & amplitude_axis,
         const float64 & beta = 5.0);
-
-    FilterLeastSquaresFIR(const FilterLeastSquaresFIR & copy);
-
-    virtual ~FilterLeastSquaresFIR();
 
     Buffer
     getKernel() const;
@@ -98,13 +95,12 @@ class FilterLeastSquaresFIR : public Filter
     filter(const Buffer & x, const Buffer & frequencies)
     { return filter(x); };
 
-    virtual
     float64
-    filter(const float64 & x);
+    filter(const float64 & x) override;
 
     // ! This filter type does not support dynamic frequency response.
     float64
-    filter(const float64 & x, const float64 & frequency_Hz)
+    filter(const float64 & x, const float64 & frequency_Hz) override
     { return filter(x); };
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -112,16 +108,13 @@ class FilterLeastSquaresFIR : public Filter
     getImpulseResponse()
     {return Filter::getImpulseResponse();};
 
-    FilterLeastSquaresFIR &
-    operator=(const FilterLeastSquaresFIR & rhs);
-
     void
     plot(boolean show_fc = true, boolean show_phase = false);
 
     //! Resets interal history buffer and sets the cut off frequency to the one
     //! used at declaration.
     void
-    reset();
+    reset() override;
 
     void
     setWindow(WindowType type);
@@ -133,19 +126,18 @@ class FilterLeastSquaresFIR : public Filter
 
     protected:
 
-    float64 * b_;
-    float64 * window_;
+    std::vector<float64> b_;
+    std::vector<float64> window_;
 
-    float64 * x_history_;
-    float64 * x_ptr_;
-    float64 * x_end_ptr_;
+    // The history, a circular buffer, and where x[n] goes next.
+    std::vector<float64> x_history_;
+    uint32 x_index_ = 0;
 
-    Buffer * f_axis_;
-    Buffer * a_axis_;
+    Buffer f_axis_;
+    Buffer a_axis_;
 
 }; // LowPassFilter
 
 }; // Nsound
 
 // :mode=c++: jEdit modeline
-#endif

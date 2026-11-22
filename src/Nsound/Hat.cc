@@ -46,46 +46,9 @@ Hat::
 Hat(const float64 & sample_rate)
     :
     Instrument(sample_rate),
-    square_(nullptr),
-    hpf_(nullptr)
+    square_(sample_rate),
+    hpf_(sample_rate, 2, 4872.0, 0.05)
 {
-    square_ = new Square(sample_rate_);
-    hpf_ = new FilterHighPassIIR(sample_rate_, 2, 4872.0, 0.05);
-}
-
-//-----------------------------------------------------------------------------
-Hat::
-Hat(const Hat & rhs)
-    :
-    Instrument(rhs.sample_rate_),
-    square_(nullptr),
-    hpf_(nullptr)
-{
-    square_ = new Square(*rhs.square_);
-    hpf_ = new FilterHighPassIIR(*rhs.hpf_);
-}
-
-//-----------------------------------------------------------------------------
-Hat::
-~Hat()
-{
-    delete square_;
-    delete hpf_;
-}
-
-//-----------------------------------------------------------------------------
-Hat &
-Hat::
-operator=(const Hat & rhs)
-{
-    delete square_;
-    delete hpf_;
-
-    sample_rate_ = rhs.sample_rate_;
-    square_ = new Square(*rhs.square_);
-    hpf_ = new FilterHighPassIIR(*rhs.hpf_);
-
-    return *this;
 }
 
 AudioStream
@@ -165,24 +128,25 @@ play(
 
     float64 frequency = tune * 530.0;
 
-    Buffer env = square_->drawLine(0.0005, 0.1, 1.0)
-              << square_->drawDecay(play_duration-0.0005 - env_offset, 7.0)
-              << square_->silence(silence_duration + env_offset);
+    Buffer env = square_.drawLine(0.0005, 0.1, 1.0)
+              << square_.drawDecay(play_duration-0.0005 - env_offset, 7.0)
+              << square_.silence(silence_duration + env_offset);
 
     AudioStream out(sample_rate_, 1);
 
-    out << square_->generate(play_duration, frequency);
+    // The whole duration, the envelope silences it after it rings.
+    out << square_.generate(duration, frequency);
 
-    out += square_->generate(play_duration, frequency * 1.5038);
-    out += square_->generate(play_duration, frequency * 1.6132);
-    out += square_->generate(play_duration, frequency * 1.9642);
-    out += square_->generate(play_duration, frequency * 2.5321);
-    out += square_->generate(play_duration, frequency * 2.7547);
+    out += square_.generate(duration, frequency * 1.5038);
+    out += square_.generate(duration, frequency * 1.6132);
+    out += square_.generate(duration, frequency * 1.9642);
+    out += square_.generate(duration, frequency * 2.5321);
+    out += square_.generate(duration, frequency * 2.7547);
 
     out /= 2.0;
 
-    out = hpf_->filter(out);
-    out = hpf_->filter(out);
+    out = hpf_.filter(out);
+    out = hpf_.filter(out);
 
     return out * env;
 }

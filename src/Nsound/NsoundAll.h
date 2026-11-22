@@ -31,8 +31,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef _NSOUND_ALL_H_
-#define _NSOUND_ALL_H_
+#pragma once
 
 #include <Nsound/Nsound.h>
 #include <Nsound/AudioPlayback.h>
@@ -107,7 +106,6 @@
 #include <Nsound/Wavefile.h>
 #include <Nsound/WindowType.h>
 
-#endif
 
 // :mode=c++: jEdit modeline
 

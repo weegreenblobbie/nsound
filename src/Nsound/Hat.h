@@ -35,10 +35,11 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef _NSOUND_HAT_H_
-#define _NSOUND_HAT_H_
+#pragma once
 
+#include <Nsound/FilterHighPassIIR.h>
 #include <Nsound/Instrument.h>
+#include <Nsound/Square.h>
 
 namespace Nsound
 {
@@ -46,8 +47,6 @@ namespace Nsound
 // Forward Declarations
 class AudioStream;
 class Buffer;
-class FilterHighPassIIR;
-class Square;
 
 //-----------------------------------------------------------------------------
 //!  Class Hat
@@ -65,25 +64,15 @@ class Hat : public Instrument
     //! Creates a Hat
     Hat(const float64 & sample_rate);
 
-    //! Copy constructor.
-    Hat(const Hat & copy);
-
-    //! Destructor
-    ~Hat();
-
-    //! Assignment.
-    Hat &
-    operator=(const Hat & rhs);
-
     //! Plays a demo for this instrument.
     AudioStream
-    play();
+    play() override;
 
     //! Static play method with option of Hat open or closed.
     AudioStream
     play(
         const float64 & duration,
-        const float64 & tune)
+        const float64 & tune) override
     { return play(duration, tune, true); };
 
     //! Static play method with option of Hat open or closed.
@@ -94,7 +83,7 @@ class Hat : public Instrument
         boolean is_closed);
 
     //! Nsound::Hat information.
-    std::string getInfo()
+    std::string getInfo() const override
     {
         return
             "Nsound::Hat by Nick Hilton on 2009-11-13\n"
@@ -104,12 +93,11 @@ class Hat : public Instrument
 
     protected:
 
-    Square            * square_;
-    FilterHighPassIIR * hpf_;
+    Square            square_;
+    FilterHighPassIIR hpf_;
 
 };
 
 };
 
 // :mode=c++: jEdit modeline
-#endif

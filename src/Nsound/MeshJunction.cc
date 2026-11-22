@@ -44,24 +44,7 @@ MeshJunction(
     const float64 & delta,
     const float64 & gamma)
     :
-    leak_gain_(leak_gain),
-    velocity_(0.0),
-    velocity_north_(0.0),
-    velocity_south_(0.0),
-    velocity_east_(0.0),
-    velocity_west_(0.0),
-    previous_velocity_(0.0),
-    previous_velocity_north_(0.0),
-    previous_velocity_south_(0.0),
-    previous_velocity_east_(0.0),
-    previous_velocity_west_(0.0),
-    vc_(0.0),
-    yj_(0.0),
-    yc_(0.0),
-    neighbor_north_(nullptr),
-    neighbor_south_(nullptr),
-    neighbor_east_(nullptr),
-    neighbor_west_(nullptr)
+    leak_gain_(leak_gain)
 {
     yj_ = 2.0 * ( (delta * delta) / (tau * tau * gamma * gamma) );
     yc_ = 2.0 * ( (delta * delta) / (tau * tau * gamma * gamma) - 2.0);
@@ -82,34 +65,9 @@ MeshJunction(
 //-----------------------------------------------------------------------------
 MeshJunction::
 MeshJunction(const MeshJunction & copy)
-    :
-    leak_gain_(0.0),
-    velocity_(0.0),
-    velocity_north_(0.0),
-    velocity_south_(0.0),
-    velocity_east_(0.0),
-    velocity_west_(0.0),
-    previous_velocity_(0.0),
-    previous_velocity_north_(0.0),
-    previous_velocity_south_(0.0),
-    previous_velocity_east_(0.0),
-    previous_velocity_west_(0.0),
-    vc_(0.0),
-    yj_(0.0),
-    yc_(0.0),
-    neighbor_north_(nullptr),
-    neighbor_south_(nullptr),
-    neighbor_east_(nullptr),
-    neighbor_west_(nullptr)
 {
     *this = copy;
     // This operator can not assign neighbor pointers.
-}
-
-//-----------------------------------------------------------------------------
-MeshJunction::
-~MeshJunction()
-{
 }
 
 void
@@ -125,7 +83,8 @@ clear()
     previous_velocity_north_ =
     previous_velocity_south_ =
     previous_velocity_east_  =
-    previous_velocity_west_  = 0.0;
+    previous_velocity_west_  =
+    vc_                      = 0.0;
 }
 
 float64

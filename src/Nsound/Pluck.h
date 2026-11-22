@@ -26,8 +26,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef _NSOUND_PLUCK_H_
-#define _NSOUND_PLUCK_H_
+#pragma once
 
 #include <Nsound/Generator.h>
 
@@ -45,39 +44,37 @@ class Pluck : public Generator
 
     Pluck(const float64 & sample_rate, uint32 n_smooth_samples);
 
-    virtual ~Pluck();
-
     //! Implements simple Karplus-Strong plucked string.
     Buffer
-    generate(const float64 & duration, const float64 & frequency);
+    generate(const float64 & duration, const float64 & frequency) override;
 
     // These don't do anything yet.
-    float64 generate(const float64 & f){return 0.0;}
-    float64 generate2(const float64 & f, const float64 & p){return 0.0;}
+    float64 generate(const float64 & f) override {return 0.0;}
+    float64 generate2(const float64 & f, const float64 & p) override {return 0.0;}
 
     Buffer generate2(
         const float64 & d,
         const float64 & f,
-        const float64 & p){return Buffer();}
+        const float64 & p) override {return Buffer();}
 
     Buffer generate(
         const float64 & d,
-        const Buffer &  f){return Buffer();}
+        const Buffer &  f) override {return Buffer();}
 
     Buffer generate2(
         const float64 & d,
         const float64 & f,
-        const Buffer &  p){return Buffer();}
+        const Buffer &  p) override {return Buffer();}
 
     Buffer generate2(
         const float64 & d,
         const Buffer &  f,
-        const float64 & p){return Buffer();}
+        const float64 & p) override {return Buffer();}
 
     Buffer generate2(
         const float64 & d,
         const Buffer &  f,
-        const Buffer &  p){return Buffer();}
+        const Buffer &  p) override {return Buffer();}
 
     protected:
 
@@ -89,4 +86,3 @@ class Pluck : public Generator
 
 // :mode=c++: jEdit modeline
 
-#endif

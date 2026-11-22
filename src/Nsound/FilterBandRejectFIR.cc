@@ -31,9 +31,9 @@
 #include <Nsound/FilterBandRejectFIR.h>
 #include <Nsound/Plotter.h>
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
-#include <cstring>
 #include <iostream>
 
 using namespace Nsound;
@@ -51,28 +51,11 @@ FilterBandRejectFIR(
     const float64 & frequency_Hz_high)
     :
     FilterHighPassFIR(sample_rate, kernel_size, frequency_Hz_high),
-    frequency_2_Hz_(frequency_Hz_high),
-    kernel_cache_()
+    frequency_2_Hz_(frequency_Hz_high)
 {
     frequency_1_Hz_ = frequency_Hz_low;
 
     reset();
-}
-
-FilterBandRejectFIR::
-~FilterBandRejectFIR()
-{
-    FilterBandRejectFIR::KernelCache::iterator itor =
-        FilterBandRejectFIR::kernel_cache_.begin();
-
-    FilterBandRejectFIR::KernelCache::iterator  end =
-        FilterBandRejectFIR::kernel_cache_.end();
-
-    while(itor != end)
-    {
-        delete [] itor->b_;
-        ++itor;
-    }
 }
 
 float64
@@ -249,12 +232,11 @@ makeKernel(const float64 & low_frequency, const float64 & high_frequency)
     if(itor != FilterBandRejectFIR::kernel_cache_.end())
     {
         // The kernel was found in the cache.
-        b_ = itor->b_;
+        b_ = itor->b_.data();
         return;
     }
 
     // The filter wasn't in the cache, need to make it.
-    new_kernel.b_ = new float64[kernel_size_];
 
     if(low_frequency < 0.10 && high_frequency >= 0.10)
     {
@@ -278,22 +260,28 @@ makeKernel(const float64 & low_frequency, const float64 & high_frequency)
         return;
 
     }
-    else if(low_frequency <= 0.10 && high_frequency < 0.10)
-    {
-        // Create simple All pass filter
-        new_kernel.b_[0] = 1.0;
 
-        for(uint32 i = 1; i < kernel_size_; ++i)
+    // Only the band reject and all pass kernels are new, the cases above use
+    // the low or high pass kernel caches.
+    new_kernel.b_.resize(kernel_size_);
+
+    if(low_frequency <= 0.10 && high_frequency < 0.10)
+    {
+        // Create simple All pass filter: 1.0 at the center tap, so it delays
+        // like the other kernels.
+        for(uint32 i = 0; i < kernel_size_; ++i)
         {
             new_kernel.b_[i] = 0.00000;
         }
+
+        new_kernel.b_[kernel_size_ / 2] = 1.0;
     }
     else  // non-zero frequencies
     {
         FilterLowPassFIR::makeKernel(low_frequency);
 
         // Now b_ is pointing to a low pass kernel held in the low pass cache.
-        memcpy(new_kernel.b_, b_, kernel_size_ * sizeof(float64));
+        std::copy(b_, b_ + kernel_size_, new_kernel.b_.begin());
 
         FilterHighPassFIR::makeKernel(high_frequency);
 
@@ -309,11 +297,9 @@ makeKernel(const float64 & low_frequency, const float64 & high_frequency)
         }
     }
 
-    // point at the new kernel
-    b_ = new_kernel.b_;
-
-    // insert into cache
-    FilterBandRejectFIR::kernel_cache_.insert(new_kernel);
+    // Add the new kernel to the cache and point to it there.
+    b_ = FilterBandRejectFIR::kernel_cache_.insert(std::move(new_kernel))
+        .first->b_.data();
 }
 
 void
@@ -364,7 +350,6 @@ FilterBandRejectFIR::
 Kernel::
 Kernel(const uint32 & f1, const uint32 & f2)
     :
-    b_(nullptr),
     frequency_1_(f1),
     frequency_2_(f2)
 {

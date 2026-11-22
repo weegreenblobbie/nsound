@@ -30,8 +30,7 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_AUDIO_STREAM_H_
-#define _NSOUND_AUDIO_STREAM_H_
+#pragma once
 
 #include <Nsound/Nsound.h>
 #include <Nsound/AudioStreamSelection.h>
@@ -440,20 +439,20 @@ public:
     getReverse() const
     {AudioStream temp(*this); temp.reverse(); return temp;};
 
-    //! Returns an AudioStreamSelection for the range of indicies.
+    //! Returns an AudioStreamSelection of every sample in a range of channels.
     //
-    //! \param start_index the start of the selection
-    //! \param stop_index the stop of the selection
+    //! \param start_index the first channel selected
+    //! \param stop_index the channel after the last one selected
     //!
     //! \par Example:
     //! \code
-    //! // C++
+    //! // C++, selects channels 0 and 1
     //! AudioStream a1("california.wav");
-    //! AudioStreamSelection selection = a1.select(20,80);
+    //! AudioStreamSelection selection = a1.select(0,2);
     //!
     //! // Python
     //! a1 = AudioStream("california.wav")
-    //! selection = a1.select(20,80)
+    //! selection = a1.select(0,2)
     //! \endcode
     AudioStreamSelection
     select(const uint32 start_index, const uint32 stop_index);
@@ -625,8 +624,8 @@ private:
 
     // Data members
 
-    float64  sample_rate_;
-    uint32   channels_;
+    float64  sample_rate_ = 44100.0;
+    uint32   channels_ = 1;
 
     std::vector<Buffer *> buffers_;
 
@@ -765,4 +764,3 @@ inline AudioStream operator/(float64 d, const AudioStream & rhs)
 
 // :mode=c++:
 
-#endif

@@ -30,8 +30,7 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_WINDOW_TYPE_H_
-#define _NSOUND_WINDOW_TYPE_H_
+#pragma once
 
 namespace Nsound
 {
@@ -74,6 +73,5 @@ namespace Nsound
 
 };
 
-#endif
 
 // :mode=c++: jEdit modeline

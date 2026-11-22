@@ -30,8 +30,7 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_FFT_CHUNK_H_
-#define _NSOUND_FFT_CHUNK_H_
+#pragma once
 
 #include <Nsound/Nsound.h>
 
@@ -121,4 +120,3 @@ typedef std::vector< FFTChunk > FFTChunkVector;
 } // namespace Nsound
 
 // :mode=c++: jEdit modeline
-#endif

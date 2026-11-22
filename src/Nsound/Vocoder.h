@@ -25,11 +25,11 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_VOCODER_H_
-#define _NSOUND_VOCODER_H_
+#pragma once
 
 #include <Nsound/Buffer.h>
 
+#include <memory>
 #include <vector>
 
 namespace Nsound
@@ -60,6 +60,10 @@ class Vocoder
         const bool use_mel_scale = true,
         const bool plot_filter_bank = false);
 
+    // Not copyable, it owns its filters.
+    Vocoder(const Vocoder & copy) = delete;
+    Vocoder & operator=(const Vocoder & rhs) = delete;
+
     virtual ~Vocoder();
 
     Buffer
@@ -81,7 +85,7 @@ class Vocoder
     uint32  n_bands_;
     float64 freq_max_;
 
-    typedef std::vector< Filter * > FilterVector;
+    typedef std::vector< std::unique_ptr<Filter> > FilterVector;
 
     FilterVector filters_input_;
     FilterVector filters_output_;
@@ -92,4 +96,3 @@ class Vocoder
 } // namespace
 
 // :mode=c++: jEdit modeline
-#endif

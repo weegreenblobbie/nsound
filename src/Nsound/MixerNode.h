@@ -31,12 +31,12 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef _NSOUND_MIXER_NODE_H_
-#define _NSOUND_MIXER_NODE_H_
+#pragma once
 
 #include <Nsound/Nsound.h>
 
 #include <iostream>
+#include <memory>
 #include <string>
 
 namespace Nsound
@@ -80,8 +80,8 @@ class MixerNode
     ///////////////////////////////////////////////////////////////////
     std::string printNode();
 
-    //! The pointer to the AudioStream.
-    const AudioStream * audio_stream_;
+    //! The node's own copy of the AudioStream, shared by copies of the node.
+    std::shared_ptr<const AudioStream> audio_stream_;
 
     //! The number of beats per minute.
     float64 bpm_;
@@ -97,4 +97,3 @@ class MixerNode
 
 }; // Nsound
 
-#endif

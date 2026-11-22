@@ -98,11 +98,7 @@ ReverberationRoom(
     :
     sample_rate_(sample_rate),
     wet_percent_(wet_percent),
-    dry_percent_(dry_percent),
-    comb_left_(nullptr),
-    comb_right_(nullptr),
-    allpass_left_(nullptr),
-    allpass_right_(nullptr)
+    dry_percent_(dry_percent)
 {
     // Bounds checks:
     if(wet_percent_ < 0.0)
@@ -143,37 +139,29 @@ ReverberationRoom(
     float64 comb_feedback = ROOM_FEEDBACK_SCALE_ * room_feedback
                           + ROOM_FEEDBACK_OFFSET_;
 
-    // Allocate filter pointers
-    comb_left_  = new FilterCombLowPassFeedback * [N_COMB_FILTERS_];
-    comb_right_ = new FilterCombLowPassFeedback * [N_COMB_FILTERS_];
-
     for(uint32 i = 0; i < N_COMB_FILTERS_; ++i)
     {
-        comb_left_[i] = new FilterCombLowPassFeedback(
+        comb_left_.emplace_back(
             sample_rate_,
             COMB_DELAY_TIME_SECONDS_[i],
             comb_feedback,
             lpf);
 
-        comb_right_[i] = new FilterCombLowPassFeedback(
+        comb_right_.emplace_back(
             sample_rate_,
             COMB_DELAY_TIME_SECONDS_[i] + stereo_spread,
             comb_feedback,
             lpf);
     }
 
-    // Allocate filter pointers
-    allpass_left_  = new FilterAllPass * [N_ALL_PASS_FILTERS_];
-    allpass_right_ = new FilterAllPass * [N_ALL_PASS_FILTERS_];
-
     for(uint32 i = 0; i < N_ALL_PASS_FILTERS_; ++i)
     {
-        allpass_left_[i] = new FilterAllPass(
+        allpass_left_.emplace_back(
             sample_rate_,
             ALL_PASS_DELAY_TIME_SECONDS_[i],
             0.5);
 
-        allpass_right_[i] = new FilterAllPass(
+        allpass_right_.emplace_back(
             sample_rate_,
             ALL_PASS_DELAY_TIME_SECONDS_[i] + stereo_spread,
             0.5);
@@ -183,42 +171,6 @@ ReverberationRoom(
 
     // Init random number generator.
     std::srand(static_cast<unsigned int>(std::time(0)));
-}
-
-//-----------------------------------------------------------------------------
-ReverberationRoom::
-ReverberationRoom(const ReverberationRoom & copy)
-    :
-    sample_rate_(copy.sample_rate_),
-    wet_percent_(copy.wet_percent_),
-    dry_percent_(copy.dry_percent_),
-    comb_left_(nullptr),
-    comb_right_(nullptr),
-    allpass_left_(nullptr),
-    allpass_right_(nullptr)
-{
-    *this = copy;
-}
-
-//-----------------------------------------------------------------------------
-ReverberationRoom::
-~ReverberationRoom()
-{
-    for(uint32 i = 0; i < N_COMB_FILTERS_; ++i)
-    {
-        delete comb_left_[i];
-        delete comb_right_[i];
-    }
-    delete [] comb_left_;
-    delete [] comb_right_;
-
-    for(uint32 i = 0; i < N_ALL_PASS_FILTERS_; ++i)
-    {
-        delete allpass_left_[i];
-        delete allpass_right_[i];
-    }
-    delete [] allpass_left_;
-    delete [] allpass_right_;
 }
 
 AudioStream
@@ -291,48 +243,19 @@ filter(
     // Sum the comb filters in parallel
     for(uint32 i = 0; i < N_COMB_FILTERS_; ++i)
     {
-        out_left  += comb_left_[i]->filter(in_left * 0.15);
-        out_right += comb_right_[i]->filter(in_right * 0.15);
+        out_left  += comb_left_[i].filter(in_left * 0.15);
+        out_right += comb_right_[i].filter(in_right * 0.15);
     }
 
     // Serilalize the all pass fitlers
     for(uint32 i = 0; i < N_ALL_PASS_FILTERS_; ++i)
     {
-        out_left  = allpass_left_[i]->filter(out_left);
-        out_right = allpass_right_[i]->filter(out_left);
+        out_left  = allpass_left_[i].filter(out_left);
+        out_right = allpass_right_[i].filter(out_right);
     }
 
     out_left  =  wet_percent_ * out_left  + dry_percent_ * in_left;
     out_right =  wet_percent_ * out_right + dry_percent_ * in_right;
-}
-
-//-----------------------------------------------------------------------------
-ReverberationRoom &
-ReverberationRoom::
-operator=(const ReverberationRoom & rhs)
-{
-    if(this == & rhs)
-    {
-        return *this;
-    }
-
-    sample_rate_ = rhs.sample_rate_;
-    wet_percent_ = rhs.wet_percent_;
-    dry_percent_ = rhs.dry_percent_;
-
-    for(uint32 i = 0; i < N_COMB_FILTERS_; ++i)
-    {
-        *comb_left_[i] = *(rhs.comb_left_[i]);
-        *comb_right_[i] = *(rhs.comb_right_[i]);
-    }
-
-    for(uint32 i = 0; i < N_ALL_PASS_FILTERS_; ++i)
-    {
-        *allpass_left_[i] = *(rhs.allpass_left_[i]);
-        *allpass_right_[i] = *(rhs.allpass_right_[i]);
-    }
-
-    return *this;
 }
 
 void
@@ -341,14 +264,14 @@ reset()
 {
      for(uint32 i = 0; i < N_COMB_FILTERS_; ++i)
     {
-        comb_left_[i]->reset();
-        comb_right_[i]->reset();
+        comb_left_[i].reset();
+        comb_right_[i].reset();
     }
 
     for(uint32 i = 0; i < N_ALL_PASS_FILTERS_; ++i)
     {
-        allpass_left_[i]->reset();
-        allpass_right_[i]->reset();
+        allpass_left_[i].reset();
+        allpass_right_[i].reset();
     }
 }
 
