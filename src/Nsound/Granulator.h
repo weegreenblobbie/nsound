@@ -30,10 +30,11 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //////////////////////////////////////////////////////////////////////////////
-#ifndef _NSOUND_GRANULATOR_H_
-#define _NSOUND_GRANULATOR_H_
+#pragma once
 
 #include <Nsound/Nsound.h>
+
+#include <memory>
 
 namespace Nsound
 {
@@ -122,11 +123,10 @@ class Granulator
 
     float64 sample_rate_;
 
-    Generator * envelope_generator_;
+    std::unique_ptr<Generator> envelope_generator_;
 
 };//Granulators
 
 }; // Nsound
 
 // :mode=c++:
-#endif

@@ -37,10 +37,6 @@ jobs:
       run: |
         . venv/bin/activate
         scons
-    - name: Run unit tests
-      run: |
-        . venv/bin/activate
-        scons --unit-test
     - name: Run python tests
       run: |
         . venv/bin/activate
@@ -73,3 +69,26 @@ jobs:
       run: bazel build --config=${{ matrix.compiler }} //...
     - name: Run unit tests
       run: bazel test --config=${{ matrix.compiler }} //...
+
+  coverage:
+
+    name: bazel / coverage
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v7
+      name: Checkout source
+    - name: Install dependencies
+      run: |
+        sudo apt-get update && sudo apt-get -y install libomp-dev lcov
+    - uses: bazel-contrib/setup-bazel@0.19.1
+      name: Setup Bazel
+      with:
+        bazelisk-cache: true
+        disk-cache: linux-coverage
+        repository-cache: true
+    # Fails if the src/Nsound line coverage drops below the minimum in
+    # tools/check_coverage.py.
+    - name: Check coverage
+      run: tools/coverage.sh

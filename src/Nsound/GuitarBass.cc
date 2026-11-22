@@ -45,12 +45,6 @@ GuitarBass(const float64 & sample_rate)
 {
 }
 
-//-----------------------------------------------------------------------------
-GuitarBass::
-~GuitarBass()
-{
-}
-
 AudioStream
 GuitarBass::
 play()

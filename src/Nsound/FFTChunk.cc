@@ -192,15 +192,8 @@ getPhase() const
         r = (*real_)[j];
         i = (*imag_)[j];
 
-        //if(r == 0.0) r = 1e-20;
-
-        phase = std::atan(i/r);
-
-        if(r < 0.0)
-        {
-            if(i <  0.0) phase -= M_PI;
-            else phase += M_PI;
-        }
+        // atan2() picks the quadrant and gives 0 for 0 + 0i.
+        phase = std::atan2(i, r);
 
         out << phase;
     }
@@ -326,10 +319,12 @@ setPolar(const Buffer & mag, const Buffer & phase)
 {
     Buffer zeros = 0.0 * mag;
 
+    // Doubled like setCartesian(), the zeros stand in for the negative
+    // frequencies.  The phase is an angle, so it isn't scaled.
     *real_ = 2.0 * mag;
     *real_ << zeros;
 
-    *imag_ = 2.0 * phase;
+    *imag_ = phase;
     *imag_ << zeros;
 
     is_polar_ = true;
@@ -374,10 +369,7 @@ toPolar()
         i = (*imag_)[j];
 
         (*real_)[j] = std::sqrt(r*r + i*i);
-        (*imag_)[j]  = std::atan(i / r);
-
-        if(i <  0.0 && r < 0.0) (*imag_)[j] -= M_PI;
-        if(i >= 0.0 && r < 0.0) (*imag_)[j] += M_PI;
+        (*imag_)[j] = std::atan2(i, r);
     }
 
     is_polar_ = true;

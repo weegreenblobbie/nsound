@@ -33,8 +33,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef _NSOUND_GUITAR_BASS_H_
-#define _NSOUND_GUITAR_BASS_H_
+#pragma once
 
 #include <Nsound/Instrument.h>
 
@@ -54,17 +53,14 @@ class GuitarBass : public Instrument
     //! Creates a Bass Kick Drum.
     GuitarBass(const float64 & sample_rate);
 
-    //! Destructor
-    ~GuitarBass();
-
     //! Plays a demo for this instrument.
-    AudioStream play();
+    AudioStream play() override;
 
     //! Plays a static note for this instrument.
-    AudioStream play(const float64 & duration, const float64 & frequency);
+    AudioStream play(const float64 & duration, const float64 & frequency) override;
 
     //! Nsound::GuitarBass information.
-    std::string getInfo()
+    std::string getInfo() const override
     {
         return
             "Nsound::GuitarBass by Nick Hilton\n\n"
@@ -108,4 +104,3 @@ class GuitarBass : public Instrument
 };
 
 // :mode=c++: jEdit modeline
-#endif

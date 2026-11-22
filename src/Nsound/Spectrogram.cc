@@ -33,6 +33,7 @@
 #include <Nsound/Spectrogram.h>
 #include <Nsound/Plotter.h>
 
+#include <algorithm>
 #include <iostream>
 
 using namespace Nsound;
@@ -49,66 +50,25 @@ Spectrogram(
     const WindowType & type)
     :
     sample_rate_(sample_rate),
-    frequency_axis_(nullptr),
-    time_axis_(nullptr),
-    real_(nullptr),
-    imag_(nullptr),
-    fft_window_(new Buffer()),
-    nfft_(0),
-    n_window_samples_(0),
-    fft_(new FFTransform(sample_rate))
+    fft_(sample_rate)
 {
+    // Checked before anything is allocated.
+    M_ASSERT_VALUE(sample_rate, >, 0.0);
+    M_ASSERT_VALUE(time_window, >, 0.0);
+    M_ASSERT_VALUE(time_step, >, 0.0);
+
     float64 sr = sample_rate_;
 
-    if(sample_rate <= 0.0)
-    {
-        cerr << "Nsound::Spectrogram(): "
-             << "sample_rate <= 0.0 ("
-             << sample_rate
-             << "<= 0.0)"
-             << endl;
 
-        // Use some default.
-        sr = 44100.0;
-    }
-
-    float64 time_w = time_window;
-
-    if(time_window <= 0.0)
-    {
-        cerr << "Nsound::Spectrogram(): "
-             << "time_window <= 0.0 ("
-             << time_window
-             << "<= 0.0)"
-             << endl;
-
-        // Use some default.
-        time_w = 0.020;
-    }
-
-    float64 time_s = time_step;
-
-    if(time_step <= 0.0)
-    {
-        cerr << "Nsound::Spectrogram(): "
-             << "time_step <= 0.0 ("
-             << time_step
-             << "<= 0.0)"
-             << endl;
-
-        // Use some default.
-        time_s = 0.020;
-    }
-
-    n_window_samples_  = static_cast<int32>(time_w * sr + 0.5);
-    uint32 window_step = static_cast<int32>(time_s * sr + 0.5);
+    n_window_samples_  = static_cast<int32>(time_window * sr + 0.5);
+    uint32 window_step = static_cast<int32>(time_step * sr + 0.5);
 
     // Calculate the fft size.
     nfft_ = FFTransform::roundUp2(n_window_samples_);
 
     Generator gen(1);
 
-    *fft_window_ = gen.drawWindow(n_window_samples_, type);
+    fft_window_ = gen.drawWindow(n_window_samples_, type);
 
     int32 n_samples = x.getLength();
     int32 h_window_samples = n_window_samples_ / 2;
@@ -126,174 +86,83 @@ Spectrogram(
 
     // Allocate matricies.
 
-    frequency_axis_ = new Buffer(1); // gets assigned to later.
-    time_axis_ = new Buffer(k);
+    time_axis_ = Buffer(k);
 
     // Using AudioStreams for a matrix-like container where channels are rows
     // and Buffer length is columns.  Here I'm setting samplerate to 1 (doesn't
     // really matter) and pre allocating the buffers to length 1, since they
     // get assigned to later.
-    real_ = new AudioStream(1, k, 1);
-    imag_ = new AudioStream(1, k, 1);
+    real_ = AudioStream(1, k, 1);
+    imag_ = AudioStream(1, k, 1);
 
-    if(frequency_axis_ == nullptr)
-    {
-        cerr << "Nsound::Spectrogram::Spectrogram(): "
-             << "failed to allocate memory for frequency_axis_"
-             << endl;
-
-        return;
-    }
-
-    if(time_axis_ == nullptr)
-    {
-        cerr << "Nsound::Spectrogram::Spectrogram(): "
-             << "failed to allocate memory for time_axis_"
-             << endl;
-
-        return;
-    }
-
-    if(real_ == nullptr)
-    {
-        cerr << "Nsound::Spectrogram::Spectrogram(): "
-             << "failed to allocate memory for real_"
-             << endl;
-
-        return;
-    }
-
-    if(imag_ == nullptr)
-    {
-        cerr << "Nsound::Spectrogram::Spectrogram(): "
-             << "failed to allocate memory for imag_"
-             << endl;
-
-        return;
-    }
-
-    float64 time = 0.0;
     boolean once = true;
     k = 0;
     i = - h_window_samples;
     while(i < n_samples)
     {
-        *time_axis_ << time;
+        // The window is centered on frame k's time, its step rounded to whole
+        // samples.
+        time_axis_ << k * window_step / sr;
 
-        // Extract a sub signal.
-        int32 i0 = i;
-
+        // The window's samples of x, zeros where it is past either end, all
+        // windowed alike.
         Buffer sub(n_window_samples_);
 
-        // Range check
-        if(i0 < 0)
+        if(i < 0)
         {
-            int32 n_left = i + n_window_samples_;
-            int32 n_zeros = n_window_samples_ - n_left;
-
-            sub = gen.silence(n_zeros)
-                << (x.subbuffer(0, n_left) * gen.drawWindow(n_left, type));
-        }
-        else
-        {
-            sub = x.subbuffer(i0, n_window_samples_) * *fft_window_;
+            sub << Buffer::zeros(-i);
         }
 
-        // Pad with zeros if at the end.
+        sub << x.subbuffer(
+            static_cast<uint32>(std::max(i, 0)),
+            n_window_samples_ - sub.getLength());
+
         if(sub.getLength() < n_window_samples_)
         {
-            int32 n_left = sub.getLength();
-            int32 n_zeros = n_window_samples_ - n_left ;
-
-            sub *= gen.drawWindow(n_left, type);
-
-            sub << gen.silence(n_zeros);
+            sub << Buffer::zeros(n_window_samples_ - sub.getLength());
         }
 
-        // Forward FFT
-        FFTChunkVector vec = fft_->fft(sub, nfft_, 0);
+        sub *= fft_window_;
 
-        (*real_)[k] = vec[0].getReal();
-        (*imag_)[k] = vec[0].getImaginary();
+        // Forward FFT
+        FFTChunkVector vec = fft_.fft(sub, nfft_, 0);
+
+        real_[k] = vec[0].getReal();
+        imag_[k] = vec[0].getImaginary();
         ++k;
 
         if(once)
         {
             once = false;
-            *frequency_axis_ = vec[0].getFrequencyAxis().subbuffer(1);
+
+            // A frequency for each bin the frames keep, from 0 Hz.
+            frequency_axis_ = vec[0].getFrequencyAxis().subbuffer(
+                0, real_[0].getLength());
         }
 
         i += window_step;
-        time += time_step;
     }
 }
-
-Spectrogram::
-Spectrogram(const Spectrogram & copy)
-    :
-    frequency_axis_(new Buffer(*copy.frequency_axis_)),
-    time_axis_(new Buffer(*copy.time_axis_)),
-    real_(new AudioStream(*copy.real_)),
-    imag_(new AudioStream(*copy.imag_)),
-    fft_window_(new Buffer(*copy.fft_window_)),
-    nfft_(copy.nfft_),
-    n_window_samples_(copy.n_window_samples_),
-    fft_(new FFTransform(*copy.fft_))
-{
-}
-
-Spectrogram::
-~Spectrogram()
-{
-    delete frequency_axis_;
-    delete time_axis_;
-    delete real_;
-    delete imag_;
-    delete fft_window_;
-    delete fft_;
-};
 
 Buffer
 Spectrogram::
 getFrequencyAxis() const
 {
-    return Buffer(*frequency_axis_);
+    return Buffer(frequency_axis_);
 }
 
 AudioStream
 Spectrogram::
 getMagnitude() const
 {
-    return ((*real_^2.0) + (*imag_^2.0))^0.5;
+    return ((real_^2.0) + (imag_^2.0))^0.5;
 }
 
 Buffer
 Spectrogram::
 getTimeAxis() const
 {
-    return Buffer(*time_axis_);
-}
-
-Spectrogram &
-Spectrogram::
-operator=(const Spectrogram & rhs)
-{
-    if(this == &rhs)
-    {
-        return *this;
-    }
-
-    sample_rate_      = rhs.sample_rate_;
-    *frequency_axis_  = *rhs.frequency_axis_;
-    *time_axis_       = *rhs.time_axis_;
-    *real_            = *rhs.real_;
-    *imag_            = *rhs.imag_;
-    *fft_window_      = *rhs.fft_window_;
-    nfft_             = rhs.nfft_;
-    n_window_samples_ = rhs.n_window_samples_;
-    *fft_             = *rhs.fft_;
-
-    return *this;
+    return Buffer(time_axis_);
 }
 
 void
@@ -331,7 +200,7 @@ plot(
     Plotter pylab;
 
     pylab.figure();
-    pylab.imagesc(*time_axis_, *frequency_axis_, mag);
+    pylab.imagesc(time_axis_, frequency_axis_, mag);
     pylab.xlabel("Time (sec)");
     pylab.ylabel("Frequency (Hz)");
     pylab.title(title);
@@ -361,10 +230,10 @@ computeMagnitude(const Buffer & x)
     }
 
     // Apply window
-    signal *= *fft_window_;
+    signal *= fft_window_;
 
     // Forward FFT
-    FFTChunkVector vec = fft_->fft(signal, nfft_, 0);
+    FFTChunkVector vec = fft_.fft(signal, nfft_, 0);
 
     return vec[0].getMagnitude();
 }

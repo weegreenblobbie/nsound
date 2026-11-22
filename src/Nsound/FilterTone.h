@@ -30,8 +30,7 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_FILTER_TONE_H_
-#define _NSOUND_FILTER_TONE_H_
+#pragma once
 
 #include <Nsound/Filter.h>
 
@@ -52,8 +51,6 @@ class FilterTone : public Filter
         const float64 & sample_rate,
         const float64 & half_power_frequency);
 
-    virtual ~FilterTone();
-
     AudioStream
     filter(const AudioStream & x);
 
@@ -67,16 +64,16 @@ class FilterTone : public Filter
     filter(const Buffer & x, const Buffer & hp_frequencies);
 
     float64
-    filter(const float64 & x);
+    filter(const float64 & x) override;
 
     float64
-    filter(const float64 & x, const float64 & hp_frequency);
+    filter(const float64 & x, const float64 & hp_frequency) override;
 
     float64
     getFrequency() const {return hp_frequency_;};
 
     uint32
-    getKernelSize() const { return 2; };
+    getKernelSize() const override { return 2; };
 
     void
     plot(boolean show_fc = true, boolean show_phase = false);
@@ -84,7 +81,7 @@ class FilterTone : public Filter
     //! Resets interal history buffer and sets the cut off frequency to the one
     //! used at declaration.
     void
-    reset();
+    reset() override;
 
     void
     makeKernel(const float64 & half_power_frequency);
@@ -92,9 +89,9 @@ class FilterTone : public Filter
     protected:
 
     float64 hp_frequency_;
-    float64 b_;
-    float64 a_;
-    float64 last_output_;
+    float64 b_ = 0.0;
+    float64 a_ = 0.0;
+    float64 last_output_ = 0.0;
 
     #ifndef SWIG
     //! A class to store calculated kernels.
@@ -104,8 +101,8 @@ class FilterTone : public Filter
 
         bool operator<(const Kernel & rhs) const;
 
-        float64 b_;
-        float64 a_;
+        float64 b_ = 0.0;
+        float64 a_ = 0.0;
 
         uint32 frequency_;
     };
@@ -120,4 +117,3 @@ class FilterTone : public Filter
 
 // :mode=c++: jEdit modeline
 
-#endif

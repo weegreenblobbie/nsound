@@ -31,9 +31,9 @@
 #include <Nsound/FilterDelay.h>
 #include <Nsound/Plotter.h>
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
-#include <string.h>
 
 using namespace Nsound;
 
@@ -47,50 +47,14 @@ FilterDelay(
     const float64 & max_delay_time_seconds)
     :
     Filter(sample_rate),
-    buffer_(nullptr),
-    buffer_end_ptr_(nullptr),
-    read_ptr_(nullptr),
-    write_ptr_(nullptr),
-    delay_(max_delay_time_seconds),
-    n_samples_(0)
+    delay_(max_delay_time_seconds)
 {
     M_ASSERT_VALUE(delay_, >, 0.0);
 
-    n_samples_ = static_cast<uint32>(std::ceil(sample_rate_ * delay_));
-
-    ++n_samples_;
-
-    buffer_ = new float64 [n_samples_];
-
-    buffer_end_ptr_ = buffer_ + n_samples_;
+    // The longest delay's samples and one more for the newest sample.
+    buffer_.resize(static_cast<uint32>(std::ceil(sample_rate_ * delay_)) + 1);
 
     FilterDelay::reset();
-}
-
-//-----------------------------------------------------------------------------
-FilterDelay::
-FilterDelay(const FilterDelay & copy)
-    :
-    Filter(copy.sample_rate_),
-    buffer_(nullptr),
-    buffer_end_ptr_(nullptr),
-    read_ptr_(nullptr),
-    write_ptr_(nullptr),
-    delay_(copy.delay_),
-    n_samples_(copy.n_samples_)
-{
-    buffer_ = new float64 [n_samples_];
-
-    buffer_end_ptr_ = buffer_ + n_samples_;
-
-    *this = copy;
-}
-
-//-----------------------------------------------------------------------------
-FilterDelay::
-~FilterDelay()
-{
-    delete [] buffer_;
 }
 
 AudioStream
@@ -147,14 +111,14 @@ float64
 FilterDelay::
 filter(const float64 & x, const float64 & delay)
 {
-    *write_ptr_ = x;
-    ++write_ptr_;
+    const uint32 n_samples = static_cast<uint32>(buffer_.size());
 
-    // Bounds check
-    if(write_ptr_ >= buffer_end_ptr_)
-    {
-        write_ptr_ = buffer_;
-    }
+    buffer_[write_index_] = x;
+
+    // The newest sample is at write_index_, then it moves on.
+    uint32 newest = write_index_;
+
+    write_index_ = (write_index_ + 1) % n_samples;
 
     float64 del = delay;
 
@@ -164,61 +128,17 @@ filter(const float64 & x, const float64 & delay)
 
     uint32 d = static_cast<uint32>(sample_rate_ * del);
 
-    read_ptr_ = write_ptr_ - d - 1;
-
-    // Bounds check.
-    if(read_ptr_ < buffer_)
-    {
-        read_ptr_ += n_samples_;
-    }
-
-    float64 y = *read_ptr_;
-
-    return y;
-}
-
-
-///////////////////////////////////////////////////////////////////////////
-FilterDelay &
-FilterDelay::
-operator=(const FilterDelay & rhs)
-{
-    if(this == &rhs)
-    {
-        return *this;
-    }
-
-    if(n_samples_ != rhs.n_samples_)
-    {
-        n_samples_ = rhs.n_samples_;
-        delete [] buffer_;
-        buffer_ = new float64 [n_samples_];
-        buffer_end_ptr_ = buffer_ + n_samples_;
-        reset();
-    }
-
-    delay_     = rhs.delay_;
-    n_samples_ = rhs.n_samples_;
-
-    // Copy the buffer.
-    memcpy(buffer_, rhs.buffer_, sizeof(float64) * n_samples_);
-
-    // Set the pointers to the same offsets into the buffer.
-    read_ptr_  = buffer_ + (rhs.read_ptr_ - rhs.buffer_);
-    write_ptr_ = buffer_ + (rhs.write_ptr_ - rhs.buffer_);
-
-    return *this;
+    // d samples before the newest, round the circle.
+    return buffer_[(newest + n_samples - d) % n_samples];
 }
 
 void
 FilterDelay::
 reset()
 {
-    // Clear all the memory in the buffer.
-    memset(buffer_, 0, sizeof(float64) * n_samples_);
+    std::fill(buffer_.begin(), buffer_.end(), 0.0);
 
-    read_ptr_ = buffer_;
-    write_ptr_ = buffer_end_ptr_ - 1;
+    write_index_ = static_cast<uint32>(buffer_.size()) - 1;
 }
 
 

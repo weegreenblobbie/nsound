@@ -32,8 +32,8 @@
 #include <Nsound/Generator.h>
 #include <Nsound/Plotter.h>
 
+#include <algorithm>
 #include <cmath>
-#include <cstring>
 #include <cstdio>
 #include <iostream>
 #include <sstream>
@@ -47,6 +47,30 @@ using std::endl;
 #define CERR_HEADER __FILE__ << ":" << __LINE__ << ": ***ERROR: "
 
 //-----------------------------------------------------------------------------
+//! A symmetric window of n taps, so the windowed kernel stays linear phase.
+//
+//! Generator's windows are periodic, so this draws n - 1 samples and repeats
+//! the first at the end.  A one tap window is 1.
+template <class Draw>
+static
+Buffer
+symmetric_window(uint32 n, Draw draw)
+{
+    M_ASSERT_VALUE(n, >, 0);
+
+    if(n == 1)
+    {
+        return Buffer::ones(1);
+    }
+
+    Buffer window = draw(n - 1);
+
+    window << window[0];
+
+    return window;
+}
+
+//-----------------------------------------------------------------------------
 FilterLeastSquaresFIR::
 FilterLeastSquaresFIR(
     const float64 & sample_rate,
@@ -55,82 +79,25 @@ FilterLeastSquaresFIR(
     const Buffer & amplitude_axis,
     const float64 & beta)
     :
-    Filter(sample_rate),
-    b_(nullptr),
-    window_(nullptr),
-    x_history_(nullptr),
-    x_ptr_(nullptr),
-    x_end_ptr_(nullptr),
-    f_axis_(nullptr),
-    a_axis_(nullptr)
+    Filter(sample_rate)
 {
     kernel_size_ = kernel_size;
 
-    b_ = new float64[kernel_size_];
-
-    x_history_ = new float64[kernel_size_ + 1];
-    x_ptr_ = x_history_;
-    x_end_ptr_ = x_history_ + kernel_size_ + 1;
-
-    // Create the Kaiser window.
-    window_ = new float64[kernel_size_];
-
+    // The Kaiser window, made first because it checks the kernel size.
     Generator gen(1.0);
 
-    Buffer kaiser = gen.drawWindowKaiser(kernel_size_, beta);
+    Buffer kaiser = symmetric_window(
+        kernel_size_,
+        [&](uint32 n) { return gen.drawWindowKaiser(n, beta); });
 
-    memcpy(window_, kaiser.getPointer(), sizeof(float64) * kernel_size_);
+    b_.assign(kernel_size_, 0.0);
 
-    // Allocate f & a axis.
-    f_axis_ = new Buffer(16);
-    a_axis_ = new Buffer(16);
+    x_history_.assign(kernel_size_ + 1, 0.0);
+
+    window_.assign(kaiser.getPointer(), kaiser.getPointer() + kernel_size_);
 
     FilterLeastSquaresFIR::makeKernel(freq_axis, amplitude_axis);
     FilterLeastSquaresFIR::reset();
-}
-
-//-----------------------------------------------------------------------------
-// This is private and therefor disabled
-FilterLeastSquaresFIR::
-    FilterLeastSquaresFIR(const FilterLeastSquaresFIR & copy)
-    :
-    Filter(copy.sample_rate_),
-    b_(nullptr),
-    window_(nullptr),
-    x_history_(nullptr),
-    x_ptr_(nullptr),
-    x_end_ptr_(nullptr),
-    f_axis_(nullptr),
-    a_axis_(nullptr)
-{
-    kernel_size_ = copy.kernel_size_;
-
-    b_ = new float64[kernel_size_];
-
-    x_history_ = new float64[kernel_size_ + 1];
-    x_ptr_ = x_history_;
-    x_end_ptr_ = x_history_ + kernel_size_ + 1;
-
-    // Create the Kaiser window.
-    window_ = new float64[kernel_size_];
-
-    // Allocate f & a axis.
-    f_axis_ = new Buffer(16);
-    a_axis_ = new Buffer(16);
-
-    // do the rest in the oprator=()
-    *this = copy;
-}
-
-//-----------------------------------------------------------------------------
-FilterLeastSquaresFIR::
-~FilterLeastSquaresFIR()
-{
-    delete [] b_;
-    delete [] window_;
-    delete [] x_history_;
-    delete f_axis_;
-    delete a_axis_;
 }
 
 Buffer
@@ -152,26 +119,20 @@ setKernel(const Buffer & k)
 {
     if(k.getLength() != kernel_size_)
     {
-        delete [] b_;
-        delete [] window_;
-        delete [] x_history_;
+        // The Kaiser window, made first because it checks the kernel size.
+        Generator gen(1.0);
+
+        Buffer kaiser = symmetric_window(
+            k.getLength(),
+            [&](uint32 n) { return gen.drawWindowKaiser(n, 5.0); });
 
         kernel_size_ = k.getLength();
 
-        b_ = new float64[kernel_size_];
+        b_.assign(kernel_size_, 0.0);
 
-        x_history_ = new float64[kernel_size_ + 1];
-        x_ptr_ = x_history_;
-        x_end_ptr_ = x_history_ + kernel_size_ + 1;
+        x_history_.assign(kernel_size_ + 1, 0.0);
 
-        // Create the Kaiser window.
-        window_ = new float64[kernel_size_];
-
-        Generator gen(1.0);
-
-        Buffer kaiser = gen.drawWindowKaiser(kernel_size_, 5.0);
-
-        memcpy(window_, kaiser.getPointer(), sizeof(float64) * kernel_size_);
+        window_.assign(kaiser.getPointer(), kaiser.getPointer() + kernel_size_);
 
         FilterLeastSquaresFIR::reset();
     }
@@ -188,14 +149,14 @@ Buffer
 FilterLeastSquaresFIR::
 getKernelFrequencies()
 {
-    return *f_axis_;
+    return f_axis_;
 }
 
 Buffer
 FilterLeastSquaresFIR::
 getKernelAmplitudes()
 {
-    return *a_axis_;
+    return a_axis_;
 }
 
 AudioStream
@@ -216,17 +177,14 @@ float64
 FilterLeastSquaresFIR::
 filter(const float64 & x)
 {
-    // Write x to history
-    *x_ptr_ = x;
+    const uint32 n_history = static_cast<uint32>(x_history_.size());
 
-    // Increment history pointer
-    ++x_ptr_;
+    // Write x to history, it's x[n].
+    uint32 newest = x_index_;
 
-    // Bounds check.
-    if(x_ptr_ >= x_end_ptr_)
-    {
-        x_ptr_ = x_history_;
-    }
+    x_history_[newest] = x;
+
+    x_index_ = (x_index_ + 1) % n_history;
 
     // Perform the convolution.
 
@@ -237,19 +195,10 @@ filter(const float64 & x)
     //      + kernel_[N] * x[n - N]
 
     float64 y = 0.0;
-    float64 * history = x_ptr_;
-    for(float64 * b = b_; b != b_ + kernel_size_; ++b)
+    for(uint32 k = 0; k < kernel_size_; ++k)
     {
-        // When we enter this loop, history is pointing at x[n + 1].
-        --history;
-
-        // Bounds check
-        if(history < x_history_)
-        {
-            history = x_end_ptr_ - 1;
-        }
-
-        y += *b * *history;
+        // x[n - k], round the circle.
+        y += b_[k] * x_history_[(newest + n_history - k) % n_history];
     }
 
     return y;
@@ -261,10 +210,6 @@ makeKernel(
     const Buffer & freq_axis,
     const Buffer & amplitude_axis)
 {
-    // Reset the buffers.
-    *f_axis_ = Buffer(16);
-    *a_axis_ = Buffer(16);
-
     float64 max_freq = sample_rate_ / 2.0;
 
     // Validate freq_axis and amplitude_axis.
@@ -274,8 +219,8 @@ makeKernel(
         M_THROW("FilterLeastSquaresFIR::makeKernel(): "
             << "freq_axis and amplitude_axis must be same length and even!");
 
-        *f_axis_ << 0.0 << max_freq;
-        *a_axis_ << 1.0 << 1.0;
+        f_axis_ << 0.0 << max_freq;
+        a_axis_ << 1.0 << 1.0;
 
         FilterLeastSquaresFIR::reset();
         return;
@@ -287,8 +232,8 @@ makeKernel(
         M_THROW("FilterLeastSquaresFIR::makeKernel(): "
              << "freq_axis[0] must be 0.0!");
 
-        *f_axis_ << 0.0 << max_freq;
-        *a_axis_ << 1.0 << 1.0;
+        f_axis_ << 0.0 << max_freq;
+        a_axis_ << 1.0 << 1.0;
 
         FilterLeastSquaresFIR::reset();
         return;
@@ -300,8 +245,8 @@ makeKernel(
              << "freq_axis[end] (" << freq_axis[freq_axis.getLength() -1 ]
              << ") must be " << max_freq << "!");
 
-        *f_axis_ << 0.0 << max_freq;
-        *a_axis_ << 1.0 << 1.0;
+        f_axis_ << 0.0 << max_freq;
+        a_axis_ << 1.0 << 1.0;
 
         FilterLeastSquaresFIR::reset();
         return;
@@ -314,8 +259,8 @@ makeKernel(
         M_THROW("FilterLeastSquaresFIR::makeKernel(): "
              << "Frequencies in freq_axis must be increasing!");
 
-        *f_axis_ << 0.0 << max_freq;
-        *a_axis_ << 1.0 << 1.0;
+        f_axis_ << 0.0 << max_freq;
+        a_axis_ << 1.0 << 1.0;
 
         FilterLeastSquaresFIR::reset();
         return;
@@ -323,16 +268,16 @@ makeKernel(
 
     // All is okay.
 
-    *f_axis_ << (freq_axis / max_freq);
-    *a_axis_ << amplitude_axis;
+    Buffer f_axis = freq_axis / max_freq;
+    Buffer a_axis = amplitude_axis;
 
 //~    // Debug
-//~    std::cout << "faxis:" << *f_axis_ << std::endl;
+//~    std::cout << "faxis:" << f_axis_ << std::endl;
 
     Generator gen(1.0);
 
-    Buffer f(*f_axis_/2.0);
-    Buffer a(*a_axis_);
+    Buffer f(f_axis / 2.0);
+    Buffer a(a_axis);
 
     Buffer w = gen.drawLine(freq_axis.getLength() / 2, 1.0, 1.0);
 
@@ -612,7 +557,7 @@ makeKernel(
     }
     else
     {
-        memcpy(b_, h.getPointer(), sizeof(float64)*kernel_size_);
+        std::copy(h.getPointer(), h.getPointer() + kernel_size_, b_.begin());
     }
 
     // Apply window
@@ -620,47 +565,11 @@ makeKernel(
     {
         b_[i] *= window_[i];
     }
-}
 
-//-----------------------------------------------------------------------------
-FilterLeastSquaresFIR &
-FilterLeastSquaresFIR::
-operator=(const FilterLeastSquaresFIR & rhs)
-{
-    if(this == &rhs)
-    {
-        return *this;
-    }
-
-    if(kernel_size_ != rhs.kernel_size_)
-    {
-        delete [] b_;
-        delete [] window_;
-        delete [] x_history_;
-
-        kernel_size_ = rhs.kernel_size_;
-
-        b_ = new float64[kernel_size_];
-
-        x_history_ = new float64[kernel_size_ + 1];
-        x_ptr_ = x_history_;
-        x_end_ptr_ = x_history_ + kernel_size_ + 1;
-
-        // Create the Kaiser window.
-        window_ = new float64[kernel_size_];
-    }
-
-    sample_rate_ = rhs.sample_rate_;
-
-    *f_axis_ = *rhs.f_axis_;
-    *a_axis_ = *rhs.a_axis_;
-
-    memcpy(b_,      rhs.b_,      sizeof(float64) * kernel_size_);
-    memcpy(window_, rhs.window_, sizeof(float64) * kernel_size_);
-
-    FilterLeastSquaresFIR::reset();
-
-    return *this;
+    // Keep the axes once the kernel is made, so a design that throws leaves
+    // the filter as it was.
+    f_axis_ = f_axis;
+    a_axis_ = a_axis;
 }
 
 void
@@ -696,8 +605,8 @@ void
 FilterLeastSquaresFIR::
 reset()
 {
-    memset(x_history_, 0, sizeof(float64) * (kernel_size_ + 1));
-    x_ptr_ = x_history_;
+    std::fill(x_history_.begin(), x_history_.end(), 0.0);
+    x_index_ = 0;
 }
 
 void
@@ -706,13 +615,15 @@ setWindow(WindowType type)
 {
     Generator gen(1.0);
 
-    Buffer window = gen.drawWindow(kernel_size_, type);
+    Buffer window = symmetric_window(
+        kernel_size_,
+        [&](uint32 n) { return gen.drawWindow(n, type); });
 
-    memcpy(window_, window.getPointer(), sizeof(float64)*kernel_size_);
+    window_.assign(window.getPointer(), window.getPointer() + kernel_size_);
 
     // Make new kernel with window.
-    Buffer f(*f_axis_);
-    Buffer a(*a_axis_);
+    Buffer f(f_axis_);
+    Buffer a(a_axis_);
 
     f *= 0.5 * sample_rate_;
 

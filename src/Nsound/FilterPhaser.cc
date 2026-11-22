@@ -33,6 +33,7 @@
 #include <Nsound/Plotter.h>
 #include <Nsound/Sine.h>
 
+#include <cmath>
 #include <stdio.h>
 #include <iostream>
 
@@ -53,11 +54,7 @@ FilterPhaser(
     :
     Filter(sample_rate),
     n_stages_(n_stages),
-    max_delay_(max_delay_time_seconds),
-    filters_(nullptr),
-    frequencies_(),
-    waveform_(nullptr),
-    waveform_position_()
+    max_delay_(max_delay_time_seconds)
 {
     M_ASSERT_VALUE(n_stages_, >, 0);
     M_ASSERT_VALUE(frequency, >, 0.0);
@@ -74,59 +71,16 @@ FilterPhaser(
 
     if(max_delay_ <= 0.0) max_delay_ = 0.1;
 
-    filters_= new FilterAllPass * [n_stages_];
-
-    waveform_ = new Buffer(static_cast<uint32>(sample_rate_));
-
     Sine sin(sample_rate_);
 
-    *waveform_ = (1.0 + sin.generate(1.0, 1.0)) / 2.0;
+    waveform_ = (1.0 + sin.generate(1.0, 1.0)) / 2.0;
 
     for(uint32 i = 0; i < n_stages_; ++i)
     {
-        filters_[i] = new FilterAllPass(sample_rate_, max_delay_, 0.5);
+        filters_.emplace_back(sample_rate_, max_delay_, 0.5);
         waveform_position_.push_back(0.0);
         frequencies_.push_back(f + fstep * static_cast<float64>(i));
     }
-}
-
-//-----------------------------------------------------------------------------
-FilterPhaser::
-FilterPhaser(const FilterPhaser & copy)
-    :
-    Filter(copy.sample_rate_),
-    n_stages_(copy.n_stages_),
-    max_delay_(copy.max_delay_),
-    filters_(nullptr),
-    frequencies_(),
-    waveform_(nullptr),
-    waveform_position_(copy.waveform_position_)
-{
-    filters_= new FilterAllPass * [n_stages_];
-
-    waveform_ = new Buffer(static_cast<uint32>(sample_rate_));
-
-    for(uint32 i = 0; i < n_stages_; ++i)
-    {
-        filters_[i] = new FilterAllPass(sample_rate_, max_delay_, 0.5);
-        waveform_position_.push_back(0.0);
-    }
-
-    *this = copy;
-}
-
-//-----------------------------------------------------------------------------
-FilterPhaser::
-~FilterPhaser()
-{
-    for(uint32 i = 0; i < n_stages_; ++i)
-    {
-        delete filters_[i];
-    }
-
-    delete [] filters_;
-
-    delete waveform_;
 }
 
 AudioStream
@@ -154,61 +108,20 @@ filter(const float64 & x)
         float64 pos = waveform_position_[i]
                     + frequencies_[i];
 
-        if(pos >= sample_rate_) pos -= sample_rate_;
+        // Wrap around the waveform however far a step goes, so the index
+        // stays inside it.
+        pos = std::fmod(pos, static_cast<float64>(waveform_.getLength()));
 
         waveform_position_[i] = pos;
 
-        float64 f = (*waveform_)[static_cast<uint32>(pos)];
+        float64 f = waveform_[static_cast<uint32>(pos)];
 
-        y += filters_[i]->filter(x, f * max_delay_);
+        y += filters_[i].filter(x, f * max_delay_);
     }
 
     y /= static_cast<float64>(n_stages_);
 
     return (y+x) / 2.0;
-}
-
-///////////////////////////////////////////////////////////////////////////
-FilterPhaser &
-FilterPhaser::
-operator=(const FilterPhaser & rhs)
-{
-    if(this == &rhs)
-    {
-        return *this;
-    }
-
-    sample_rate_       = rhs.sample_rate_;
-    max_delay_         = rhs.max_delay_;
-    *waveform_         = *rhs.waveform_;
-    frequencies_       = rhs.frequencies_;
-    waveform_position_ = rhs.waveform_position_;
-
-    if(n_stages_ != rhs.n_stages_)
-    {
-        for(uint32 i = 0; i < n_stages_; ++i)
-        {
-            delete filters_[i];
-        }
-
-        delete [] filters_;
-
-        n_stages_ = rhs.n_stages_;
-
-        filters_ = new FilterAllPass * [n_stages_];
-
-        for(uint32 i = 0; i < n_stages_; ++i)
-        {
-            filters_[i] = new FilterAllPass(sample_rate_, max_delay_, 0.5);
-        }
-    }
-
-    for(uint32 i = 0; i < n_stages_; ++i)
-    {
-        *filters_[i] = *rhs.filters_[i];
-    }
-
-    return *this;
 }
 
 void
@@ -248,7 +161,7 @@ reset()
 {
     for(uint32 i = 0; i < n_stages_; ++i)
     {
-        filters_[i]->reset();
+        filters_[i].reset();
         waveform_position_[i] = 0.0;
     }
 }

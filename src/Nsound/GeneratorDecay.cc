@@ -60,6 +60,7 @@ generate2(const float64 & frequency, const float64 & alpha)
         {
             sync_vector_.erase(sync_vector_.begin());
             position_ = 0;
+            sync_pos_ = 0;
         }
     }
 
@@ -70,23 +71,15 @@ generate2(const float64 & frequency, const float64 & alpha)
     position_ += frequency;
     sync_pos_ += frequency;
 
-    // limit
-    if(position_ > sample_rate_)
+    // Wrap at a whole wavelength, keeping the part of the step past it.
+    if(sync_pos_ >= sample_rate_)
     {
         position_ -= sample_rate_;
-        sync_pos_ = 0;
+        sync_pos_ -= sample_rate_;
 
         if(sync_is_master_)
         {
-            std::set<Generator *>::iterator itor = this->sync_slaves_.begin();
-
-            while(itor != sync_slaves_.end())
-            {
-                GeneratorDecay * ptr = static_cast<GeneratorDecay *>(*itor);
-
-                ptr->sync_vector_.push_back(sync_count_);
-                ++itor;
-            }
+            syncSlaves();
         }
     }
 

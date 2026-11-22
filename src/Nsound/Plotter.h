@@ -30,8 +30,7 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_PLOTTER_H_
-#define _NSOUND_PLOTTER_H_
+#pragma once
 
 #include <Nsound/Nsound.h>
 
@@ -57,7 +56,6 @@ class Axes
 
     Axes(PyObject * axes_ptr);
     Axes(const Axes & copy);
-    ~Axes();
     Axes & operator=(const Axes & rhs);
     PyObject * get_axes(){return axes_ptr_;};
 
@@ -98,7 +96,7 @@ class Plotter
     void figure(const std::string & kwargs="") const;
 
     //! Sets the grid state.
-    void grid(boolean flag);
+    void grid(boolean flag) const;
 
     //! Hides all plots, prevents any plot window being rendered to the screen.  Useful if only saving plots to disk.
     void hide();
@@ -147,11 +145,11 @@ class Plotter
 
     //! Sets the x axis scaling: log or linear
     void
-    set_xscale(const std::string & s);
+    set_xscale(const std::string & s) const;
 
     //! Sets the y axis scaling: log or linear
     void
-    set_yscale(const std::string & s);
+    set_yscale(const std::string & s) const;
 
     //! Creates a figure in a subplot, subplot(A, B, C, **kwargs)
     //
@@ -242,4 +240,3 @@ class Plotter
 
 // :mode=c++: jEdit modeline
 
-#endif

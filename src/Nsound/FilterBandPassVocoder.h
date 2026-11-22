@@ -35,8 +35,7 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_FILTER_BAND_PASS_VOCODER_H_
-#define _NSOUND_FILTER_BAND_PASS_VOCODER_H_
+#pragma once
 
 #include <Nsound/Filter.h>
 
@@ -57,8 +56,6 @@ class FilterBandPassVocoder : public Filter
         const float64 & sample_rate,
         const float64 & frequency_low,
         const float64 & frequency_high);
-
-    virtual ~FilterBandPassVocoder();
 
     AudioStream
     filter(const AudioStream & x);
@@ -84,13 +81,11 @@ class FilterBandPassVocoder : public Filter
         const Buffer & frequencies_Hz_low,
         const Buffer & frequencies_Hz_high);
 
-    virtual
     float64
-    filter(const float64 & x);
+    filter(const float64 & x) override;
 
-    virtual
     float64
-    filter(const float64 & x, const float64 & frequency_Hz);
+    filter(const float64 & x, const float64 & frequency_Hz) override;
 
     virtual
     float64
@@ -105,7 +100,7 @@ class FilterBandPassVocoder : public Filter
     //! Resets interal history buffer and sets the cut off frequency to the one
     //! used at declaration.
     void
-    reset();
+    reset() override;
 
     protected:
 
@@ -114,26 +109,26 @@ class FilterBandPassVocoder : public Filter
 
     float64 frequency_low_;
     float64 frequency_high_;
-    float64 omega2_;
-    float64 f_;
-    float64 att_;
-    float64 low1_;
-    float64 low2_;
-    float64 mid1_;
-    float64 mid2_;
-    float64 high1_;
-    float64 high2_;
+    float64 omega2_ = 0.0;
+    float64 f_ = 0.0;
+    float64 att_ = 0.0;
+    float64 low1_ = 0.0;
+    float64 low2_ = 0.0;
+    float64 mid1_ = 0.0;
+    float64 mid2_ = 0.0;
+    float64 high1_ = 0.0;
+    float64 high2_ = 0.0;
 
-    private:
+    public:
 
-    FilterBandPassVocoder(const FilterBandPassVocoder & copy);
+    // Not copyable.
+    FilterBandPassVocoder(const FilterBandPassVocoder & copy) = delete;
 
     FilterBandPassVocoder &
-    operator=(const FilterBandPassVocoder & rhs);
+    operator=(const FilterBandPassVocoder & rhs) = delete;
 
 }; // class FilterBandPassIIR
 
 } // namespace Nsound
 
 // :mode=c++: jEdit modeline
-#endif

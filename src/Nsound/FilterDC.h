@@ -30,8 +30,7 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_FILTER_DC_H_
-#define _NSOUND_FILTER_DC_H_
+#pragma once
 
 #include <Nsound/Nsound.h>
 
@@ -65,12 +64,11 @@ class FilterDC
     protected:
 
     float64 feedback_gain_;
-    float64 last_input_;
-    float64 last_output_;
+    float64 last_input_ = 0.0;
+    float64 last_output_ = 0.0;
 };
 
 }; // Nsound
 
 // :mode=c++: jEdit modeline
 
-#endif

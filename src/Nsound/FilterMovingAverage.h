@@ -30,10 +30,10 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //////////////////////////////////////////////////////////////////////////////
-#ifndef _NSOUND_FILTER_MOVING_AVERAGE_H_
-#define _NSOUND_FILTER_MOVING_AVERAGE_H_
+#pragma once
 
 #include <Nsound/Filter.h>
+#include <Nsound/FilterDelay.h>
 
 namespace Nsound
 {
@@ -41,7 +41,6 @@ namespace Nsound
 // Forward class declarations
 class AudioStream;
 class Buffer;
-class FilterDelay;
 
 //////////////////////////////////////////////////////////////////////////////
 class FilterMovingAverage : public Filter
@@ -51,11 +50,6 @@ class FilterMovingAverage : public Filter
 
     //////////////////////////////////////////////////////////////////////////
     FilterMovingAverage(uint32 n_samples_to_average);
-
-    FilterMovingAverage(const FilterMovingAverage & copy);
-
-    //////////////////////////////////////////////////////////////////////////
-    ~FilterMovingAverage();
 
     //////////////////////////////////////////////////////////////////////////
     AudioStream
@@ -77,33 +71,29 @@ class FilterMovingAverage : public Filter
 
     //////////////////////////////////////////////////////////////////////////
     float64
-    filter(const float64 & x);
+    filter(const float64 & x) override;
 
     //////////////////////////////////////////////////////////////////////////
     float64
-    filter(const float64 & x, const float64 & frequency)
+    filter(const float64 & x, const float64 & frequency) override
     { return filter(x); };
-
-    FilterMovingAverage &
-    operator=(const FilterMovingAverage & rhs);
 
     //////////////////////////////////////////////////////////////////////////
     void
-    reset();
+    reset() override;
 
     //////////////////////////////////////////////////////////////////////////
     protected:
 
-    bool init_sum_;
+    bool init_sum_ = true;
 
     float64 n_samples_to_average_;
-    float64 running_sum_;
+    float64 running_sum_ = 0.0;
 
-    FilterDelay * delay_;     // used as a circular buffer
+    FilterDelay delay_;     // used as a circular buffer
 };
 
 }; // Nsound
 
 // :mode=c++: jEdit modeline
 
-#endif

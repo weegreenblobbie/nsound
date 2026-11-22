@@ -48,10 +48,6 @@ DrumKickBass(
     hi_f_(high_frequency),
     lo_f_( low_frequency){}
 
-//-----------------------------------------------------------------------------
-DrumKickBass::
-~DrumKickBass(){}
-
 AudioStream
 DrumKickBass::
 play()

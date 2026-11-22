@@ -165,13 +165,6 @@ AddOption(
     action = "store_true",
     help = "Rebuilds python module, then runs unit tests")
 
-AddOption(
-    "--unit-test",
-    dest = "unit_test",
-    default = False,
-    action = "store_true",
-    help = "Runs the c++ unit tests")
-
 
 if GetOption("pytest"):
 
@@ -192,34 +185,6 @@ if GetOption("pytest"):
     for cmd in commands:
         if cmd[-1] == "dist/*":
             cmd[-1] = glob.glob("dist/*")[0]
-        print("    " + str(cmd))
-        subprocess.check_call(cmd)
-
-    Exit(0)
-
-
-if GetOption("unit_test"):
-
-    env = Environment()
-
-    target = "Main" + env['PROGSUFFIX']
-
-    os.chdir('src/test')
-
-    build_cmd = sys.argv.copy()
-    build_cmd.remove('--unit-test')
-    build_cmd += ['-u', target]
-
-    commands = [
-        build_cmd,
-    ]
-
-    if "win32" not in sys.platform:
-        commands.append('./' + target)
-    else:
-        commands.append(target)
-
-    for cmd in commands:
         print("    " + str(cmd))
         subprocess.check_call(cmd)
 

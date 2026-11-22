@@ -54,12 +54,12 @@ FilterBandRejectIIR(
     const float64 & percent_ripple)
     :
     Filter(sample_rate),
-    low_(new  FilterLowPassIIR(
+    low_(std::make_unique<FilterLowPassIIR>(
         sample_rate,
         n_poles,
         frequency_Hz_low,
         percent_ripple)),
-    high_(new FilterHighPassIIR(
+    high_(std::make_unique<FilterHighPassIIR>(
         sample_rate,
         n_poles,
         frequency_Hz_high,
@@ -70,12 +70,10 @@ FilterBandRejectIIR(
     kernel_size_ = n_poles;
 }
 
+// Defined here, where the low and high pass filters are complete, for the
+// std::unique_ptrs.
 FilterBandRejectIIR::
-~FilterBandRejectIIR()
-{
-    delete low_;
-    delete high_;
-}
+~FilterBandRejectIIR() = default;
 
 float64
 FilterBandRejectIIR::

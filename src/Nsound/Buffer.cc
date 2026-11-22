@@ -60,16 +60,12 @@ namespace Nsound
 
 Buffer::
 Buffer()
-    :
-    data_()
 {
     data_.reserve(4096);
 }
 
 Buffer::
 Buffer(uint32 chunk_size)
-    :
-    data_()
 {
     data_.reserve(chunk_size);
 }
@@ -83,8 +79,6 @@ Buffer(const FloatVector & list)
 
 Buffer::
 Buffer(const std::string & filename, uint32 chunk_size)
-    :
-    data_()
 {
     data_.reserve(chunk_size);
 
@@ -101,17 +95,10 @@ Buffer(const Buffer & copy)
 
 Buffer::
 Buffer(Buffer && move)
-    :
-    data_()
 {
     std::swap(data_, move.data_);
 }
 
-
-Buffer::
-~Buffer()
-{
-}
 
 
 void
@@ -1087,7 +1074,7 @@ getSignalEnergy(uint32 N) const
 
         for(uint32 j = 0; j < N; ++j)
         {
-            if(i + j < length - 1)
+            if(i + j < length)
             {
                 sum += ::fabs(data_[i + j]);
             }
@@ -1848,14 +1835,7 @@ void
 Buffer::
 reverse()
 {
-    for(uint32 front = 0, back = getLength() - 1;
-        front < back;
-        ++front, --back)
-    {
-        float64 temp = data_[front];
-        data_[front] = data_[back];
-        data_[back] = temp;
-    }
+    std::reverse(data_.begin(), data_.end());
 }
 
 void

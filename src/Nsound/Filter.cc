@@ -42,9 +42,7 @@ Filter(const float64 & sample_rate)
     :
     sample_rate_(sample_rate),
     two_pi_over_sample_rate_(2.0 * M_PI / sample_rate),
-    sample_time_(1.0 / sample_rate),
-    kernel_size_(0),
-    is_realtime_(false)
+    sample_time_(1.0 / sample_rate)
 {
 }
 
@@ -182,7 +180,7 @@ filter(const Buffer & x, const Buffer & frequencies)
 
 Buffer
 Filter::
-getFrequencyAxis(const uint32 n_fft)
+getFrequencyAxis(const uint32 n_fft) const
 {
     uint32 fft_chunk_size = FFTransform::roundUp2(
         static_cast<int32>(n_fft));

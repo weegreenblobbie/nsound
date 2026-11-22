@@ -31,8 +31,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef _NSOUND_MIXER_H_
-#define _NSOUND_MIXER_H_
+#pragma once
 
 #include <Nsound/Nsound.h>
 
@@ -71,11 +70,8 @@ class Mixer
     //
     Mixer();
 
-    //
-    //! Destuctor
-    //
-    //! Destuctor
-    //
+    //! Destructor, defined in Mixer.cc where MixerNode is complete for the
+    //! std::set.
     ~Mixer();
 
     // add()
@@ -106,8 +102,8 @@ class Mixer
     //! This method returns one AudioStream composed of all
     //! AudioStreams stored in the Mixer's LinkList.
     //
-    AudioStream getStream(float64 end_time);
-    AudioStream getStream(float64 start_time, float64 end_time);
+    AudioStream getStream(float64 end_time) const;
+    AudioStream getStream(float64 start_time, float64 end_time) const;
 
     //
     // clear()
@@ -126,7 +122,7 @@ class Mixer
     private:
 
     //! Stores the maximum number of channels.
-    Nsound::uint32 max_channels_;
+    Nsound::uint32 max_channels_ = 0;
     //! This stores all the MixerNodes.
     Nsound::MixerSet mixer_set_;
 
@@ -135,4 +131,3 @@ class Mixer
 
 }; // Nsound
 
-#endif

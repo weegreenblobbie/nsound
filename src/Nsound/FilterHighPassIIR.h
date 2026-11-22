@@ -25,8 +25,7 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_FILTER_HIGH_PASS_IIR_H_
-#define _NSOUND_FILTER_HIGH_PASS_IIR_H_
+#pragma once
 
 #include <Nsound/FilterStageIIR.h>
 
@@ -68,10 +67,10 @@ class FilterHighPassIIR : public FilterStageIIR
     filter(const Buffer & x, const Buffer & frequencies);
 
     float64
-    filter(const float64 & x);
+    filter(const float64 & x) override;
 
     float64
-    filter(const float64 & x, const float64 & frequency);
+    filter(const float64 & x, const float64 & frequency) override;
 
     float64
     getFrequency() const {return frequency_;};
@@ -83,11 +82,10 @@ class FilterHighPassIIR : public FilterStageIIR
     plot(boolean show_fc = true, boolean show_phase = false);
 
     void
-    reset();
+    reset() override;
 
 };
 
 };
 
 // :mode=c++:  jEdit modeline
-#endif

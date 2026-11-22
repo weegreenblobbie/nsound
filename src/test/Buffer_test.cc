@@ -1,269 +1,145 @@
 //-----------------------------------------------------------------------------
 //
-//  $Id: Buffer_UnitTest.cc 874 2014-09-08 02:21:29Z weegreenblobbie $
-//
-//  Copyright (c) 2005-2006 Nick Hilton
-//
-//  weegreenblobbie2_gmail_com (replace '_' with '@' and '.')
+//  Buffer tests.
 //
 //-----------------------------------------------------------------------------
 
-//-----------------------------------------------------------------------------
-//
-//  This program is free software; you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation; either version 2 of the License, or
-//  (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU Library General Public License for more details.
-//
-//  You should have received a copy of the GNU General Public License
-//  along with this program; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-//
-//-----------------------------------------------------------------------------
+#include <Nsound/AudioStream.h>
+#include <Nsound/Buffer.h>
+#include <Nsound/BufferSelection.h>
+#include <Nsound/Sine.h>
+#include <Nsound/Wavefile.h>
 
-#include <Nsound/NsoundAll.h>
-#include "UnitTest.h"
+#include "gold_check.h"
 
-#include <stdlib.h>
-#include <iostream>
+#include <catch2/catch_test_macros.hpp>
+
+#include <cmath>
+#include <sstream>
+#include <string>
 
 using namespace Nsound;
 
-using std::cout;
-using std::cerr;
-using std::endl;
-
-static const char * THIS_FILE = "Buffer_UnitTest.cc";
-
 static const float64 GAMMA = 1.5e-12;
 
-void testBufferAdd();
-
-//-----------------------------------------------------------------------------
-void Buffer_UnitTest()
+//! 0.0, 1.1, 2.2, ... up to 100.
+static
+Buffer
+make_ramp()
 {
-    cout << endl << THIS_FILE;
-
-    Wavefile::setDefaultSampleSize(48);
-
-    cout << TEST_HEADER << "Testing Buffer::operator<<(float64) ...";
-
-    Buffer b1(29);
+    Buffer b(29);
 
     for(float64 i = 0.0; i < 100.0; i += 1.1)
     {
-        b1 << i;
+        b << i;
     }
+
+    return b;
+}
+
+static void check_buffer_add();
+
+TEST_CASE("Buffer operator<<(float64)")
+{
+    Buffer b1 = make_ramp();
 
     uint32 index = 0;
+
     for(float64 i = 0.0; i < 100.0; i += 1.1)
     {
-        if( ::fabs(b1[index++] - i) > GAMMA)
-        {
-            cerr << TEST_ERROR_HEADER
-                 << "Output did not match expected values!"
-                 << endl;
-
-            exit(1);
-        }
+        INFO("index " << index);
+        CHECK(std::fabs(b1[index++] - i) <= GAMMA);
     }
+}
 
-    cout << SUCCESS;
+TEST_CASE("Buffer copy and assignment")
+{
+    Buffer b1 = make_ramp();
 
-    cout << TEST_HEADER << "Testing Buffer::Buffer(const Buffer &) ...";
-
-    Buffer b2(b1);
-
-    if(b1 != b2 || b2 != b1)
+    SECTION("Buffer(const Buffer &)")
     {
-        cerr << TEST_ERROR_HEADER
-             << "Output did not match expected values!"
-             << endl;
+        Buffer b2(b1);
 
-        Buffer diff(b1 - b2);
-        diff.plot("data - gold");
-        b1.plot("b1");
-        b2.plot("b2");
-
-        Plotter::show();
-
-        exit(1);
+        CHECK_FALSE(b1 != b2);
+        CHECK_FALSE(b2 != b1);
     }
 
-    cout << SUCCESS;
-
-    cout << TEST_HEADER << "Testing Buffer::operator=(const Buffer &) ...";
-
-    Buffer b3;
-
-    b3 = b1;
-
-    if(b3 != b1 || b1 != b3)
+    SECTION("operator=(const Buffer &)")
     {
-        cerr << TEST_ERROR_HEADER
-             << "Output did not match expected values!"
-             << endl;
+        Buffer b3;
+        b3 = b1;
 
-        Buffer diff(b3 - b1);
-        diff.plot("data - gold");
-        b3.plot("b3");
-        b1.plot("b1");
-
-        Plotter::show();
-
-        exit(1);
+        CHECK_FALSE(b3 != b1);
+        CHECK_FALSE(b1 != b3);
     }
+}
 
-    cout << SUCCESS;
-
-    cout << TEST_HEADER << "Testing Buffer::operator<<(const Buffer &) ...";
+TEST_CASE("Buffer operator<<(const Buffer &) and operator[]")
+{
+    Buffer b1 = make_ramp();
+    Buffer b3 = b1;
 
     Buffer b4(b3);
-
     b4 << b1;
     b3 << b1;
 
-    if(!(b4 == b3) || !(b3 == b4))
+    CHECK(b4 == b3);
+    CHECK(b3 == b4);
+
+    REQUIRE(b4.getLength() == b3.getLength());
+
+    for(uint32 i = 0; i < b4.getLength(); ++i)
     {
-        cerr << TEST_ERROR_HEADER
-             << "Output did not match expected values!"
-             << endl;
-
-        Buffer diff(b4 - b3);
-        diff.plot("data - gold");
-        b4.plot("b4");
-        b3.plot("b3");
-
-        Plotter::show();
-
-        exit(1);
+        INFO("index " << i);
+        CHECK(std::fabs(b4[i] - b3[i]) <= GAMMA);
     }
+}
 
-    cout << SUCCESS;
+TEST_CASE("Buffer operator+,-,*,/")
+{
+    Buffer b3 = make_ramp();
+    b3 << make_ramp();
 
-    cout << TEST_HEADER << "Testing Buffer::operator[](uint32) ...";
+    Buffer b4 = b3;
 
-    uint32 size = b4.getLength();
-
-    for(uint32 i = 0; i < size; ++i)
-    {
-        if(::fabs(b4[i] - b3[i]) > GAMMA)
-        {
-            cerr << TEST_ERROR_HEADER
-                 << "Output did not match expected values!"
-                 << endl;
-
-            Buffer diff(b4 - b3);
-            diff.plot("data - gold");
-            b4.plot("b4");
-            b3.plot("b3");
-
-            Plotter::show();
-
-            exit(1);
-        }
-    }
-
-    cout << SUCCESS;
-
-    cout << TEST_HEADER << "Testing Buffer::operator+,-,*,/ ...";
-
-    b4 = b3;
-
-    if(1 + b4 * 2 != 2 * b3 + 1)
-    {
-        cerr << TEST_ERROR_HEADER
-             << "Output did not match expected values!"
-             << endl;
-
-        exit(1);
-    }
-
-    if(1 - b4 / 2 != -1 * b3 / 2 + 1)
-    {
-        cerr << TEST_ERROR_HEADER
-             << "Output did not match expected values!"
-             << endl;
-
-        exit(1);
-    }
-
-    if(2.0 / b4 != 4.0 * (0.5 / b4))
-    {
-        cerr << TEST_ERROR_HEADER
-             << "Output did not match expected values!"
-             << endl;
-
-        exit(1);
-    }
+    CHECK_FALSE(1 + b4 * 2 != 2 * b3 + 1);
+    CHECK_FALSE(1 - b4 / 2 != -1 * b3 / 2 + 1);
+    CHECK_FALSE(2.0 / b4 != 4.0 * (0.5 / b4));
 
     b3 = -1.0 * b4;
-
     b4 += b3;
 
-    uint32 n_samples = b4.getLength();
-    for(uint32 i = 0; i < n_samples; ++i)
+    for(uint32 i = 0; i < b4.getLength(); ++i)
     {
-        if(b4[i] != 0.0)
-        {
-            cerr << TEST_ERROR_HEADER
-                 << "b4 += b3 _SHOULD_ be all zeros!"
-                 << endl;
-            exit(1);
-        }
+        INFO("index " << i);
+        CHECK(b4[i] == 0.0);
     }
+}
 
-    cout << SUCCESS;
+TEST_CASE("Buffer abs()")
+{
+    Buffer b4;
 
-    cout << TEST_HEADER << "Testing Buffer::abs() ...";
+    CHECK(b4.getLength() == 0);
 
-    b4 = Buffer();
-
-    if(b4.getLength() != 0)
-    {
-        cerr << TEST_ERROR_HEADER
-             << "b4.getLength() != 0"
-             << endl;
-        exit(1);
-    }
-
-    float64 neg = -1.0;
     float64 sum = 1.0;
+
     for(uint32 i = 0; i < 100; ++i)
     {
-        sum *= neg;
+        sum *= -1.0;
         b4 << sum;
     }
 
     b4.abs();
 
-    float64 m = b4.getMin();
-    if(m < 0.0)
-    {
-        cerr << TEST_ERROR_HEADER
-             << "b4.abs() is broken"
-             << endl;
-        exit(1);
-    }
+    CHECK(b4.getMin() >= 0.0);
+}
 
-    cout << SUCCESS;
+TEST_CASE("Buffer reverse()")
+{
+    Buffer b4;
 
-    cout << TEST_HEADER << "Testing Buffer::reverse() ...";
-
-    b4 = Buffer();
-
-    if(b4.getLength() != 0)
-    {
-        cerr << TEST_ERROR_HEADER
-             << "b4.getLength() != 0"
-             << endl;
-        exit(1);
-    }
+    CHECK(b4.getLength() == 0);
 
     for(float64 f = 0.0; f < 100.0; f += 1.0)
     {
@@ -272,199 +148,104 @@ void Buffer_UnitTest()
 
     b4.reverse();
 
-    index = 0;
+    uint32 index = 0;
+
     for(float64 f = 99.0; f >= 0.0; f -= 1.0)
     {
-        if(::fabs(b4[index++] - f) > GAMMA)
-        {
-            cerr << TEST_ERROR_HEADER
-                 << "b4.reverse() borken"
-                 << endl;
-
-            b4.plot("b4");
-
-            Plotter::show();
-            exit(1);
-        }
+        INFO("index " << index);
+        CHECK(std::fabs(b4[index++] - f) <= GAMMA);
     }
+}
 
-    cout << SUCCESS;
+TEST_CASE("Buffer reverse() of an empty and a one sample Buffer")
+{
+    // The last index of an empty Buffer wrapped round to the largest uint32.
+    Buffer empty;
 
-    cout << TEST_HEADER << "Testing Buffer::subbuffer() ...";
+    empty.reverse();
 
-    b3 = Buffer();
+    CHECK(empty.getLength() == 0);
+    CHECK(empty.getReverse().getLength() == 0);
 
-    uint32 chunk = 100;
+    Buffer one({3.0});
+
+    one.reverse();
+
+    check_close(one, Buffer({3.0}), 0.0);
+}
+
+TEST_CASE("Buffer subbuffer()")
+{
+    // 0, 1, 2, ... 200
+    Buffer b3;
+
+    const uint32 chunk = 100;
 
     for(uint32 i = 0; i < chunk * 2 + 1; ++i)
     {
         b3 << i;
     }
 
-    uint32 test_size = 99;
+    CHECK(b3.subbuffer(0, 99).getLength() == 99);
+    CHECK(b3.subbuffer(0, chunk).getLength() == chunk);
 
-    Buffer subbuf = b3.subbuffer(0, test_size);
-
-    if (subbuf.getLength() != test_size)
-    {
-        cerr << TEST_ERROR_HEADER
-             << "subbuf.getLength() = "
-             << subbuf.getLength()
-             << " != "
-             << test_size
-             << endl;
-        exit(1);
-    }
-
-    test_size = chunk;
-
-    subbuf = b3.subbuffer(0,test_size);
-
-    if (subbuf.getLength() != test_size)
-    {
-        cerr << TEST_ERROR_HEADER
-             << "subbuf.getLength() = "
-             << subbuf.getLength()
-             << " != "
-             << test_size
-             << endl;
-        exit(1);
-    }
-
-    test_size = b3.getLength() + 1;
-
-    subbuf = b3.subbuffer(0, test_size);
-
-    if (subbuf.getLength() != b3.getLength())
-    {
-        cerr << TEST_ERROR_HEADER
-             << "subbuf.getLength() = "
-             << subbuf.getLength()
-             << " != "
-             << b3.getLength()
-             << endl;
-        exit(1);
-    }
-
-    test_size = chunk + 10;
+    // Asking for more than there is gives what there is.
+    CHECK(b3.subbuffer(0, b3.getLength() + 1).getLength() == b3.getLength());
 
     for(uint32 i = 0; i < 10; ++i)
     {
-        subbuf = b3.subbuffer(i, test_size);
-
-        if (subbuf.getLength() != test_size)
-        {
-            cerr << TEST_ERROR_HEADER
-                 << "subbuf.getLength() = "
-                 << subbuf.getLength()
-                 << " != "
-                 << test_size
-                 << endl;
-            exit(1);
-        }
+        INFO("offset " << i);
+        CHECK(b3.subbuffer(i, chunk + 10).getLength() == chunk + 10);
     }
 
-    subbuf = b3.subbuffer(0,10);
+    Buffer subbuf = b3.subbuffer(0, 10);
 
     for(uint32 i = 0; i < 10; ++i)
     {
-        if(static_cast<uint32>(subbuf[i]) != i)
-        {
-            cerr << TEST_ERROR_HEADER
-                 << "b3.subbuffer() error!"
-                 << endl;
-            exit(1);
-        }
+        CHECK(static_cast<uint32>(subbuf[i]) == i);
     }
 
-    // Try with offset
-
-    subbuf = b3.subbuffer(3,3);
+    // With an offset.
+    subbuf = b3.subbuffer(3, 3);
 
     for(uint32 i = 0; i < 3; ++i)
     {
-        if(static_cast<uint32>(subbuf[i]) != i + 3)
-        {
-            cerr << TEST_ERROR_HEADER
-                 << "b3.subbuffer() error!"
-                 << endl;
-            exit(1);
-        }
+        CHECK(static_cast<uint32>(subbuf[i]) == i + 3);
     }
 
-    // Try using default value for n_samples
-
-    subbuf = b3.subbuffer(3);
-
-    if(subbuf.getLength() != b3.getLength() - 3)
-    {
-        cerr << TEST_ERROR_HEADER
-             << "subbuf.getLength() = "
-             << subbuf.getLength()
-             << " != "
-             << b3.getLength() - 3
-             << endl;
-        exit(1);
-    }
-
-    // Try using default value for n_samples
+    // The default n_samples is the rest of the buffer.
+    CHECK(b3.subbuffer(3).getLength() == b3.getLength() - 3);
 
     subbuf = b3.subbuffer(0);
 
-    if(subbuf.getLength() != b3.getLength())
-    {
-        cerr << TEST_ERROR_HEADER
-             << "subbuf.getLength() _SHOULD_ be 10, found "
-             << subbuf.getLength()
-             << endl;
-        exit(1);
-    }
+    CHECK(subbuf.getLength() == b3.getLength());
 
     for(uint32 i = 0; i < 10; ++i)
     {
-        if(static_cast<uint32>(subbuf[i]) != i)
-        {
-            cerr << TEST_ERROR_HEADER
-                 << "b3.subbuffer() error!"
-                 << endl;
-            exit(1);
-        }
+        CHECK(static_cast<uint32>(subbuf[i]) == i);
     }
 
-    subbuf = b3.subbuffer(5,5);
+    subbuf = b3.subbuffer(5, 5);
 
-    if(subbuf.getLength() != 5)
-    {
-        cerr << TEST_ERROR_HEADER
-             << "subbuf.getLength() = "
-             << subbuf.getLength()
-             << " != 5"
-             << endl;
-        exit(1);
-    }
+    REQUIRE(subbuf.getLength() == 5);
 
     for(uint32 i = 0; i < 5; ++i)
     {
-        if(static_cast<uint32>(subbuf[i]) != i + 5)
-        {
-            cerr << TEST_ERROR_HEADER
-                 << "subbuf["
-                 << i
-                 << "] = "
-                 << subbuf[i]
-                 << " != "
-                 << i + 5
-                 << endl;
-            exit(1);
-        }
+        CHECK(static_cast<uint32>(subbuf[i]) == i + 5);
+    }
+}
+
+TEST_CASE("Buffer smooth()")
+{
+    // 99, 98, ... 0 followed by the noise file, as the old test had it.
+    Buffer b4;
+
+    for(float64 f = 0.0; f < 100.0; f += 1.0)
+    {
+        b4 << f;
     }
 
-    cout << SUCCESS;
-
-    cout << TEST_HEADER << "Testing Buffer::smooth() ...";
-
-    Sine sine(100);
-
+    b4.reverse();
     b4 << "gold/Filter_noise.wav";
 
     uint32 b4_length = b4.getLength();
@@ -472,156 +253,86 @@ void Buffer_UnitTest()
 
     b4.smooth(1, 16);
 
-    if(b4.getLength() != b4_length)
-    {
-        cerr << TEST_ERROR_HEADER
-             << "b4.smooth() error!"
-             << endl;
-        exit(1);
-    }
+    CHECK(b4.getLength() == b4_length);
+    CHECK(b4.getMax() <= b4_max);
+}
 
-    if(b4.getMax() > b4_max)
-    {
-        cerr << TEST_ERROR_HEADER
-             << "b4.smooth() error!"
-             << endl;
-        exit(1);
-    }
-
-    cout << SUCCESS;
-
-    cout << TEST_HEADER << "Testing Buffer::pow() ...";
-
-    b4 = 2 * Buffer::ones(5);
+TEST_CASE("Buffer pow()")
+{
+    Buffer b4 = 2 * Buffer::ones(5);
 
     b4 ^= 2.0;
 
     for(uint32 i = 0; i < 5; ++i)
     {
-        if(b4[i] != 4.0)
-        {
-            cerr << TEST_ERROR_HEADER
-                 << "Buffer::pow() error!"
-                 << "  4.0 != " << b4[i]
-                 << endl;
-            exit(1);
-        }
+        CHECK(b4[i] == 4.0);
     }
 
     b4 ^= 0.50;
 
     for(uint32 i = 0; i < 5; ++i)
     {
-        if(b4[i] != 2.0)
-        {
-            cerr << TEST_ERROR_HEADER
-                 << "Buffer::pow() error!"
-                 << "  2.0 != " << b4[i]
-                 << endl;
-            exit(1);
-        }
+        CHECK(b4[i] == 2.0);
     }
 
     b4 = (b4 ^ 2.0) + (b4 ^ 2.0);
 
     for(uint32 i = 0; i < 5; ++i)
     {
-        if(b4[i] != 8.0)
+        CHECK(b4[i] == 8.0);
+    }
+}
+
+TEST_CASE("Buffer operators with different lengths")
+{
+    Sine sine(100);
+
+    Buffer b5 = sine.drawLine(1.0, 2.0, 2.0);
+    Buffer b6 = sine.drawLine(2.0, 3.0, 3.0);
+
+    SECTION("short * long is as long as the short one")
+    {
+        Buffer result = b5 * b6;
+
+        REQUIRE(result.getLength() == b5.getLength());
+
+        for(uint32 i = 0; i < result.getLength(); ++i)
         {
-            cerr << TEST_ERROR_HEADER
-                 << "Buffer::pow() error!"
-                 << "  8.0 != " << b4[i]
-                 << endl;
-            exit(1);
+            INFO("index " << i);
+            CHECK(result[i] == 6.0);
         }
     }
 
-    cout << SUCCESS;
-
-    cout << TEST_HEADER << "Testing Buffer operators with different length ...";
-
-    Buffer b5(100);
-    b5 = sine.drawLine(1.0, 2.0, 2.0);
-
-    Buffer b6(100);
-    b6 = sine.drawLine(2.0, 3.0, 3.0);
-
-    Buffer result = b5 * b6;
-
-    if(result.getLength() != b5.getLength())
+    SECTION("long * short keeps the long tail")
     {
-        cerr << TEST_ERROR_HEADER
-             << "result.getLength() != b5.getLength(), "
-             << result.getLength()
-             << " != "
-             << b5.getLength()
-             << endl;
-        exit(1);
-    }
+        Buffer result = b6 * b5;
 
-    for(uint32 i = 0; i < result.getLength(); ++i)
-    {
-        if(result[i] != 6.0)
+        REQUIRE(result.getLength() == b6.getLength());
+
+        for(uint32 i = 0; i < b5.getLength(); ++i)
         {
-            cerr << TEST_ERROR_HEADER
-                 << "result["
-                 << i
-                 << "] != 6.0"
-                 << endl;
-            exit(1);
+            INFO("index " << i);
+            CHECK(result[i] == 6.0);
+        }
+
+        for(uint32 i = b5.getLength(); i < result.getLength(); ++i)
+        {
+            INFO("index " << i);
+            CHECK(result[i] == 3.0);
         }
     }
+}
 
-    result = b6 * b5;
+TEST_CASE("Buffer add()")
+{
+    check_buffer_add();
+}
 
-    if(result.getLength() != b6.getLength())
-    {
-        cerr << TEST_ERROR_HEADER
-             << "result.getLength() != b6.getLength(), "
-             << result.getLength()
-             << " != "
-             << b6.getLength()
-             << endl;
-        exit(1);
-    }
+TEST_CASE("Buffer circular_iterator")
+{
+    Sine sine(100);
 
-    for(uint32 i = 0; i < b5.getLength(); ++i)
-    {
-        if(result[i] != 6.0)
-        {
-            cerr << TEST_ERROR_HEADER
-                 << "result["
-                 << i
-                 << "] != 6.0"
-                 << endl;
-            exit(1);
-        }
-    }
-
-    for(uint32 i = b5.getLength(); i < result.getLength(); ++i)
-    {
-        if(result[i] != 3.0)
-        {
-            cerr << TEST_ERROR_HEADER
-                 << "result["
-                 << i
-                 << "] != 3.0"
-                 << endl;
-            exit(1);
-        }
-    }
-
-    cout << SUCCESS;
-
-    cout << TEST_HEADER << "Testing Buffer::add() ...";
-
-    testBufferAdd();
-
-    cout << SUCCESS;
-
-    cout << TEST_HEADER << "Testing Buffer::circular_iterator ...";
-
-    b5 = sine.drawLine(1.0, 1.0, 100.0);
+    Buffer b5 = sine.drawLine(1.0, 1.0, 100.0);
 
     Buffer::circular_iterator itor = b5.cbegin();
 
@@ -630,13 +341,7 @@ void Buffer_UnitTest()
         ++itor;
     }
 
-    if(itor != b5.cbegin())
-    {
-        cerr << TEST_ERROR_HEADER
-             << "circular_iterator::operator++ is broken!"
-             << endl;
-        exit(1);
-    }
+    CHECK(itor == b5.cbegin());
 
     itor.reset();
 
@@ -645,13 +350,7 @@ void Buffer_UnitTest()
         --itor;
     }
 
-    if(itor != b5.cbegin())
-    {
-        cerr << TEST_ERROR_HEADER
-             << "circular_iterator::operator-- is broken!"
-             << endl;
-        exit(1);
-    }
+    CHECK(itor == b5.cbegin());
 
     itor.reset();
 
@@ -660,13 +359,7 @@ void Buffer_UnitTest()
         ++itor;
     }
 
-    if(itor != (b5.cbegin() + 3))
-    {
-        cerr << TEST_ERROR_HEADER
-             << "circular_iterator::operator++ is broken!"
-             << endl;
-        exit(1);
-    }
+    CHECK(itor == (b5.cbegin() + 3));
 
     itor.reset();
 
@@ -675,113 +368,543 @@ void Buffer_UnitTest()
         --itor;
     }
 
-    if(itor != (b5.cbegin() - 3))
-    {
-        cerr << TEST_ERROR_HEADER
-             << "circular_iterator::operator-- is broken!"
-             << endl;
-        exit(1);
-    }
+    CHECK(itor == (b5.cbegin() - 3));
+}
 
-    cout << SUCCESS;
-
-    cout << TEST_HEADER << "Testing Buffer advanced operators ...";
+TEST_CASE("Buffer advanced operators")
+{
+    Sine sine(100);
 
     Buffer b7 = sine.generate(1.0, 2.0);
 
-    Buffer data = b7;
-
-    data(data > 0.5) = 0.5;
-    data(data < -0.5) = -0.5;
-
-//~    // Create gold file
-//~    data >> "gold/Buffer_out1.wav";
-
-    // Read in gold
-    Buffer gold("gold/Buffer_out1.wav");
-
-    Buffer diff(gold - data);
-
-    if(diff.getAbs().getMax() > GAMMA)
+    SECTION("clip with operator()(BooleanVector) =")
     {
-        cerr << TEST_ERROR_HEADER
-             << "Output did not match expected values!"
-             << endl;
+        Buffer data = b7;
 
-        diff.plot("gold - data");
-        data.plot("data");
-        gold.plot("gold");
+        data(data > 0.5) = 0.5;
+        data(data < -0.5) = -0.5;
 
-        Plotter::show();
-
-        exit(1);
+        check_gold(data, "gold/Buffer_out1.wav", GAMMA);
     }
 
-    data = b7;
-
-    BooleanVector bv1 = data > 0.5;
-    BooleanVector bv2 = data < -0.5;
-
-    data(bv1) *= 0.1;
-    data(bv2) *= 0.1;
-
-    data(bv1) += 0.45;
-    data(bv2) -= 0.45;
-
-//~    // Create gold file
-//~    data >> "gold/Buffer_out2.wav";
-
-    // Read in gold
-    gold = Buffer("gold/Buffer_out2.wav");
-
-    diff = gold - data;
-
-    if(diff.getAbs().getMax() > GAMMA)
+    SECTION("scale and shift with operator()(BooleanVector) *= +=")
     {
-        cerr << TEST_ERROR_HEADER
-             << "Output did not match expected values!"
-             << endl;
+        Buffer data = b7;
 
-        diff.plot("gold - data");
-        data.plot("data");
-        gold.plot("gold");
+        BooleanVector bv1 = data > 0.5;
+        BooleanVector bv2 = data < -0.5;
 
-        Plotter::show();
+        data(bv1) *= 0.1;
+        data(bv2) *= 0.1;
+        data(bv1) += 0.45;
+        data(bv2) -= 0.45;
 
-        exit(1);
+        check_gold(data, "gold/Buffer_out2.wav", GAMMA);
     }
-
-    cout << SUCCESS << endl;
 }
 
-
-//-----------------------------------------------------------------------------
-void reportError(
-            const std::string & filename,
-            unsigned int line_number,
-            unsigned int n_samples,
-            unsigned int offset,
-            unsigned int a_length,
-            unsigned int b_length,
-            const std::string & message)
+TEST_CASE("Buffer(const FloatVector &)")
 {
-    cerr << endl
-         << filename.c_str()
-         << ":"
-         << line_number
-         << ": n_samples = "
-         << n_samples
-         << " : offset = "
-         << offset
-         << " : a_length = "
-         << a_length
-         << " : b_length = "
-         << b_length
-         << " : "
-         << message.c_str()
-         << endl;
-    exit(1);
+    FloatVector v = {1.5, -2.0, 3.25};
+
+    check_close(Buffer(v), Buffer({1.5, -2.0, 3.25}), 0.0);
 }
+
+TEST_CASE("Buffer argmax(), argmin()")
+{
+    Buffer b({3.0, 7.0, -2.0, 7.0, 1.0});
+
+    // The first index of the max or min.
+    CHECK(b.argmax() == 1);
+    CHECK(b.argmin() == 2);
+}
+
+TEST_CASE("Buffer exp(), log(), sqrt(), round()")
+{
+    SECTION("exp()")
+    {
+        Buffer b({0.0, 1.0});
+        b.exp();
+
+        check_close(b, Buffer({1.0, 2.718281828459045}), 1e-15);
+    }
+
+    SECTION("log() clamps values below 1e-9")
+    {
+        // e, M_E isn't defined by MSVC.
+        Buffer b({1.0, 2.718281828459045, 0.0, -1.0});
+        b.log();
+
+        // ln(1e-9) = -20.72326583694641
+        check_close(b, Buffer({0.0, 1.0, -20.72326583694641, -20.72326583694641}), 1e-14);
+    }
+
+    SECTION("sqrt() keeps the sign")
+    {
+        Buffer b({4.0, -9.0, 0.0});
+
+        check_close(b.getSqrt(), Buffer({2.0, -3.0, 0.0}), 0.0);
+
+        // getSqrt() returns a copy.
+        check_close(b, Buffer({4.0, -9.0, 0.0}), 0.0);
+
+        b.sqrt();
+
+        check_close(b, Buffer({2.0, -3.0, 0.0}), 0.0);
+    }
+
+    SECTION("round() rounds halves up")
+    {
+        Buffer b({1.4, 1.5, -1.5, -0.4});
+        b.round();
+
+        check_close(b, Buffer({1.0, 2.0, -1.0, 0.0}), 0.0);
+    }
+}
+
+TEST_CASE("Buffer convolve()")
+{
+    Buffer x({1.0, 2.0, 3.0});
+    Buffer h({1.0, 1.0});
+
+    // The result is one sample longer than a full convolution (N + M - 1),
+    // the last sample is always 0.
+    Buffer expected({1.0, 3.0, 5.0, 3.0, 0.0});
+
+    check_close(x.getConvolve(h), expected, 0.0);
+
+    x.convolve(h);
+
+    check_close(x, expected, 0.0);
+}
+
+TEST_CASE("Buffer downSample(), upSample()")
+{
+    Sine sine(100);
+
+    Buffer input = sine.generate(1.0, 3.0);
+
+    Buffer down = input;
+    down.downSample(2);
+
+    CHECK(down.getLength() == input.getLength() / 2);
+    check_close(down, input.getResample(uint32(1), uint32(2)), 0.0);
+    check_close(input.getDownSample(2), input.getResample(uint32(1), uint32(2)), 0.0);
+
+    Buffer up = input;
+    up.upSample(2);
+
+    CHECK(up.getLength() == input.getLength() * 2);
+    check_close(up, input.getResample(uint32(2), uint32(1)), 0.0);
+    check_close(input.getUpSample(2), input.getResample(uint32(2), uint32(1)), 0.0);
+}
+
+TEST_CASE("Buffer findPeaks()")
+{
+    //           0    1    2    3    4    5    6    7
+    Buffer b({0.0, 3.0, 1.0, 5.0, 2.0, 0.0, 4.0, 0.0});
+
+    SECTION("neighbors only")
+    {
+        CHECK(b.findPeaks() == Uint32Vector({1, 3, 6}));
+    }
+
+    SECTION("min_height")
+    {
+        CHECK(b.findPeaks(0, 3.5) == Uint32Vector({3, 6}));
+    }
+
+    SECTION("window of 5 samples")
+    {
+        // Index 1 isn't the highest within 2 samples, index 3 is bigger.
+        CHECK(b.findPeaks(5) == Uint32Vector({3, 6}));
+    }
+}
+
+TEST_CASE("Buffer limit()")
+{
+    SECTION("limit(min, max)")
+    {
+        Buffer b({-2.0, 0.5, 3.0});
+        b.limit(-1.0, 1.0);
+
+        check_close(b, Buffer({-1.0, 0.5, 1.0}), 0.0);
+    }
+
+    SECTION("limit(Buffer, Buffer) repeats the limits")
+    {
+        Buffer b({-2.0, -0.5, 3.0, 0.2});
+
+        // min is -1, 0, -1, 0 and max is 1 throughout.
+        b.limit(Buffer({-1.0, 0.0}), Buffer({1.0}));
+
+        check_close(b, Buffer({-1.0, 0.0, 1.0, 0.2}), 0.0);
+    }
+}
+
+TEST_CASE("Buffer getSum(), getMean(), getStd(), zNorm()")
+{
+    Buffer b({2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0});
+
+    CHECK(b.getSum() == 40.0);
+    CHECK(b.getMean() == 5.0);
+
+    // The population standard deviation.
+    CHECK(b.getStd() == 2.0);
+
+    b.zNorm();
+
+    check_close(b, Buffer({-1.5, -0.5, -0.5, -0.5, 0.0, 0.0, 1.0, 2.0}), 1e-15);
+}
+
+TEST_CASE("Buffer mul(buffer, offset, n_samples)")
+{
+    Buffer b({2.0, 3.0, 4.0});
+
+    Buffer a = Buffer::ones(6);
+
+    SECTION("all of b at an offset")
+    {
+        a.mul(b, 1, 0);
+
+        check_close(a, Buffer({1.0, 2.0, 3.0, 4.0, 1.0, 1.0}), 0.0);
+    }
+
+    SECTION("stops at the end of a")
+    {
+        a.mul(b, 4, 0);
+
+        check_close(a, Buffer({1.0, 1.0, 1.0, 1.0, 2.0, 3.0}), 0.0);
+    }
+
+    SECTION("n_samples of b")
+    {
+        a.mul(b, 1, 2);
+
+        check_close(a, Buffer({1.0, 2.0, 3.0, 1.0, 1.0, 1.0}), 0.0);
+    }
+
+    SECTION("n_samples longer than b")
+    {
+        a.mul(b, 0, 5);
+
+        check_close(a, Buffer({2.0, 3.0, 4.0, 1.0, 1.0, 1.0}), 0.0);
+    }
+}
+
+TEST_CASE("Buffer getSignalEnergy()")
+{
+    Buffer b({1.0, -2.0, 3.0, -4.0});
+
+    // The mean magnitude over a window of 2 samples, past the end counts as 0.
+    check_close(b.getSignalEnergy(2), Buffer({1.5, 2.5, 3.5, 2.0}), 0.0);
+}
+
+TEST_CASE("Buffer operator<<(AudioStream) adds the mono mix")
+{
+    AudioStream as(100, 2);
+
+    as[0] = Buffer({1.0, 3.0});
+    as[1] = Buffer({3.0, 5.0});
+
+    Buffer b({9.0});
+    b << as;
+
+    check_close(b, Buffer({9.0, 2.0, 4.0}), 0.0);
+}
+
+TEST_CASE("Buffer element-wise and scalar operators")
+{
+    SECTION("operator/=(Buffer) stops at the shorter buffer")
+    {
+        Buffer b({8.0, 9.0, 2.0});
+        b /= Buffer({2.0, 3.0});
+
+        check_close(b, Buffer({4.0, 3.0, 2.0}), 0.0);
+    }
+
+    SECTION("operator^=(Buffer) stops at the shorter buffer")
+    {
+        Buffer b({3.0, 16.0, 5.0});
+        b ^= Buffer({2.0, 0.5});
+
+        check_close(b, Buffer({9.0, 4.0, 5.0}), 0.0);
+    }
+
+    SECTION("operator-=(double), operator-(Buffer, double)")
+    {
+        Buffer b({1.0, 2.5});
+
+        check_close(b - 1.5, Buffer({-0.5, 1.0}), 0.0);
+
+        b -= 1.0;
+
+        check_close(b, Buffer({0.0, 1.5}), 0.0);
+    }
+
+    SECTION("comparisons with a double")
+    {
+        Buffer b({1.0, 2.0, 3.0});
+
+        CHECK((b >= 2.0) == BooleanVector({false, true, true}));
+        CHECK((b <= 2.0) == BooleanVector({true, true, false}));
+        CHECK((b == 2.0) == BooleanVector({false, true, false}));
+        CHECK((b != 2.0) == BooleanVector({true, false, true}));
+    }
+}
+
+TEST_CASE("Buffer operator<<(std::ostream)")
+{
+    std::ostringstream out;
+
+    out << Buffer({1.5, -2.0});
+
+    CHECK(out.str() == "1.5\n-2\n");
+}
+
+TEST_CASE("Buffer writeWavefile(), readWavefile()")
+{
+    Wavefile::setDefaultSampleSize(64);
+    Wavefile::setIEEEFloat(true);
+
+    Buffer b({0.25, -0.5, 0.75});
+
+    b.writeWavefile("test_buffer.wav");
+
+    Buffer read;
+    read.readWavefile("test_buffer.wav");
+
+    check_close(read, b, 0.0);
+}
+
+TEST_CASE("Buffer getResample(factor)")
+{
+    Sine sine(100);
+
+    Buffer input = sine.generate(1.0, 3.0);
+
+    SECTION("a factor of 1.5 resamples by 3 / 2")
+    {
+        check_close(input.getResample(1.5), input.getResample(uint32(3), uint32(2)), 0.0);
+
+        Buffer b = input;
+        b.resample(1.5);
+
+        check_close(b, input.getResample(uint32(3), uint32(2)), 0.0);
+    }
+
+    SECTION("a constant factor Buffer resamples like the constant")
+    {
+        Buffer factor = 0.5 * Buffer::ones(input.getLength());
+
+        check_close(input.getResample(factor), input.getResample(0.5), 0.0);
+
+        Buffer b = input;
+        b.resample(factor);
+
+        check_close(b, input.getResample(0.5), 0.0);
+    }
+}
+
+TEST_CASE("Buffer select() and BufferSelection")
+{
+    Buffer b({0.0, 1.0, 2.0, 3.0, 4.0, 5.0});
+
+    SECTION("select(start, stop) includes both ends")
+    {
+        b.select(1, 3) = 9.0;
+
+        check_close(b, Buffer({0.0, 9.0, 9.0, 9.0, 4.0, 5.0}), 0.0);
+    }
+
+    SECTION("operator/=, operator^=")
+    {
+        b.select(4, 5) /= 2.0;
+        b.select(1, 2) ^= 2.0;
+
+        check_close(b, Buffer({0.0, 1.0, 4.0, 3.0, 2.0, 2.5}), 0.0);
+    }
+
+    SECTION("copies select the same samples")
+    {
+        BufferSelection selection = b.select(0, 1);
+
+        BufferSelection copy(selection);
+        copy += 10.0;
+
+        BufferSelection assigned = b.select(5, 5);
+        assigned = selection;
+        assigned *= 2.0;
+
+        check_close(b, Buffer({20.0, 22.0, 2.0, 3.0, 4.0, 5.0}), 0.0);
+    }
+}
+
+TEST_CASE("Buffer write(), read()")
+{
+    Buffer b({1.5, -2.0, 3.25});
+
+    SECTION("read(data, size) gets back what write() wrote")
+    {
+        std::string data = b.write();
+
+        Buffer read;
+        read.read(data.data(), data.size());
+
+        check_close(read, b, 0.0);
+    }
+
+    SECTION("read(istream) gets back what write(ostream) wrote")
+    {
+        std::stringstream stream;
+        b.write(stream);
+
+        Buffer read;
+        read.read(stream);
+
+        check_close(read, b, 0.0);
+    }
+
+    SECTION("read() throws on data that isn't a Buffer")
+    {
+        std::string data = "not a buffer";
+
+        Buffer read;
+
+        CHECK_THROWS_AS(read.read(data.data(), data.size()), Exception);
+    }
+}
+
+TEST_CASE("Buffer speedUp()")
+{
+    Buffer b({0.0, 1.0, 2.0, 3.0, 4.0, 5.0});
+
+    SECTION("speedUp(2.0) keeps every other sample")
+    {
+        check_close(b.getSpeedUp(2.0), Buffer({0.0, 2.0, 4.0}), 0.0);
+
+        b.speedUp(2.0);
+
+        check_close(b, Buffer({0.0, 2.0, 4.0}), 0.0);
+    }
+
+    SECTION("speedUp(Buffer) steps by each value in turn")
+    {
+        // Steps of 1, 2, 1, 2, ... from index 0: 0, 1, 3, 4.
+        Buffer steps({1.0, 2.0});
+
+        check_close(b.getSpeedUp(steps), Buffer({0.0, 1.0, 3.0, 4.0}), 0.0);
+
+        b.speedUp(steps);
+
+        check_close(b, Buffer({0.0, 1.0, 3.0, 4.0}), 0.0);
+    }
+}
+
+TEST_CASE("Buffer _set_at_index()")
+{
+    Buffer b({1.0, 2.0, 3.0});
+
+    b._set_at_index(0, 9.0);
+    b._set_at_index(-1, 7.0);
+
+    check_close(b, Buffer({9.0, 2.0, 7.0}), 0.0);
+
+    CHECK_THROWS_AS(b._set_at_index(3, 0.0), Exception);
+    CHECK_THROWS_AS(b._set_at_index(-4, 0.0), Exception);
+}
+
+TEST_CASE("Buffer zeros(), rand()")
+{
+    check_close(Buffer::zeros(4), Buffer({0.0, 0.0, 0.0, 0.0}), 0.0);
+
+    Buffer noise = Buffer::rand(100);
+
+    CHECK(noise.getLength() == 100);
+    CHECK(noise.getMax() <= 1.0);
+    CHECK(noise.getMin() >= -1.0);
+    CHECK(noise.getMax() > noise.getMin());
+}
+
+TEST_CASE("Buffer edge cases")
+{
+    Buffer b({1.0, 2.0, 3.0});
+
+    SECTION("assigning a Buffer to itself keeps it")
+    {
+        Buffer & same = b;
+        b = same;
+
+        check_close(b, Buffer({1.0, 2.0, 3.0}), 0.0);
+    }
+
+    SECTION("b << b appends a copy of itself")
+    {
+        b << b;
+
+        check_close(b, Buffer({1.0, 2.0, 3.0, 1.0, 2.0, 3.0}), 0.0);
+    }
+
+    SECTION("operator== and operator!= with different lengths or values")
+    {
+        CHECK_FALSE(b == Buffer({1.0, 2.0}));
+        CHECK_FALSE(b == Buffer({1.0, 2.0, 4.0}));
+        CHECK(b != Buffer({1.0, 2.0}));
+        CHECK(b != Buffer({1.0, 2.0, 4.0}));
+    }
+
+    SECTION("subbuffer() past the end is empty")
+    {
+        CHECK(b.subbuffer(3, 2).getLength() == 0);
+    }
+
+    SECTION("smooth() with fewer than 2 samples to average does nothing")
+    {
+        b.smooth(1, 1);
+
+        check_close(b, Buffer({1.0, 2.0, 3.0}), 0.0);
+    }
+
+    SECTION("getResample(1, 1) is a copy")
+    {
+        check_close(b.getResample(uint32(1), uint32(1)), b, 0.0);
+    }
+
+    SECTION("getResample() of a long Buffer works in windows")
+    {
+        // Over 40000 samples are resampled 2048 at a time.
+        Buffer noise = Buffer::rand(40100);
+
+        Buffer up = noise.getResample(uint32(2), uint32(1));
+
+        CHECK(up.getLength() == 2 * noise.getLength());
+        CHECK(up.getMaxMagnitude() > 0.1);
+    }
+
+    SECTION("assigning a BufferSelection to itself keeps it")
+    {
+        BufferSelection selection = b.select(0, 0);
+        BufferSelection & same = selection;
+
+        selection = same;
+        selection = 5.0;
+
+        check_close(b, Buffer({5.0, 2.0, 3.0}), 0.0);
+    }
+}
+
+TEST_CASE("Buffer plot() without matplotlib")
+{
+    CHECK_NOTHROW(Buffer({1.0, 2.0}).plot("title"));
+}
+
+// The brute force add() test below is the old one, unchanged, except its
+// reportError() is now a Catch2 failure that names the arguments.
+#define reportError(file, line, n_samples, offset, a_length, b_length, message) \
+    FAIL((message) << ": n_samples = " << (n_samples)                         \
+         << ", offset = " << (offset)                                          \
+         << ", a_length = " << (a_length)                                      \
+         << ", b_length = " << (b_length))
 
 //-----------------------------------------------------------------------------
 // Exhaustively test the Buffer::add() method
@@ -892,7 +1015,9 @@ void reportError(
 //  result = |aaaaaaaaaaacccccccccccccccccccccccaaaaaaaa----|
 //
 //-----------------------------------------------------------------------------
-void testBufferAdd()
+static
+void
+check_buffer_add()
 {
     bool final_case[12];
 
@@ -1547,9 +1672,6 @@ void testBufferAdd()
                     {
                         if(result[i] != 1.0)
                         {
-                            a.plot("a");
-                            result.plot("result");
-                            Plotter::show();
                             reportError(__FILE__,__LINE__,
                                         n_samples, offset, a_length, b_length,
                                         "result a value error");
@@ -1634,7 +1756,6 @@ void testBufferAdd()
                             a_length,
                             b_length,
                             "unhandled case");
-                    exit(1);
                 }
 
                 for(uint32 i = 0; i < 11; ++i)
@@ -1646,14 +1767,19 @@ void testBufferAdd()
         }
     }
 
-    cout << "cases not hit: ";
+    // The old test printed this too: case 9 has never been reached.
+    std::string not_hit;
 
     for(uint32 i = 0; i < 11; ++i)
     {
         if(!final_case[i])
-            cout << i + 1 << " ";
+        {
+            not_hit += std::to_string(i + 1) + " ";
+        }
     }
 
-    cout << ": ";
-
+    if(!not_hit.empty())
+    {
+        WARN("Buffer::add() cases not hit: " << not_hit);
+    }
 }

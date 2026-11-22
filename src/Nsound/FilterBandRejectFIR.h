@@ -30,8 +30,7 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_FILTER_BAND_REJECT_FIR_H_
-#define _NSOUND_FILTER_BAND_REJECT_FIR_H_
+#pragma once
 
 #include <Nsound/FilterHighPassFIR.h>
 
@@ -53,8 +52,6 @@ class FilterBandRejectFIR : public FilterHighPassFIR
         uint32 kernel_size,
         const float64 & frequency_Hz_low,
         const float64 & frequency_Hz_high);
-
-    virtual ~FilterBandRejectFIR();
 
     float64
     getFrequencyLow() const;
@@ -98,13 +95,11 @@ class FilterBandRejectFIR : public FilterHighPassFIR
         const Buffer & frequencies_Hz_low,
         const Buffer & frequencies_Hz_high);
 
-    virtual
     float64
-    filter(const float64 & x);
+    filter(const float64 & x) override;
 
-    virtual
     float64
-    filter(const float64 & x, const float64 & frequency_Hz);
+    filter(const float64 & x, const float64 & frequency_Hz) override;
 
     virtual
     float64
@@ -124,7 +119,7 @@ class FilterBandRejectFIR : public FilterHighPassFIR
     //! Resets interal history buffer and sets the cut off frequency to the one
     //! used at declaration.
     void
-    reset();
+    reset() override;
 
     protected:
 
@@ -138,7 +133,7 @@ class FilterBandRejectFIR : public FilterHighPassFIR
 
         bool operator<(const Kernel & rhs) const;
 
-        float64 * b_;
+        std::vector<float64> b_;
 
         uint32 frequency_1_;
         uint32 frequency_2_;
@@ -149,20 +144,16 @@ class FilterBandRejectFIR : public FilterHighPassFIR
     KernelCache kernel_cache_;
     #endif
 
-    private:
+    public:
 
-    FilterBandRejectFIR(const FilterBandRejectFIR & copy)
-        :
-        FilterHighPassFIR(copy.sample_rate_, 3, copy.frequency_1_Hz_),
-        frequency_2_Hz_(0.0),
-        kernel_cache_(){};
+    // Not copyable.
+    FilterBandRejectFIR(const FilterBandRejectFIR & copy) = delete;
 
     FilterBandRejectFIR &
-    operator=(const FilterBandRejectFIR & rhs){return *this;};
+    operator=(const FilterBandRejectFIR & rhs) = delete;
 
 }; // class FilterBandRejectFIR
 
 } // namespace Nsound
 
 // :mode=c++: jEdit modeline
-#endif

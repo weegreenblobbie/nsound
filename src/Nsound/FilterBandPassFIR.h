@@ -30,11 +30,11 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_FILTER_BAND_PASS_FIR_H_
-#define _NSOUND_FILTER_BAND_PASS_FIR_H_
+#pragma once
 
 #include <Nsound/Filter.h>
 
+#include <memory>
 #include <set>
 
 namespace Nsound
@@ -98,13 +98,11 @@ class FilterBandPassFIR : public Filter
         const Buffer & frequencies_Hz_low,
         const Buffer & frequencies_Hz_high);
 
-    virtual
     float64
-    filter(const float64 & x);
+    filter(const float64 & x) override;
 
-    virtual
     float64
-    filter(const float64 & x, const float64 & frequency_Hz);
+    filter(const float64 & x, const float64 & frequency_Hz) override;
 
     virtual
     float64
@@ -120,33 +118,24 @@ class FilterBandPassFIR : public Filter
     //! Resets interal history buffer and sets the cut off frequency to the one
     //! used at declaration.
     void
-    reset();
+    reset() override;
 
     protected:
 
     // Band Pass must cascade two stages in series.
-    FilterLowPassFIR  * low_;
-    FilterHighPassFIR * high_;
+    std::unique_ptr<FilterLowPassFIR>  low_;
+    std::unique_ptr<FilterHighPassFIR> high_;
 
-    private:
+    public:
 
-    FilterBandPassFIR(const FilterBandPassFIR & copy)
-        :
-        Filter(copy.sample_rate_),
-        low_(nullptr),
-        high_(nullptr)
-    {
-    };
+    // Not copyable.
+    FilterBandPassFIR(const FilterBandPassFIR & copy) = delete;
 
     FilterBandPassFIR &
-    operator=(const FilterBandPassFIR & rhs)
-    {
-        return *this;
-    };
+    operator=(const FilterBandPassFIR & rhs) = delete;
 
 }; // class FilterBandPassFIR
 
 } // namespace Nsound
 
 // :mode=c++: jEdit modeline
-#endif

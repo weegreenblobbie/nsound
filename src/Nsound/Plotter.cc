@@ -84,11 +84,6 @@ Axes(const Axes & rhs)
 {
 }
 
-Axes::
-~Axes()
-{
-}
-
 Axes &
 Axes::
 operator=(const Axes & rhs)
@@ -518,7 +513,7 @@ figure(const std::string & kwargs) const
 
 void
 Plotter::
-grid(boolean flag)
+grid(boolean flag) const
 {
 //~    grid_is_on_ = flag;
 
@@ -978,7 +973,7 @@ savefig(const std::string & filename, const std::string & kwargs)
 
 void
 Plotter::
-set_xscale(const std::string & s)
+set_xscale(const std::string & s) const
 {
     if(s != "log" && s != "linear") return;
 
@@ -996,7 +991,7 @@ set_xscale(const std::string & s)
 
 void
 Plotter::
-set_yscale(const std::string & s)
+set_yscale(const std::string & s) const
 {
     if(s != "log" && s != "linear") return;
 

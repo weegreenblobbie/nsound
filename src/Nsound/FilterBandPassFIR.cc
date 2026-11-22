@@ -54,19 +54,17 @@ FilterBandPassFIR(
     const float64 & frequency_Hz_high)
     :
     Filter(sample_rate),
-    low_(new FilterLowPassFIR(sample_rate, kernel_size, frequency_Hz_high)),
-    high_(new FilterHighPassFIR(sample_rate, kernel_size, frequency_Hz_low))
+    low_(std::make_unique<FilterLowPassFIR>(sample_rate, kernel_size, frequency_Hz_high)),
+    high_(std::make_unique<FilterHighPassFIR>(sample_rate, kernel_size, frequency_Hz_low))
 {
     kernel_size_ = kernel_size * 2;
 }
 
 //-----------------------------------------------------------------------------
+// Defined here, where the low and high pass filters are complete, for the
+// std::unique_ptrs.
 FilterBandPassFIR::
-~FilterBandPassFIR()
-{
-    delete low_;
-    delete high_;
-}
+~FilterBandPassFIR() = default;
 
 float64
 FilterBandPassFIR::

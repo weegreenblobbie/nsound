@@ -42,20 +42,9 @@ FilterTone::
 FilterTone(const float64 & sample_rate, const float64 & half_power_frequency)
     :
     Filter(sample_rate),
-    hp_frequency_(half_power_frequency),
-    b_(0.0),
-    a_(0.0),
-    last_output_(0.0),
-    kernel_cache_()
+    hp_frequency_(half_power_frequency)
 {
     reset();
-}
-
-//-----------------------------------------------------------------------------
-FilterTone::
-~FilterTone()
-{
-
 }
 
 AudioStream
@@ -182,8 +171,6 @@ FilterTone::
 Kernel::
 Kernel(const uint32 & frequency)
     :
-    b_(0.0),
-    a_(0.0),
     frequency_(frequency)
 {
 }

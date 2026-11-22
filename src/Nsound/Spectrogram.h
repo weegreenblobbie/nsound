@@ -30,9 +30,11 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_SPECTROGRAM_H_
-#define _NSOUND_SPECTROGRAM_H_
+#pragma once
 
+#include <Nsound/AudioStream.h>
+#include <Nsound/Buffer.h>
+#include <Nsound/FFTransform.h>
 #include <Nsound/WindowType.h>
 
 #include <string>
@@ -40,8 +42,6 @@
 namespace Nsound
 {
 
-class AudioStream;
-class Buffer;
 
 //! The result from an STFT
 class Spectrogram
@@ -55,10 +55,6 @@ class Spectrogram
         const float64 &    time_step,
         const WindowType & type);
 
-    Spectrogram(const Spectrogram & copy);
-
-    ~Spectrogram();
-
     Buffer
     getFrequencyAxis() const;
 
@@ -67,9 +63,6 @@ class Spectrogram
 
     Buffer
     getTimeAxis() const;
-
-    Spectrogram &
-    operator=(const Spectrogram & rhs);
 
     void
     plot(
@@ -85,20 +78,19 @@ class Spectrogram
 
     float64 sample_rate_;
 
-    Buffer * frequency_axis_;
-    Buffer * time_axis_;
+    Buffer frequency_axis_;
+    Buffer time_axis_;
 
-    AudioStream * real_;  // Using an AudioStream as a 2D matrix
-    AudioStream * imag_;  // Using an AudioStream as a 2D matrix
+    AudioStream real_;  // Using an AudioStream as a 2D matrix
+    AudioStream imag_;  // Using an AudioStream as a 2D matrix
 
-    Buffer *      fft_window_;
-    uint32        nfft_;
-    uint32        n_window_samples_;
-    FFTransform * fft_;
+    Buffer        fft_window_;
+    uint32        nfft_ = 0;
+    uint32        n_window_samples_ = 0;
+    FFTransform   fft_;
 
 }; // class Spectrogram
 
 } // namespace Nsound
 
 // :mode=c++: jEdit modeline
-#endif

@@ -30,8 +30,7 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 ///////////////////////////////////////////////////////////////////////////////
-#ifndef _NSOUND_H_
-#define _NSOUND_H_
+#pragma once
 
 #define PACKAGE_NAME "@PACKAGE_NAME@"
 
@@ -169,7 +168,7 @@ struct Exception : public std::exception
 
 	~Exception() noexcept {};
 
-	const char * what() const noexcept { return _message.c_str(); };
+	const char * what() const noexcept override { return _message.c_str(); };
 
 	private:
 
@@ -198,6 +197,5 @@ using bytearray = std::string;
 //	}; //extern "C++" {
 //#endif
 
-#endif
 
 // :mode=c++: jEdit modeline

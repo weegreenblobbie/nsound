@@ -33,8 +33,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef _NSOUND_DRUM_BD01_H_
-#define _NSOUND_DRUM_BD01_H_
+#pragma once
 
 #include <Nsound/Instrument.h>
 
@@ -58,10 +57,10 @@ class DrumBD01 : public Instrument
     ~DrumBD01();
 
     //! Plays a demo for this instrument.
-    AudioStream play();
+    AudioStream play() override;
 
     //! Plays a static note for this instrument.
-    AudioStream play(const float64 & duration, const float64 & frequency);
+    AudioStream play(const float64 & duration, const float64 & frequency) override;
 
     //! Static play method.
     AudioStream play(
@@ -70,7 +69,7 @@ class DrumBD01 : public Instrument
         const float64 & velocity);
 
     //! Nsound::DrumBD01 information.
-    std::string getInfo()
+    std::string getInfo() const override
     {
         return
             "Nsound::DrumBD01 by Nick Hilton on 2009-05-02\n"
@@ -83,4 +82,3 @@ class DrumBD01 : public Instrument
 };
 
 // :mode=c++: jEdit modeline
-#endif

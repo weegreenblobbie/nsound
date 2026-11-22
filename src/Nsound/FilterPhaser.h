@@ -30,18 +30,17 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_FILTER_PHASER_H_
-#define _NSOUND_FILTER_PHASER_H_
+#pragma once
 
+#include <Nsound/Buffer.h>
 #include <Nsound/Filter.h>
+#include <Nsound/FilterAllPass.h>
 
 namespace Nsound
 {
 
 // Forward class declarations
 class AudioStream;
-class Buffer;
-class FilterAllPass;
 class Generator;
 
 //-----------------------------------------------------------------------------
@@ -57,10 +56,6 @@ class FilterPhaser : public Filter
         const float64 & frequency_step_per_stage,
         const float64 & max_delay_in_seconds);
 
-    FilterPhaser(const FilterPhaser & copy);
-
-    ~FilterPhaser();
-
     AudioStream
     filter(const AudioStream & x);
 
@@ -68,28 +63,25 @@ class FilterPhaser : public Filter
     filter(const Buffer & x);
 
     float64
-    filter(const float64 & x);
+    filter(const float64 & x) override;
 
     float64
-    filter(const float64 & x, const float64 & ignored)
+    filter(const float64 & x, const float64 & ignored) override
     { return filter(x); };
-
-    FilterPhaser &
-    operator=(const FilterPhaser & rhs);
 
     void
     plot(boolean show_fc=false, boolean show_phase=false);
 
     void
-    reset();
+    reset() override;
 
     protected:
 
     uint32               n_stages_;
     float64              max_delay_;
-    FilterAllPass **     filters_;
+    std::vector<FilterAllPass> filters_;
     std::vector<float64> frequencies_;
-    Buffer *             waveform_;
+    Buffer               waveform_;
     std::vector<float64> waveform_position_;
 
 
@@ -97,6 +89,5 @@ class FilterPhaser : public Filter
 
 };
 
-#endif
 
 // :mode=c++:  jEdit modeline

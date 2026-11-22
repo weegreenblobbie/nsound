@@ -30,8 +30,7 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_BUFFER_SELECTION_H_
-#define _NSOUND_BUFFER_SELECTION_H_
+#pragma once
 
 #include <Nsound/Nsound.h>
 
@@ -74,7 +73,6 @@ public:
     BufferSelection(Buffer & buffer, const BooleanVector & bv);
     BufferSelection(const BufferSelection & copy);
     BufferSelection & operator=(const BufferSelection & rhs);
-    ~BufferSelection(){};
 
     BufferSelection & operator+=(const float64 & rhs);
     BufferSelection & operator-=(const float64 & rhs);
@@ -94,4 +92,3 @@ protected:
 
 };
 
-#endif

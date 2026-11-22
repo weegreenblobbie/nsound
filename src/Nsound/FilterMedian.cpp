@@ -46,7 +46,6 @@ uint32 keep_odd(uint32 n)
 FilterMedian::
 FilterMedian(uint32 n_samples_in_pool)
     :
-    _h_ptr(0),
     _median(n_samples_in_pool / 2),
     _history(keep_odd(n_samples_in_pool), 0.0),
     _pool(keep_odd(n_samples_in_pool), 0.0)

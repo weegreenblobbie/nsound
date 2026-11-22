@@ -30,13 +30,13 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_KERNEL_H_
-#define _NSOUND_KERNEL_H_
+#pragma once
 
 #include <Nsound/Nsound.h>
 
 #include <iostream>
 #include <set>
+#include <vector>
 
 namespace Nsound
 {
@@ -57,11 +57,6 @@ class Kernel
         int32 f3 = 0,
         int32 f4 = 0);
 
-    Kernel(const Kernel & copy);
-
-    virtual
-    ~Kernel();
-
     boolean
     operator<(const Kernel & rhs) const;
 
@@ -73,13 +68,13 @@ class Kernel
     //! Returns Kernel 'a' array, the length is returned by getALegnth()
     float64 *
     getA()
-    { return a_; };
+    { return a_.data(); };
 
     //! Returns Kernel 'a' array, the length is returned by getALegnth()
     const
     float64 *
     getA() const
-    { return a_; };
+    { return a_.data(); };
 
     //! Returns kernel 'b[i]' coef.
     float64
@@ -89,13 +84,13 @@ class Kernel
     //! Returns kernel 'b' array, the length is returned by getBLegnth()
     float64 *
     getB()
-    { return b_; };
+    { return b_.data(); };
 
     //! Returns kernel 'b' array, the length is returned by getBLegnth()
     const
     float64 *
     getB() const
-    { return b_; };
+    { return b_.data(); };
 
     uint32
     getALength() const { return a_length_; };
@@ -105,9 +100,6 @@ class Kernel
 
     float64
     getSum() const;
-
-    Kernel &
-    operator=(const Kernel & rhs);
 
     //! Prints the coeffents.
     friend
@@ -169,8 +161,8 @@ class Kernel
     int32 f3_;
     int32 f4_;
 
-    float64 * b_;
-    float64 * a_;
+    std::vector<float64> b_;
+    std::vector<float64> a_;
 
 };
 
@@ -183,4 +175,3 @@ typedef std::set<Kernel> KernelCache;
 
 // :mode=c++: jEdit modeline
 
-#endif

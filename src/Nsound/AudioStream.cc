@@ -51,8 +51,6 @@ using std::flush;
 AudioStream::
 AudioStream()
     :
-    sample_rate_(44100.0),
-    channels_(1),
     buffers_(1, new Buffer())
 {
     M_ASSERT_VALUE(channels_, !=, 0);
@@ -65,8 +63,7 @@ AudioStream(
     uint32 n_samples_pre_allocate)
     :
     sample_rate_(sample_rate),
-    channels_(channels),
-    buffers_()
+    channels_(channels)
 {
     M_ASSERT_VALUE(channels_, !=, 0);
 
@@ -81,8 +78,6 @@ AudioStream(
 AudioStream::
 AudioStream(const std::string & filename)
     :
-    sample_rate_(44100.0),
-    channels_(1),
     buffers_(1, new Buffer())
 {
     // This operator is defined in Wavefile.h.
@@ -94,8 +89,7 @@ AudioStream::
 AudioStream(const AudioStream & copy)
     :
     sample_rate_(copy.sample_rate_),
-    channels_(copy.channels_),
-    buffers_()
+    channels_(copy.channels_)
 {
     for(uint32 i = 0; i < channels_; ++i)
     {
@@ -224,7 +218,9 @@ float64
 AudioStream::
 getMax() const
 {
-    float64 max = std::numeric_limits<float64>::min();
+    // numeric_limits::min() is the smallest positive double, lowest() is the
+    // most negative.
+    float64 max = std::numeric_limits<float64>::lowest();
 
     for(auto * ptr : buffers_)  max = std::max(max, ptr->getMax());
 
@@ -235,7 +231,7 @@ float64
 AudioStream::
 getMaxMagnitude() const
 {
-    float64 max = std::numeric_limits<float64>::min();
+    float64 max = 0.0;
 
     for(auto * ptr : buffers_) max = std::max(max, ptr->getMaxMagnitude());
 
@@ -286,9 +282,10 @@ normalize()
 {
     float64 peak = getMaxMagnitude();
 
-    float64 normal_factor = 1.0 / peak;
+    // Silence stays silent, like Buffer::normalize().
+    if(peak == 0.0) return;
 
-    *this *= normal_factor;
+    *this *= 1.0 / peak;
 }
 
 
@@ -739,16 +736,15 @@ AudioStreamSelection
 AudioStream::
 select(const uint32 start_index, const uint32 stop_index)
 {
+    // Selects every sample of the channels from start_index up to, but not
+    // including, stop_index: one mask per channel, all true or all false.
     BooleanVectorVector bvv;
 
-    uint32 n_samples = getLength();
-
-    for(uint32 i = start_index; i < stop_index; ++i)
+    for(uint32 i = 0; i < channels_; ++i)
     {
-        // Create a BooleanVector of true for the length of the Buffer
-        BooleanVector bv(n_samples, true);
+        boolean selected = i >= start_index && i < stop_index;
 
-        bvv.push_back(bv);
+        bvv.push_back(BooleanVector(buffers_[i]->getLength(), selected));
     }
 
     return AudioStreamSelection(*this, bvv);

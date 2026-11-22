@@ -3,8 +3,7 @@
 //  Lets the examples work under `bazel run`, see run_from_examples_dir().
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_RUN_FROM_EXAMPLES_DIR_H_
-#define _NSOUND_RUN_FROM_EXAMPLES_DIR_H_
+#pragma once
 
 #include <cstdlib>
 #include <filesystem>
@@ -28,4 +27,3 @@ run_from_examples_dir()
     }
 }
 
-#endif

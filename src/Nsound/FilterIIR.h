@@ -30,12 +30,14 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_FILTER_IIR_H_
-#define _NSOUND_FILTER_IIR_H_
+#pragma once
 
 #include <Nsound/Filter.h>
+#include <Nsound/Kernel.h>
+#include <Nsound/RngTausworthe.h>
 
 #include <set>
+#include <vector>
 
 namespace Nsound
 {
@@ -43,8 +45,6 @@ namespace Nsound
 // Forward class declarations
 class AudioStream;
 class Buffer;
-class Kernel;
-class RngTausworthe;
 
 //-----------------------------------------------------------------------------
 //! WARNING: This is Experimental, you should not use this class as it may not
@@ -58,8 +58,6 @@ class FilterIIR : public Filter
         uint32 n_poles);
 
     FilterIIR(const FilterIIR & copy);
-
-    virtual ~FilterIIR();
 
     //! Designs a filter kernel using a genetic algorithm that trys to match the provided frequency response.
     //
@@ -102,13 +100,13 @@ class FilterIIR : public Filter
     {return filter(x);};
 
     float64
-    filter(const float64 & x);
+    filter(const float64 & x) override;
 
     float64
-    filter(const float64 & x, const float64 & frequency);
+    filter(const float64 & x, const float64 & frequency) override;
 
     uint32
-    getKernelSize() const {return n_poles_;};
+    getKernelSize() const override {return n_poles_;};
 
     Buffer
     getImpulseResponse(const uint32 n_samples = 8192)
@@ -125,9 +123,13 @@ class FilterIIR : public Filter
     #endif
 
     void
-    reset();
+    reset() override;
 
     protected:
+
+    //! (Re)allocates the x and y histories, n_poles_ + 1 samples each.
+    void
+    allocateHistory_();
 
     enum SignalType
     {
@@ -163,17 +165,17 @@ class FilterIIR : public Filter
 
     uint32 n_poles_;
 
-    Kernel * kernel_;
+    Kernel kernel_;
 
-    float64 * x_history_;
-    float64 * x_ptr_;
-    float64 * x_end_ptr_;
+    std::vector<float64> x_history_;
+    float64 * x_ptr_ = nullptr;
+    float64 * x_end_ptr_ = nullptr;
 
-    float64 * y_history_;
-    float64 * y_ptr_;
-    float64 * y_end_ptr_;
+    std::vector<float64> y_history_;
+    float64 * y_ptr_ = nullptr;
+    float64 * y_end_ptr_ = nullptr;
 
-    RngTausworthe * rng_;
+    RngTausworthe rng_;
 
 };
 
@@ -184,4 +186,3 @@ operator<<(std::ostream & out,const FilterIIR & rhs);
 
 // :mode=c++: jEdit modeline
 
-#endif

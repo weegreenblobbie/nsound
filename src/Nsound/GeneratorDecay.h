@@ -31,8 +31,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef _NSOUND_GENERATOR_DECAY_H_
-#define _NSOUND_GENERATOR_DECAY_H_
+#pragma once
 
 #include <Nsound/Nsound.h>
 #include <Nsound/Generator.h>
@@ -63,9 +62,12 @@ class GeneratorDecay : public Generator
     //! This is a special case of
     //! generate2(const float64 & frequency, const float64 & alpha)
     //! with alpha = 1.0.
-    virtual
     float64
-    generate(const float64 & frequency);
+    generate(const float64 & frequency) override;
+
+    // Generator's Buffer generate() overloads, which the one above would
+    // hide.
+    using Generator::generate;
 
     //! This is a real-time method for the wavetable oscillator.
     //
@@ -73,9 +75,8 @@ class GeneratorDecay : public Generator
     //! \param alpha \f$\left(\varphi\right)\f$ the decay constant
     //! \return float64
     //!
-    virtual
     float64
-    generate2(const float64 & frequency, const float64 & alpha);
+    generate2(const float64 & frequency, const float64 & alpha) override;
 
     //! This method oscillates a decay curve with specified alpha.
     //
@@ -94,12 +95,11 @@ class GeneratorDecay : public Generator
     //! gen = GeneratorDecay(48000)
     //! b = gen.generate(1.0, 3.0, 6)
     //! \endcode
-    virtual
     Buffer
     generate2(
         const float64 & duration,
         const float64 & frequency,
-        const float64 & alpha);
+        const float64 & alpha) override;
 
     //! This method oscillates decay curve with specified alpha.
     //
@@ -111,12 +111,11 @@ class GeneratorDecay : public Generator
     //! This is a special case of
     //! generate2(const float64 & duration, const Buffer & frequencies, const Buffer & phase)
     //! with constant frequency.
-    virtual
     Buffer
     generate2(
         const float64 & duration,
         const float64 & frequency,
-        const Buffer &  alpha);
+        const Buffer &  alpha) override;
 
     //! This method oscillates decay curve with specified alpha.
     //
@@ -128,12 +127,11 @@ class GeneratorDecay : public Generator
     //! This is a special case of
     //! generate2(const float64 & duration, const Buffer & frequencies, const Buffer & phase)
     //! with constant phase.
-    virtual
     Buffer
     generate2(
         const float64 & duration,
         const Buffer &  frequencies,
-        const float64 & alpha);
+        const float64 & alpha) override;
 
     //! This method oscillates the waveform stored in this generator.
     //
@@ -141,12 +139,11 @@ class GeneratorDecay : public Generator
     //! \param frequency \f$\left(f\right)\f$ the frequency in Hz
     //! \param phase \f$\left(\varphi\right)\f$ the natural phase (0.0 to 1.0)
     //! \return Buffer
-    virtual
     Buffer
     generate2(
         const float64 & duration,
         const Buffer &  frequencies,
-        const Buffer &  alpha);
+        const Buffer &  alpha) override;
 
     protected:
 
@@ -158,4 +155,3 @@ class GeneratorDecay : public Generator
 }; // Nsound
 
 // :mode=c++: jEdit modeline
-#endif

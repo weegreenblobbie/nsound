@@ -31,8 +31,7 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef _NSOUND_FILTER_H_
-#define _NSOUND_FILTER_H_
+#pragma once
 
 #include <Nsound/Nsound.h>
 
@@ -83,7 +82,7 @@ class Filter
     filter(const float64 & x, const float64 & frequency) = 0;
 
     Buffer
-    getFrequencyAxis(const uint32 n_fft = 8192);
+    getFrequencyAxis(const uint32 n_fft = 8192) const;
 
     Buffer
     getFrequencyResponse(const uint32 n_fft = 8192);
@@ -113,13 +112,12 @@ class Filter
     float64 sample_rate_;
     float64 two_pi_over_sample_rate_;
     float64 sample_time_; // 1.0 / sample_rate_
-    uint32 kernel_size_;
+    uint32 kernel_size_ = 0;
 
-    bool is_realtime_;
+    bool is_realtime_ = false;
 
 }; // class Filter
 
 } // namespace
 
 // :mode=c++: jEdit modeline
-#endif

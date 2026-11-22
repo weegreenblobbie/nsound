@@ -30,9 +30,9 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_MESH_2D_H_
-#define _NSOUND_MESH_2D_H_
+#pragma once
 
+#include <Nsound/MeshJunction.h>
 #include <Nsound/Nsound.h>
 
 #include <iostream>
@@ -43,7 +43,6 @@ namespace Nsound
 
 // forwards
 class Buffer;
-class MeshJunction;
 
 //-----------------------------------------------------------------------------
 //! WARNING: This is Experimental, you should not use this class as it may not
@@ -64,9 +63,6 @@ class Mesh2D
 
     //! Copy Constructor
     Mesh2D(const Mesh2D & copy);
-
-    //! Destructor
-    ~Mesh2D();
 
     //! Clears all MeshJunctions to zero.
     void
@@ -128,28 +124,27 @@ class Mesh2D
         const float64 & y_pos,
         const float64 & velocity);
 
-    float64 sample_rate_;
+    float64 sample_rate_ = 0.0;
 
-    uint32 X_;     //! The number of MeshJunctions columns.
-    uint32 Y_;     //! The number of MeshJunctions rows.
+    uint32 X_ = 0;     //! The number of MeshJunctions columns.
+    uint32 Y_ = 0;     //! The number of MeshJunctions rows.
 
-    float64 leak_gain_; //! MeshJunction leak gain
-    float64 tau_;       //! MeshJunction tau
-    float64 delta_;     //! MeshJunction delta
-    float64 gamma_;     //! MeshJunction gamma
+    float64 leak_gain_ = 0.0; //! MeshJunction leak gain
+    float64 tau_ = 0.0;       //! MeshJunction tau
+    float64 delta_ = 0.0;     //! MeshJunction delta
+    float64 gamma_ = 0.0;     //! MeshJunction gamma
 
-    MeshJunction ** mesh_; //! Array of pointers.
+    std::vector<MeshJunction> mesh_; //! The junctions, row by row.
 
-    MeshJunction * center_; //! Center MeshJunction where final sound is collected.
+    MeshJunction * center_ = nullptr; //! Center MeshJunction where final sound is collected.
 
-    boolean dump_mesh_;
+    boolean dump_mesh_ = false;
 
-    std::string dirname_;
-    std::string prefix_;
+    std::string dirname_ = ".";
+    std::string prefix_ = "mesh";
 
 }; // class Mesh2D
 
 } // namespace Nsound
 
 // :mode=c++: jEdit modeline
-#endif

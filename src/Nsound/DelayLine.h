@@ -30,8 +30,7 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_DELAY_LINE_H_
-#define _NSOUND_DELAY_LINE_H_
+#pragma once
 
 #include <Nsound/Nsound.h>
 
@@ -73,9 +72,9 @@ protected:
 
     std::vector<float64> buffer_;
 
-    uint32 wr_idx_;
+    uint32 wr_idx_ = 0;
 
-    bool is_realtime_;
+    bool is_realtime_ = false;
 
 private:
 
@@ -87,4 +86,3 @@ private:
 } // namespace
 
 
-#endif

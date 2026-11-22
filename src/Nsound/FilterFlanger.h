@@ -30,10 +30,11 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_FILTER_FLANGER_H_
-#define _NSOUND_FILTER_FLANGER_H_
+#pragma once
 
 #include <Nsound/Filter.h>
+#include <Nsound/FilterDelay.h>
+#include <Nsound/Generator.h>
 
 namespace Nsound
 {
@@ -41,8 +42,6 @@ namespace Nsound
 // Forward class declarations
 class AudioStream;
 class Buffer;
-class FilterDelay;
-class Generator;
 
 //-----------------------------------------------------------------------------
 //! A class for filtering audio in the frequecy domain.
@@ -54,10 +53,6 @@ class FilterFlanger : public Filter
         const float64 & sample_rate,
         const float64 & frequency,
         const float64 & max_delay_time_seconds);
-
-    FilterFlanger(const FilterFlanger & copy);
-
-    ~FilterFlanger();
 
     AudioStream
     filter(const AudioStream & x);
@@ -100,12 +95,12 @@ class FilterFlanger : public Filter
         const Buffer & delay);
 
     float64
-    filter(const float64 & x);
+    filter(const float64 & x) override;
 
     float64
     filter(
         const float64 & x,
-        const float64 & frequency);
+        const float64 & frequency) override;
 
     float64
     filter(
@@ -113,26 +108,22 @@ class FilterFlanger : public Filter
         const float64 & frequency,
         const float64 & delay);
 
-    FilterFlanger &
-    operator=(const FilterFlanger & rhs);
-
     void
     plot(boolean show_fc=false, boolean show_phase=false);
 
     void
-    reset();
+    reset() override;
 
     protected:
 
     float64       frequency_;
     float64       max_delay_;
-    FilterDelay * delay_;
-    Generator *   gen_;
+    FilterDelay   delay_;
+    Generator     gen_;
 
 };
 
 };
 
-#endif
 
 // :mode=c++:  jEdit modeline

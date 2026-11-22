@@ -30,13 +30,14 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_FILTER_SLINKY_H_
-#define _NSOUND_FILTER_SLINKY_H_
+#pragma once
 
 #include <Nsound/FFTransform.h>
 #include <Nsound/Filter.h>
+#include <Nsound/FilterDelay.h>
 #include <Nsound/Nsound.h>
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -45,7 +46,6 @@ namespace Nsound
 
 class AudioStream;
 class Buffer;
-class FilterDelay;
 class FilterBandPassIIR;
 
 //-----------------------------------------------------------------------------
@@ -58,6 +58,10 @@ class FilterSlinky : public Filter
         const float64 & sample_rate,
         const float64 & delay_time,
         const float64 & frequency_window);
+
+    // Not copyable, it owns its filters and delay lines.
+    FilterSlinky(const FilterSlinky & copy) = delete;
+    FilterSlinky & operator=(const FilterSlinky & rhs) = delete;
 
     virtual ~FilterSlinky();
 
@@ -74,18 +78,18 @@ class FilterSlinky : public Filter
     filter(const Buffer & x, const Buffer & frequencies);
 
     float64
-    filter(const float64 & x);
+    filter(const float64 & x) override;
 
     float64
-    filter(const float64 & x, const float64 & frequency);
+    filter(const float64 & x, const float64 & frequency) override;
 
     void
-    reset();
+    reset() override;
 
     protected:
 
-    typedef std::vector< FilterDelay * > DelayVector;
-    typedef std::vector< FilterBandPassIIR * > FilterVector;
+    typedef std::vector< FilterDelay > DelayVector;
+    typedef std::vector< std::unique_ptr<FilterBandPassIIR> > FilterVector;
 
     DelayVector  delay_lines_;
     FilterVector filters_;
@@ -95,4 +99,3 @@ class FilterSlinky : public Filter
 } // namespace
 
 // :mode=c++: jEdit modeline
-#endif

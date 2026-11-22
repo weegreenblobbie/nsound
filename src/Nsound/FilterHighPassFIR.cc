@@ -31,9 +31,9 @@
 #include <Nsound/FilterHighPassFIR.h>
 #include <Nsound/Plotter.h>
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
-#include <cstring>
 #include <iostream>
 
 using namespace Nsound;
@@ -48,25 +48,10 @@ FilterHighPassFIR(
     uint32 kernel_size,
     const float64 & cutoff_frequency_Hz)
     :
-    FilterLowPassFIR(sample_rate, kernel_size, cutoff_frequency_Hz),
-    hp_cache_()
+    FilterLowPassFIR(sample_rate, kernel_size, cutoff_frequency_Hz)
 {
     frequency_1_Hz_ = cutoff_frequency_Hz;
     FilterHighPassFIR::reset();
-}
-
-//-----------------------------------------------------------------------------
-FilterHighPassFIR::
-~FilterHighPassFIR()
-{
-    KernelCache::iterator itor = hp_cache_.begin();
-    KernelCache::iterator  end = hp_cache_.end();
-
-    while(itor != end)
-    {
-        delete [] itor->b_;
-        ++itor;
-    }
 }
 
 AudioStream
@@ -171,20 +156,19 @@ makeKernel(const float64 & cutoff_frequency_Hz)
     if(itor != hp_cache_.end())
     {
         // The kernel was found in the cache.
-        b_ = itor->b_;
+        b_ = itor->b_.data();
         return;
     }
 
     // The filter wasn't in the cache, need to make it.
-    new_kernel.b_ = new float64[kernel_size_];
+    new_kernel.b_.resize(kernel_size_);
 
     if(cutoff_frequency_Hz < 0.10)
     {
-        // Create All pass filter: 1.0 followed by zeros.
-        memset(new_kernel.b_, 0, sizeof(float64) * kernel_size_);
-        new_kernel.b_[0] = 1.0;
-
-        b_ = new_kernel.b_;
+        // Create All pass filter: 1.0 at the center tap, so it delays like
+        // the other kernels, and zeros.
+        std::fill(new_kernel.b_.begin(), new_kernel.b_.end(), 0.0);
+        new_kernel.b_[kernel_size_ / 2] = 1.0;
     }
     else
     {
@@ -193,18 +177,15 @@ makeKernel(const float64 & cutoff_frequency_Hz)
         FilterLowPassFIR::makeKernel(fc);
 
         // Now b_ is pointing to a low pass kernel, copy it into new_kernel.
-        memcpy(new_kernel.b_, b_, sizeof(float64) * kernel_size_);
-
-        // Point to new kernel.
-        b_ = new_kernel.b_;
+        std::copy(b_, b_ + kernel_size_, new_kernel.b_.begin());
 
         // Perform the spectra inversion on the kernel to turn it into a high
         // pass filter.
-        spectraReversal_();
+        spectraReversal_(new_kernel.b_);
     }
 
-    // Add the new kernel to the cache.
-    hp_cache_.insert(new_kernel);
+    // Add the new kernel to the cache and point to it there.
+    b_ = hp_cache_.insert(std::move(new_kernel)).first->b_.data();
 }
 
 void
@@ -248,21 +229,21 @@ reset()
     // Don't call FilterLowPassFIR::reset(), if we did, we would be creating
     // a kernel twice.
 
-    memset(x_history_, 0, sizeof(float64) * (kernel_size_ + 1));
-    x_ptr_ = x_history_;
+    std::fill(x_history_.begin(), x_history_.end(), 0.0);
+    x_ptr_ = x_history_.data();
 
     FilterHighPassFIR::makeKernel(frequency_1_Hz_);
 }
 
 void
 FilterHighPassFIR::
-spectraReversal_()
+spectraReversal_(std::vector<float64> & kernel)
 {
     for(uint32 i = 0; i < kernel_size_; ++i)
     {
         if(i % 2)
         {
-            b_[i] *= -1.00;
+            kernel[i] *= -1.00;
         }
     }
 }

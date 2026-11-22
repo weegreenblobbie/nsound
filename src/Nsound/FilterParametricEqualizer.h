@@ -30,11 +30,12 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_FILTER_PARAMETRIC_EQUALIZER_H_
-#define _NSOUND_FILTER_PARAMETRIC_EQUALIZER_H_
+#pragma once
 
 #include <Nsound/Filter.h>
 #include <Nsound/Kernel.h>
+
+#include <vector>
 
 namespace Nsound
 {
@@ -51,7 +52,7 @@ class Buffer;
 //!
 //! f   =   Frequency in Hz
 //! sr  =   Sample Rate in samples per second
-//! V   =   Percent boost (1.0 = no boost, < 1.0 = cut signal, > 1.0 boost signal)
+//! V   =   10^(boost_dB / 20), the gain (1.0 = no boost, < 1.0 = cut signal, > 1.0 boost signal)
 //! Q   =   Resonance or Q of the filter, sqrt(1/2) == no resonance
 //!
 //! omega = 2*pi*f/sr
@@ -114,8 +115,6 @@ class FilterParametricEqualizer : public Filter
         const float64 & resonance = 0.707106781187,
         const float64 & boost_dB = 0.0);
 
-    virtual ~FilterParametricEqualizer();
-
     AudioStream
     filter(const AudioStream & x);
 
@@ -157,10 +156,10 @@ class FilterParametricEqualizer : public Filter
         const Buffer & boost_dB);
 
     float64
-    filter(const float64 & x);
+    filter(const float64 & x) override;
 
     float64
-    filter(const float64 & x, const float64 & frequency);
+    filter(const float64 & x, const float64 & frequency) override;
 
     //! boost is in dB
     float64
@@ -181,7 +180,7 @@ class FilterParametricEqualizer : public Filter
     makeKernel(
         const float64 & frequency,
         const float64 & resonance,
-        const float64 & boost);
+        const float64 & boost_dB);
 
     void
     plot(
@@ -189,7 +188,7 @@ class FilterParametricEqualizer : public Filter
         boolean show_phase = false);
 
     void
-    reset();
+    reset() override;
 
     protected:
 
@@ -198,29 +197,29 @@ class FilterParametricEqualizer : public Filter
     float64 resonance_;
     float64 boost_;
 
-    float64 * a_;
-    float64 * b_;
+    std::vector<float64> a_;
+    std::vector<float64> b_;
 
-    float64 * x_history_;
-    float64 * x_ptr_;
-    float64 * x_end_ptr_;
+    std::vector<float64> x_history_;
+    float64 * x_ptr_ = nullptr;
+    float64 * x_end_ptr_ = nullptr;
 
-    float64 * y_history_;
-    float64 * y_ptr_;
-    float64 * y_end_ptr_;
+    std::vector<float64> y_history_;
+    float64 * y_ptr_ = nullptr;
+    float64 * y_end_ptr_ = nullptr;
 
     KernelCache kernel_cache_;
 
-    private:
+    public:
 
-    FilterParametricEqualizer(const FilterParametricEqualizer & copy);
+    // Not copyable.
+    FilterParametricEqualizer(const FilterParametricEqualizer & copy) = delete;
 
     FilterParametricEqualizer &
-    operator=(const FilterParametricEqualizer & rhs);
+    operator=(const FilterParametricEqualizer & rhs) = delete;
 
 };
 
 };
 
 // :mode=c++:  jEdit modeline
-#endif

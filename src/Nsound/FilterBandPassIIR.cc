@@ -55,17 +55,16 @@ FilterBandPassIIR(
     const float64 & percent_ripple)
     :
     Filter(sample_rate),
-    low_(new  FilterLowPassIIR(
+    low_(std::make_unique<FilterLowPassIIR>(
         sample_rate,
         n_poles,
         frequency_Hz_high,
         percent_ripple)),
-    high_(new FilterHighPassIIR(
+    high_(std::make_unique<FilterHighPassIIR>(
         sample_rate,
         n_poles,
         frequency_Hz_low,
-        percent_ripple)),
-    gain_(1.0)
+        percent_ripple))
 {
     reset();
 
@@ -77,12 +76,10 @@ FilterBandPassIIR(
 }
 
 //-----------------------------------------------------------------------------
+// Defined here, where the low and high pass filters are complete, for the
+// std::unique_ptrs.
 FilterBandPassIIR::
-~FilterBandPassIIR()
-{
-    delete low_;
-    delete high_;
-}
+~FilterBandPassIIR() = default;
 
 float64
 FilterBandPassIIR::
@@ -123,7 +120,7 @@ AudioStream
 FilterBandPassIIR::
 filter(const AudioStream & x, const float64 & f_low, const float64 & f_high)
 {
-    return low_->filter(high_->filter(x, f_low), f_high);
+    return gain_ * low_->filter(high_->filter(x, f_low), f_high);
 }
 
 AudioStream
@@ -133,7 +130,7 @@ filter(
     const Buffer & f_low,
     const Buffer & f_high)
 {
-    return low_->filter(high_->filter(x, f_low), f_high);
+    return gain_ * low_->filter(high_->filter(x, f_low), f_high);
 }
 
 Buffer
@@ -161,7 +158,7 @@ Buffer
 FilterBandPassIIR::
 filter(const Buffer & x, const float64 & f_low, const float64 & f_high)
 {
-    return low_->filter(high_->filter(x,f_low), f_high);
+    return gain_ * low_->filter(high_->filter(x,f_low), f_high);
 }
 
 Buffer
@@ -171,7 +168,7 @@ filter(
     const Buffer & f_low,
     const Buffer & f_high)
 {
-    return low_->filter(high_->filter(x, f_low), f_high);
+    return gain_ * low_->filter(high_->filter(x, f_low), f_high);
 }
 
 float64

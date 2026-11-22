@@ -45,16 +45,10 @@ Pulse(
     const PulseUnits & units)
     :
     Generator(sample_rate),
-    rise_t_(0.0),
-    fall_t_(-1.0),
     pulse_width_(pulse_width),
     units_(units)
 {
 }
-
-Pulse::
-~Pulse()
-{}
 
 float64
 Pulse::

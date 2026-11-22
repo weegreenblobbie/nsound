@@ -42,6 +42,7 @@
 #include <stdio.h>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <sstream>
 
 using std::cerr;
@@ -527,6 +528,9 @@ read(
              << "the data chunk size indicates the file is truncated!" << endl
              << "    data_chunk_size  = " << data_length << endl
              << "    actual data size = " << (end_pos - cur_pos) << endl;
+
+        // Only read what is in the file, the header can't be trusted.
+        data_length = static_cast<uint32>(end_pos - cur_pos);
     }
 
     boolean fmt_found = true;
@@ -549,11 +553,12 @@ read(
         fmt_found = false;
     }
 
-    if(bits_per_sample == 0)
+    // Below 8 bits the bytes per sample below is 0.
+    if(bits_per_sample < 8)
     {
         M_THROW("Wavefile::read(): '"
              << filename
-             << "', bits_per_sample is zero!");
+             << "', bits_per_sample is less than 8!");
 
         fmt_found = false;
     }
@@ -828,7 +833,7 @@ read(
 
                     if(bits_per_sample == 8)
                     {
-                        sample -= 127;
+                        sample -= 128;
                     }
 
                     *((*b_vector)[ch]) << static_cast<float64>(sample)
@@ -878,7 +883,7 @@ read(
 
                     if(bits_per_sample == 8)
                     {
-                        sample -= 127;
+                        sample -= 128;
                     }
 
                     (*as)[ch] << static_cast<float64>(sample) / data_scale;
@@ -1079,8 +1084,13 @@ write(const string & filename,
 
     // write the data
     int64 scaled = 0;
-    int64 positive_data_scale = static_cast<int64>(data_scale);
-    int64 negitive_data_scale = static_cast<int64>(-1.0 * data_scale);
+
+    // SIGNED_64_BIT_ rounds up to 2^63 as a float64, past the largest int64.
+    int64 positive_data_scale = (bits_per_sample == 64)
+        ? std::numeric_limits<int64>::max()
+        : static_cast<int64>(data_scale);
+    int64 negitive_data_scale = -positive_data_scale;
+    float64 positive_limit = static_cast<float64>(positive_data_scale);
 
     for(uint32 i = 0; i < n_samples; i++)
     {
@@ -1088,16 +1098,28 @@ write(const string & filename,
         {
             if(format_tag == WAVE_FORMAT_PCM_)
             {
-                scaled = static_cast<int64>(as[ch][i] * data_scale);
+                float64 sample = as[ch][i] * data_scale;
 
-                if(scaled > positive_data_scale)
+                // Clamp before the cast, it is undefined past int64.
+                if(sample >= positive_limit)
                 {
                     scaled = positive_data_scale;
                 }
-                else if(scaled < negitive_data_scale)
+                else if(sample <= -positive_limit)
                 {
                     scaled = negitive_data_scale;
                 }
+                else
+                {
+                    scaled = static_cast<int64>(sample);
+                }
+
+                // 8 bit samples are unsigned, 128 is 0.
+                if(bits_per_sample == 8)
+                {
+                    scaled += 128;
+                }
+
                 writeInt(output,n_bytes,scaled);
             }
             else if(format_tag == WAVE_FORMAT_IEEE_FLOAT_)
@@ -1261,23 +1283,40 @@ write(
     ///////////////////////////////////////////////////////////////////////
     // write the data
     int64 scaled;
-    int64 positive_data_scale = static_cast<int64>(data_scale);
-    int64 negitive_data_scale = static_cast<int64>(-1.0 * data_scale);
+
+    // SIGNED_64_BIT_ rounds up to 2^63 as a float64, past the largest int64.
+    int64 positive_data_scale = (bits_per_sample == 64)
+        ? std::numeric_limits<int64>::max()
+        : static_cast<int64>(data_scale);
+    int64 negitive_data_scale = -positive_data_scale;
+    float64 positive_limit = static_cast<float64>(positive_data_scale);
 
     for(uint32 i = 0; i < n_samples; ++i)
     {
             if(format_tag == WAVE_FORMAT_PCM_)
             {
-                scaled = static_cast<int64>(buffer[i] * data_scale);
+                float64 sample = buffer[i] * data_scale;
 
-                if(scaled > positive_data_scale)
+                // Clamp before the cast, it is undefined past int64.
+                if(sample >= positive_limit)
                 {
                     scaled = positive_data_scale;
                 }
-                else if(scaled < negitive_data_scale)
+                else if(sample <= -positive_limit)
                 {
                     scaled = negitive_data_scale;
                 }
+                else
+                {
+                    scaled = static_cast<int64>(sample);
+                }
+
+                // 8 bit samples are unsigned, 128 is 0.
+                if(bits_per_sample == 8)
+                {
+                    scaled += 128;
+                }
+
                 writeInt(output,n_bytes,scaled);
             }
             else if(format_tag == WAVE_FORMAT_IEEE_FLOAT_)
@@ -1530,12 +1569,6 @@ typedef struct RawTag
 //-----------------------------------------------------------------------------
 ID3v1Tag::
 ID3v1Tag(const std::string & filename, boolean show_warnings)
-    : title(),
-      artist(),
-      album(),
-      year(),
-      comment(),
-      genre(' ')
 {
     if(filename.size() > 0)
     {

@@ -32,6 +32,7 @@
 #include <Nsound/MixerNode.h>
 #include <Nsound/Nsound.h>
 
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <string.h>
@@ -45,14 +46,11 @@ using namespace Nsound;
 //-----------------------------------------------------------------------------
 Mixer::
 Mixer()
-    : max_channels_(0),
-      mixer_set_()
 {}
 
 //-----------------------------------------------------------------------------
 Mixer::
-~Mixer()
-{}
+~Mixer() = default;
 
 void
 Mixer::
@@ -88,7 +86,7 @@ clear()
 
 AudioStream
 Mixer::
-getStream(float64 end_time)
+getStream(float64 end_time) const
 {
     return getStream(0,end_time);
 }
@@ -120,7 +118,7 @@ getStream(float64 end_time)
 //
 AudioStream
 Mixer::
-getStream(float64 start_time, float64 end_time)
+getStream(float64 start_time, float64 end_time) const
 {
     M_ASSERT_VALUE(mixer_set_.size(), >, 0);
     M_ASSERT_VALUE(start_time, <, end_time);
@@ -202,16 +200,25 @@ getStream(float64 start_time, float64 end_time)
 
         else if(next_beat_time < mixer_time)
         {
-            // Add the remaing AudioStream to the output.
+            // Add the rest of the beat, from as far into it as the window
+            // starts.
 
-            uint32 node_index = static_cast<uint32>((next_end_time - mixer_time) * sample_rate);
+            uint32 node_index = static_cast<uint32>(
+                (mixer_time - next_beat_time) * sample_rate + 0.5);
 
             new_stream_offset_index = static_cast<uint32>(
-                (mixer_time - start_time) * sample_rate);
+                (mixer_time - start_time) * sample_rate + 0.5);
 
             AudioStream temp = node->audio_stream_->substream(node_index);
 
-            new_stream.add(temp, new_stream_offset_index);
+            uint32 add_n_samples = std::min(
+                temp.getLength(), n_samples - new_stream_offset_index);
+
+            // 0 samples would add all of it.
+            if(add_n_samples > 0)
+            {
+                new_stream.add(temp, new_stream_offset_index, add_n_samples);
+            }
 
             next_beat_time += beat_time;
             next_end_time = next_beat_time + beat_length;
@@ -222,21 +229,19 @@ getStream(float64 start_time, float64 end_time)
         while(new_stream_time < new_stream_end_time)
         {
             new_stream_offset_index = static_cast<uint32>
-                (new_stream_time * sample_rate);
+                (new_stream_time * sample_rate + 0.5);
 
-            // add into new_stream
-            uint32 add_n_samples = node_max_index;
-
-            if(next_end_time > end_time)
+            // Add the beat, cut off at the end of the window.
+            if(new_stream_offset_index < n_samples)
             {
-                add_n_samples -= static_cast<uint32>((next_end_time - end_time)
-                    * static_cast<float64>(sample_rate));
-            }
+                uint32 add_n_samples = std::min(
+                    node_max_index, n_samples - new_stream_offset_index);
 
-            new_stream.add(
-                *node->audio_stream_,
-                new_stream_offset_index,
-                add_n_samples);
+                new_stream.add(
+                    *node->audio_stream_,
+                    new_stream_offset_index,
+                    add_n_samples);
+            }
 
             next_beat_time += beat_time;
             next_end_time = next_beat_time + beat_length;

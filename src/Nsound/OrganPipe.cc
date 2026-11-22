@@ -48,10 +48,6 @@ OrganPipe(const float64 & sample_rate)
     :
     Instrument(sample_rate){}
 
-//-----------------------------------------------------------------------------
-OrganPipe::
-~OrganPipe(){}
-
 AudioStream
 OrganPipe::
 play()

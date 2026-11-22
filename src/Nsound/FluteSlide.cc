@@ -43,12 +43,6 @@ FluteSlide(const float64 & sample_rate)
 {
 }
 
-//-----------------------------------------------------------------------------
-FluteSlide::
-~FluteSlide()
-{
-}
-
 AudioStream
 FluteSlide::
 play()

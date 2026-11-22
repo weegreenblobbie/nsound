@@ -35,6 +35,8 @@
 #include <Nsound/FilterTone.h>
 #include <Nsound/Sine.h>
 
+#include <algorithm>
+
 using namespace Nsound;
 
 //-----------------------------------------------------------------------------
@@ -42,12 +44,6 @@ Clarinet::
 Clarinet(const float64 & sample_rate)
     :
     Instrument(sample_rate)
-{
-}
-
-//-----------------------------------------------------------------------------
-Clarinet::
-~Clarinet()
 {
 }
 
@@ -84,6 +80,11 @@ play(
     const float64 & filter,
     const float64 & reed_stiffness)
 {
+    // The first period fills the delay line and is dropped, so play one
+    // more.
+    float64 dt = 1.0 / frequency;
+    float64 total = duration + dt;
+
     DelayLine  delay1(sample_rate_, (1.0 / frequency));
     DelayLine  delay2(sample_rate_, (1.0 / frequency));
     Sine       sin(sample_rate_);
@@ -97,12 +98,12 @@ play(
     float64 env_peak = (0.55 + 0.3 * pressure);
 
     Buffer env1 = sin.drawLine(0.005, 0.0, env_peak)
-               << sin.drawLine(duration - 0.015, env_peak, env_peak)
+               << sin.drawLine(total - 0.015, env_peak, env_peak)
                << sin.drawLine(0.01, env_peak, 0.0);
 
-    Buffer vibrato_env = sin.drawLine(duration, 0.0, 0.1);
+    Buffer vibrato_env = sin.drawLine(total, 0.0, 0.1);
 
-    Buffer pressurem = vibrato_env * sin.generate(duration, 5.0) + 1.0;
+    Buffer pressurem = vibrato_env * sin.generate(total, 5.0) + 1.0;
 
     pressurem *= (0.3 * env1);
 
@@ -122,7 +123,14 @@ play(
 
         xxx << x;
 
-        uint32 reed_index = static_cast<uint32>((0.25 * x + 0.5) * sample_rate_);
+        // Limited to the table, the reed is closed or open past its ends.
+        float64 reed_position = (0.25 * x + 0.5) * sample_rate_;
+
+        reed_position = std::max(reed_position, 0.0);
+        reed_position = std::min(
+            reed_position, static_cast<float64>(reed_wave.getLength() - 1));
+
+        uint32 reed_index = static_cast<uint32>(reed_position);
 
         x *= reed_wave[reed_index];
 
@@ -139,11 +147,10 @@ play(
 
     y.normalize();
 
-    float64 dt = 1.0 / frequency;
 
     // Declick, at the very beginning and ends, the reed_wave values goes crazy
 
-    y = y.substream(dt, duration - dt);
+    y = y.substream(dt, duration);
 
     Buffer out_env = sin.drawLine(0.01, 0.0, 1.0)
                   << sin.drawLine(duration - 0.02, 1.0, 1.0)

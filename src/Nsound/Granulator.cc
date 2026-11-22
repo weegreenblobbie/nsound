@@ -52,8 +52,7 @@ Granulator(
     const float64  & envelope_noise,
     const Buffer   * custom_envelope)
     :
-    sample_rate_(sample_rate),
-    envelope_generator_(nullptr)
+    sample_rate_(sample_rate)
 //     sine_(new Sine(sample_rate_)),
 //     current_time_(0.0),
 //     next_grain_time_(0.0),
@@ -66,8 +65,12 @@ Granulator(
     {
         case Granulator::CUSTOM:
         {
-            if(custom_envelope == nullptr
-                || custom_envelope->getLength() != sample_rate_)
+            if(custom_envelope == nullptr)
+            {
+                M_THROW("A CUSTOM envelope needs a custom_envelope!");
+            }
+
+            if(custom_envelope->getLength() != sample_rate_)
             {
                 M_THROW("custom_envelope->getLength() must equal "
                      << sample_rate_
@@ -75,7 +78,7 @@ Granulator(
                      << custom_envelope->getLength());
 
                 envelope_generator_ =
-                    new Generator(
+                    std::make_unique<Generator>(
                         sample_rate_,
                         gen.drawGaussian(1.0, 0.5, 0.33333)
                           * (1.0 + envelope_noise * gen.whiteNoise(1.0)));
@@ -83,7 +86,7 @@ Granulator(
             else
             {
                 envelope_generator_ =
-                    new Generator(
+                    std::make_unique<Generator>(
                         sample_rate_,
                         (*custom_envelope)
                             * (1.0 + envelope_noise * gen.whiteNoise(1.0)));
@@ -93,7 +96,7 @@ Granulator(
 
         case Granulator::GAUSSIAN:
         {
-            envelope_generator_ = new Generator(
+            envelope_generator_ = std::make_unique<Generator>(
                 sample_rate_,
                 gen.drawGaussian(1.0, 0.5, 0.33333)
                     * (1.0 + envelope_noise * gen.whiteNoise(1.0)));
@@ -102,7 +105,7 @@ Granulator(
 
         case Granulator::GAUSSIAN_90:
         {
-            envelope_generator_ = new Generator(
+            envelope_generator_ = std::make_unique<Generator>(
                 sample_rate_,
                 gen.drawFatGaussian(1.0, 0.90)
                     * (1.0 + envelope_noise * gen.whiteNoise(1.0)));
@@ -111,7 +114,7 @@ Granulator(
 
         case Granulator::GAUSSIAN_70:
         {
-            envelope_generator_ = new Generator(
+            envelope_generator_ = std::make_unique<Generator>(
                 sample_rate_,
                 gen.drawFatGaussian(1.0, 0.70)
                     * (1.0 + envelope_noise * gen.whiteNoise(1.0)));
@@ -120,7 +123,7 @@ Granulator(
 
         case Granulator::GAUSSIAN_50:
         {
-            envelope_generator_ = new Generator(
+            envelope_generator_ = std::make_unique<Generator>(
                 sample_rate_,
                 gen.drawFatGaussian(1.0, 0.50)
                     * (1.0 + envelope_noise * gen.whiteNoise(1.0)));
@@ -129,7 +132,7 @@ Granulator(
 
         case Granulator::GAUSSIAN_30:
         {
-            envelope_generator_ = new Generator(
+            envelope_generator_ = std::make_unique<Generator>(
                 sample_rate_,
                 gen.drawFatGaussian(1.0, 0.30)
                     * (1.0 + envelope_noise * gen.whiteNoise(1.0)));
@@ -138,7 +141,7 @@ Granulator(
 
         case Granulator::GAUSSIAN_10:
         {
-            envelope_generator_ = new Generator(
+            envelope_generator_ = std::make_unique<Generator>(
                 sample_rate_,
                 gen.drawFatGaussian(1.0, 0.10)
                     * (1.0 + envelope_noise * gen.whiteNoise(1.0)));
@@ -153,7 +156,7 @@ Granulator(
 
             Buffer noise = 1.0 + envelope_noise * gen.whiteNoise(1.0);
 
-            envelope_generator_ = new Generator(
+            envelope_generator_ = std::make_unique<Generator>(
                 sample_rate_,
                 gen.drawDecay(1.0)
                     * (1.0 + envelope_noise * gen.whiteNoise(1.0)));
@@ -162,7 +165,7 @@ Granulator(
 
         case Granulator::REVERSE_DECAY:
         {
-            envelope_generator_ = new Generator(
+            envelope_generator_ = std::make_unique<Generator>(
                 sample_rate_,
                 gen.drawDecay(1.0).getReverse()
                     * (1.0 + envelope_noise * gen.whiteNoise(1.0)));
@@ -175,18 +178,15 @@ Granulator(
 Granulator::
 Granulator(const Nsound::Granulator & gran)
     :
-    sample_rate_(gran.sample_rate_),
-    envelope_generator_(nullptr)
+    sample_rate_(gran.sample_rate_)
 {
     *this = gran;
 }
 
 ///////////////////////////////////////////////////////////////////////////
+// Defined here, where Generator is complete, for the std::unique_ptr.
 Granulator::
-~Granulator()
-{
-    delete envelope_generator_;
-}
+~Granulator() = default;
 
 Buffer
 Granulator::
@@ -207,7 +207,8 @@ generate(
         current_time += time_step)
     {
         // Output a pulse.
-        if(next_grain_time - current_time < time_step)
+        // On the sample nearest the grain time.
+        if(current_time >= next_grain_time - time_step / 2.0)
         {
             float64 g_duration  = waves_per_grain / grain_frequency;
 
@@ -258,7 +259,8 @@ generate(
             grains_per_second[gps_index++ % gps_length];
 
         // Output a pulse.
-        if(next_grain_time - current_time < time_step)
+        // On the sample nearest the grain time.
+        if(current_time >= next_grain_time - time_step / 2.0)
         {
             float64 g_frequency = grain_frequency[gf_index++  % gf_length];
             float64 wpg         = waves_per_grain[wpg_index++ % wpg_length];
@@ -286,10 +288,13 @@ Granulator &
 Granulator::
 operator=(const Granulator & rhs)
 {
-    delete envelope_generator_;
+    if(this == &rhs)
+    {
+        return *this;
+    }
 
     sample_rate_ = rhs.sample_rate_;
-    envelope_generator_ = new Generator(*rhs.envelope_generator_);
+    envelope_generator_ = std::make_unique<Generator>(*rhs.envelope_generator_);
 
     return *this;
 }

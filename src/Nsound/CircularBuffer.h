@@ -30,8 +30,7 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_CIRCULAR_BUFFER_H_
-#define _NSOUND_CIRCULAR_BUFFER_H_
+#pragma once
 
 #include <Nsound/Nsound.h>
 
@@ -57,10 +56,11 @@ public:
     void write(const AudioStream & as);
     void write(const Buffer & b);
 
-protected:
+    // Not copyable.
+    CircularBuffer(const CircularBuffer & copy) = delete;
+    CircularBuffer & operator=(const CircularBuffer & rhs) = delete;
 
-	CircularBuffer(const CircularBuffer & copy);
-	CircularBuffer & operator=(const CircularBuffer & rhs);
+protected:
 
     std::shared_ptr<Buffer> buffer_;
     std::shared_ptr<Buffer::circular_iterator> itor_;
@@ -69,4 +69,3 @@ protected:
 } // namespace
 
 // :mode=c++: jEdit modeline
-#endif

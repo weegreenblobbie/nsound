@@ -30,8 +30,7 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //////////////////////////////////////////////////////////////////////////////
-#ifndef _NSOUND_FILTER_MEDIAN_HPP_
-#define _NSOUND_FILTER_MEDIAN_HPP_
+#pragma once
 
 #include <Nsound/Nsound.h>
 
@@ -59,7 +58,7 @@ public:
 
 protected:
 
-    uint32               _h_ptr;
+    uint32               _h_ptr = 0;
     uint32               _median;
 
     std::vector<float64> _history;
@@ -71,4 +70,3 @@ protected:
 
 // :mode=c++: jEdit modeline
 
-#endif

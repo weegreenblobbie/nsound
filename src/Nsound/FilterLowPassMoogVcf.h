@@ -30,8 +30,7 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_FILTER_LOW_PASS_MOOG_VCF_H_
-#define _NSOUND_FILTER_LOW_PASS_MOOG_VCF_H_
+#pragma once
 
 #include <Nsound/Filter.h>
 
@@ -51,15 +50,15 @@ public:
         const float64 & cutoff_hz,
         const float64 & resonance);
 
-    virtual ~FilterLowPassMoogVcf() {}
+    // The Buffer and AudioStream overloads, which the float64 ones below
+    // would hide.
+    using Filter::filter;
 
-    virtual
     float64
-    filter(const float64 & x);
+    filter(const float64 & x) override;
 
-    virtual
     float64
-    filter(const float64 & x, const float64 & cutoff_hz);
+    filter(const float64 & x, const float64 & cutoff_hz) override;
 
     virtual
     float64
@@ -74,7 +73,7 @@ public:
     //! Resets interal history buffer and sets the cut off frequency to the one
     //! used at declaration.
     void
-    reset();
+    reset() override;
 
 protected:
 
@@ -82,13 +81,13 @@ protected:
 
     float64 resonance_;
     float64 cutoff_;
-    float64 k_;
-    float64 p_;
-    float64 r_;
+    float64 k_ = 0.0;
+    float64 p_ = 0.0;
+    float64 r_ = 0.0;
 
-    float64 oldx_;
-    float64 y0_, y1_, y2_, y3_;
-    float64 oldy0_, oldy1_, oldy2_;
+    float64 oldx_ = 0.0;
+    float64 y0_ = 0.0, y1_ = 0.0, y2_ = 0.0, y3_ = 0.0;
+    float64 oldy0_ = 0.0, oldy1_ = 0.0, oldy2_ = 0.0;
 
 
 }; // class FilterLowPassMoogVcf
@@ -97,4 +96,3 @@ protected:
 } // namespace Nsound
 
 // :mode=c++: jEdit modeline
-#endif

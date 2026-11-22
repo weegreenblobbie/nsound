@@ -30,10 +30,10 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_FILTER_COMB_LOW_PASS_FEEDBACK_H_
-#define _NSOUND_FILTER_COMB_LOW_PASS_FEEDBACK_H_
+#pragma once
 
 #include <Nsound/Filter.h>
+#include <Nsound/FilterDelay.h>
 
 namespace Nsound
 {
@@ -41,7 +41,6 @@ namespace Nsound
 // Forward class declarations
 class AudioStream;
 class Buffer;
-class FilterDelay;
 
 //-----------------------------------------------------------------------------
 //! A class for filtering audio in the frequecy domain.
@@ -54,11 +53,6 @@ class FilterCombLowPassFeedback : public Filter
         const float64 & delay_time_seconds,
         const float64 & feedback_gain,
         const float64 & low_pass_frequency_Hz);
-
-    FilterCombLowPassFeedback(const FilterCombLowPassFeedback & copy);
-
-    virtual
-    ~FilterCombLowPassFeedback();
 
     AudioStream
     filter(const AudioStream & x);
@@ -73,33 +67,29 @@ class FilterCombLowPassFeedback : public Filter
     filter(const Buffer & x, const Buffer & frequencies);
 
     float64
-    filter(const float64 & x);
+    filter(const float64 & x) override;
 
     float64
-    filter(const float64 & x, const float64 & frequency);
-
-    FilterCombLowPassFeedback &
-    operator=(const FilterCombLowPassFeedback & rhs);
+    filter(const float64 & x, const float64 & frequency) override;
 
     void
     plot(boolean show_fc = true, boolean show_phase = false);
 
     void
-    reset();
+    reset() override;
 
     protected:
 
-    FilterDelay * delay_;
+    FilterDelay delay_;
 
     float64 feedback_gain_;
 
-    float64 damp1_;
-    float64 damp2_;
+    float64 damp1_ = 0.0;
+    float64 damp2_ = 0.0;
 
-    float64 y_history_;
+    float64 y_history_ = 0.0;
 };
 
 };
 
 // :mode=c++:  jEdit modeline
-#endif

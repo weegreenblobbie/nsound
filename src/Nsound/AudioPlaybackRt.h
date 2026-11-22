@@ -30,8 +30,7 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 //-----------------------------------------------------------------------------
-#ifndef _NSOUND_AUDIO_PLAYBACK_RT_H_
-#define _NSOUND_AUDIO_PLAYBACK_RT_H_
+#pragma once
 
 #include <Nsound/Nsound.h>
 
@@ -227,5 +226,4 @@ void operator>>(float64 sample, AudioPlaybackRt & rhs);
 
 } // namespace Nsound
 
-#endif
 // :mode=c++: jEdit modeline

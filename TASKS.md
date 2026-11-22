@@ -10,8 +10,12 @@ Bazel build
 Catch2 unit tests
 -----------------
 
-[ ] Add unit test coverage for 100% the C++ code, along with code coverage reports.
-[ ] Switch to using std::make_shared<T> and std::make_unique<T> where possible.
+[x] Add unit test coverage for 100% the C++ code, along with code coverage reports.
+[x] Switch to using std::make_shared<T> and std::make_unique<T> where possible.
+[x] Update the class for C++ Core Guidelines C.48 and C.45 so we use class difinition initializers
+[x] Switch raw array allocations (new [] T) with std::vector<T> to avoid new and delete
+[x] What other C++ best practicies should we incorporate?
+[x] Switch to using #pragma once for headers
 
 Switch to using pybind11
 ------------------------
@@ -19,10 +23,11 @@ Switch to using pybind11
 [ ] Refactor the code base to replace thw swig python binding with pybind11
 [ ] Publish a new nsound pyton package on pypi
 
-Modern C++ improvements
------------------------
+Fix plotting so c++ can plot
+----------------------------
 
-[ ] Switch to using #pragma once for headers
+[ ] Let's working on the c++ linking with the python runtime for matplotlib to make plots
+
 
 Support audio playback
 ----------------------
