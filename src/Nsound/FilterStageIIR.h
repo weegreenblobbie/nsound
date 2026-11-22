@@ -128,7 +128,6 @@ class FilterStageIIR : public Filter
     float64 * y_ptr_ = nullptr;
     float64 * y_end_ptr_ = nullptr;
 
-    #ifndef SWIG
     //! A class to store calculated kernels.
     struct Kernel
     {
@@ -145,7 +144,6 @@ class FilterStageIIR : public Filter
     typedef std::set<Kernel> KernelCache;
 
     KernelCache kernel_cache_;
-    #endif
 };
 
 }

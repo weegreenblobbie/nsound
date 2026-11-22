@@ -1,12 +1,11 @@
-# Dev container for nsound: C++ (GCC + Clang), SCons (legacy build), Bazel,
-# Catch2 unit tests, code coverage, and the Python/SWIG bindings.
+# Dev container for nsound: C++ (GCC + Clang), Bazel, Catch2 unit tests,
+# code coverage, and the Python/pybind11 bindings.
 #
 # Build:  docker build -t nsound-claude .
 # Update Claude Code / tools later with:  docker build --no-cache -t nsound-claude .
 
 # Debian trixie: GCC 14, Clang 19, lcov 2.x.
-# Python 3.11 is kept on purpose: nsound's setup.py imports distutils,
-# which was removed in Python 3.12.
+# Python 3.11, the module builds with Python 3.10 or newer.
 FROM python:3.11-slim-trixie
 
 ARG TARGETARCH=amd64
@@ -24,8 +23,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         # clang's sanitizer runtimes (libclang_rt.asan, ubsan, ...)
         libclang-rt-19-dev \
         ccache pkg-config cmake ninja-build \
-        # SWIG stays until the pybind11 bindings replace it
-        swig \
         # coverage (gcov ships with gcc; llvm-cov/llvm-profdata with llvm)
         lcov \
         # memory and undefined-behaviour checking
@@ -45,15 +42,14 @@ RUN curl -fsSL -o /usr/local/bin/bazel \
     && chmod +x /usr/local/bin/bazel \
     && ln -s /usr/local/bin/bazel /usr/local/bin/bazelisk
 
-# Python tools: SCons (the existing build), pytest, coverage reports,
-# numpy/matplotlib for nsound's plotting and Python tests, and pybind11
-# (replacing SWIG). "pybind11[global]" also installs the headers and CMake
-# config into the system prefix so any build can find them; "python -m pybind11
-# --includes" prints the include flags. scikit-build-core + build are for
-# packaging the pybind11 module as a wheel.
+# Python tools: pytest, coverage reports, numpy/matplotlib for nsound's
+# plotting and Python tests, and pybind11. "pybind11[global]" also installs
+# the headers and CMake config into the system prefix so any build can find
+# them; "python -m pybind11 --includes" prints the include flags.
+# scikit-build-core + build are for packaging the pybind11 module as a wheel.
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir \
-        scons wheel setuptools build \
+        wheel setuptools build \
         pytest numpy matplotlib \
         gcovr \
         "pybind11[global]" scikit-build-core pybind11-stubgen
@@ -84,7 +80,6 @@ ENV CLAUDE_CONFIG_DIR="/home/ubuntu/.claude" \
 RUN gcc --version | head -1 \
     && clang --version | head -1 \
     && test -x /usr/local/bin/bazel \
-    && scons --version | head -2 \
     && python -m pybind11 --includes \
     && lcov --version \
     && gcovr --version | head -1

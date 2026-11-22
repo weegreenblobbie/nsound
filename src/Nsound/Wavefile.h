@@ -221,12 +221,10 @@ class Wavefile
           uint32 bits_per_sample,
           uint32 sample_rate);
 
-    #ifndef SWIG
     friend Buffer & operator<<(Buffer & lhs, const char * rhs);
     friend void operator>>(const Buffer & lhs, const char * rhs);
     friend AudioStream & operator<<(AudioStream & lhs, const char * rhs);
     friend void operator>>(const AudioStream & lhs, const char * rhs);
-    #endif
 
     protected:
 
@@ -271,13 +269,11 @@ class ID3v1Tag
     std::string comment;
     char genre = ' ';
 
-    #ifndef SWIG
         ///////////////////////////////////////////////////////////////////////
         //! Sends the contents of the Buffer to the output stream.
         friend
         std::ostream &
         operator<<(std::ostream & out, const ID3v1Tag & rhs);
-    #endif
 };
 
 std::ostream &

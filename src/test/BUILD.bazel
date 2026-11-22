@@ -1,6 +1,7 @@
 """Nsound C++ unit tests and manual test programs."""
 
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+load("@rules_python//python:defs.bzl", "py_test")
 
 # main() for the Catch2 tests, runs them next to a copy of the gold files.
 cc_library(
@@ -21,11 +22,28 @@ cc_library(
     ],
 )
 
+# Checks what Plotter drew, by asking matplotlib.
+cc_library(
+    name = "plot_check",
+    testonly = True,
+    hdrs = ["plot_check.h"],
+    deps = [
+        "//src/Nsound:nsound",
+        "@catch2//:catch2",
+    ] + select({
+        "//bazel:c_pylab_enabled": ["@pybind11"],
+        "//conditions:default": [],
+    }),
+)
+
 cc_library(
     name = "filter_signals",
     testonly = True,
     hdrs = ["filter_signals.h"],
-    deps = ["//src/Nsound:nsound"],
+    deps = [
+        ":plot_check",
+        "//src/Nsound:nsound",
+    ],
 )
 
 # One Catch2 test per class, //src/test:<Class>_test from <Class>_test.cc.
@@ -35,9 +53,12 @@ cc_library(
         srcs = [name + "_test.cc"],
         size = "small",
         data = glob(["gold/**"]),
+        # matplotlib draws into images, it opens no windows.
+        env = {"MPLBACKEND": "Agg"},
         deps = [
             ":filter_signals",
             ":gold_check",
+            ":plot_check",
             ":test_main",
             "//src/Nsound:nsound",
             "@catch2//:catch2",
@@ -124,4 +145,28 @@ cc_library(
         "test_pluck",
         "test_rng",
     ]
+]
+
+# The Python module's tests, test_*.py.
+[
+    py_test(
+        name = "py_" + test[:-len(".py")],
+        srcs = [
+            test,
+            "unittest_main.py",
+        ],
+        # src/test is on the path, the test loads as a top level module.
+        args = [test[:-len(".py")]],
+        data = glob(["gold/*.wav"]),
+        env = {"MPLBACKEND": "Agg"},
+        imports = ["."],
+        main = "unittest_main.py",
+        tags = ["python"],
+        deps = [
+            "//src/python:Nsound",
+            "@nsound_pypi//matplotlib",
+            "@nsound_pypi//numpy",
+        ],
+    )
+    for test in glob(["test_*.py"])
 ]

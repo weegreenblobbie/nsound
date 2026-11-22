@@ -44,13 +44,17 @@ config_setting(
     flag_values = {":openmp": "True"},
 )
 
-# Plotter uses the matplotlib C API, needs the Python and numpy headers.
+# Plotter plots with matplotlib, in a Python interpreter it starts in C++
+# programs: every program links Bazel's Python.  Off, Plotter does nothing.
 bool_flag(
     name = "c_pylab",
-    build_setting_default = False,
+    build_setting_default = True,
 )
 
 config_setting(
     name = "c_pylab_enabled",
     flag_values = {":c_pylab": "True"},
 )
+
+# Declares long path support in Windows programs, see the file.
+exports_files(["long_path_aware.manifest"])

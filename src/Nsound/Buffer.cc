@@ -1850,27 +1850,6 @@ round()
     }
 }
 
-void
-Buffer::
-_set_at_index(int32 index, float64 d)
-{
-    int32 len = getLength();
-
-    if(index >= 0 && index < len)
-    {
-        data_[index] = d;
-    }
-    else if(index < 0 && index >= -len)
-    {
-        data_[len + index] = d;
-    }
-    else
-    {
-        M_THROW(
-            "IndexError: " << index << " is out of bounds (0 : " << len << ")");
-    }
-}
-
 BufferSelection
 Buffer::
 select(const uint32 start_index, const uint32 stop_index)

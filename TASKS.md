@@ -17,19 +17,20 @@ Catch2 unit tests
 [x] What other C++ best practicies should we incorporate?
 [x] Switch to using #pragma once for headers
 
-Switch to using pybind11
-------------------------
+Switch to using pybind11 and verify plotting
+--------------------------------------------
 
-[ ] Refactor the code base to replace thw swig python binding with pybind11
-[ ] Publish a new nsound pyton package on pypi
-
-Fix plotting so c++ can plot
-----------------------------
-
-[ ] Let's working on the c++ linking with the python runtime for matplotlib to make plots
-
+[x] Refactor the code base to replace thw swig python binding with pybind11
+[x] Let's working on the c++ linking with the python runtime for matplotlib to make plots
+[x] Add unit test coverage for every plot function, using a non-graphcial matploblib backend for image comparison
+[x] I can verify with the cepstral_pitch_estimate example
 
 Support audio playback
 ----------------------
 
-[ ] update the windows bazel build so AudioPlayback works
+[ ] How can we test audio playback in linux bazel test builds?
+[ ] Update the windows bazel build so AudioPlayback works, can it be tested with bazel test too?
+
+Publish to pypi
+---------------
+[ ] Publish a new nsound pyton package on pypi

@@ -45,10 +45,6 @@
 namespace Nsound
 {
 
-// SWIG doesn't follow #includes, this tells it getRandomNumberGenerator()'s
-// type is Nsound::RandomNumberGenerator.
-class RandomNumberGenerator;
-
 //-----------------------------------------------------------------------------
 //  Generator Class
 //! A class the provides draw utilities and a wavetable oscillator.

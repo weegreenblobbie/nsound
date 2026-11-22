@@ -34,9 +34,12 @@
 
 #include <Nsound/Nsound.h>
 
-#include <map>
 #include <string>
 
+// Python's object type, declared the way Python.h declares it, so this header
+// doesn't need Python.h.
+struct _object;
+typedef struct _object PyObject;
 
 namespace Nsound
 {
@@ -44,12 +47,10 @@ namespace Nsound
 class AudioStream;
 class Buffer;
 
-#if ! ( defined(NSOUND_C_PYLAB) || defined(NSOUND_IN_PYTHON_MODULE) )
-    typedef void PyObject;
-#endif
-
 //-----------------------------------------------------------------------------
-//! A wrapper around a Matplotlib Axes object.
+//! A matplotlib Axes, as Plotter::subplot() returns it.
+//
+//! It holds a reference to the Python object, none when plotting is off.
 class Axes
 {
     public:
@@ -57,6 +58,9 @@ class Axes
     Axes(PyObject * axes_ptr);
     Axes(const Axes & copy);
     Axes & operator=(const Axes & rhs);
+    ~Axes();
+
+    //! Returns the matplotlib Axes, nullptr when plotting is off.
     PyObject * get_axes(){return axes_ptr_;};
 
     private:
@@ -65,16 +69,20 @@ class Axes
 };
 
 //-----------------------------------------------------------------------------
-// DOXME
+//! Plots with matplotlib's pyplot.
+//
+//! In a C++ program the first Plotter starts Bazel's Python, which stays
+//! running until the program ends; in the Python module it uses the running
+//! Python.  When Python or matplotlib can't be loaded it prints why, once, and
+//! the plotting functions do nothing.  The kwargs strings are Python keyword
+//! arguments, e.g. "color='red', linewidth=2".  Python errors are thrown as
+//! pybind11::error_already_set.
 class Plotter
 {
     public:
 
     //! Construct the Plotter.
     Plotter();
-
-    //! Deconstruct the Plotter.
-    virtual ~Plotter();
 
     //! Draws a horizontal line at y and spans xmin to xmax (ralitive).
     void
@@ -98,7 +106,8 @@ class Plotter
     //! Sets the grid state.
     void grid(boolean flag) const;
 
-    //! Hides all plots, prevents any plot window being rendered to the screen.  Useful if only saving plots to disk.
+    //! Closes all the figures, so none is shown.  Useful if only saving plots
+    //! to disk.
     void hide();
 
     //! Plots the AudioStream like a 2D matrix.
@@ -136,10 +145,10 @@ class Plotter
         const std::string & fmt = "",
         const std::string & kwargs = "");
 
-    //! executes the python string
+    //! Runs the Python code in __main__, where pyplot is _pyplot_nsound_.
     void run_string(const std::string & command) const;
 
-    //! Saves the last figure drawn to filename.
+    //! Saves the current figure to filename.
     void
     savefig(const std::string & filename, const std::string & kwargs = "");
 
@@ -188,55 +197,8 @@ class Plotter
     static
     void
     show();
-
-    //! SWIG helper function function to shadow.
-    void _swig_shadow(){};
-
-    protected:
-
-    typedef std::pair < std::string, PyObject * > StringPyObjectPair;
-    typedef std::map  < std::string, PyObject * > PyPlotTable;
-
-    PyObject * _make_kwargs(const std::string & kwargs) const;
-
-    static int32 count_;
-
-    static PyPlotTable table_;
-
-    enum PlotterState
-    {
-        BOOTING,
-        INITALIZED,
-        UNLOADED,
-    };
-
-    static PlotterState state_;
-
-    static boolean grid_is_on_;
-
-    static float64 xmin_;
-    static float64 xmax_;
-    static float64 ymin_;
-    static float64 ymax_;
-
-    // disable these
-    private:
-
-    //! Copy constructor disabled.
-    Plotter(const Plotter & rhs);
-
-    //! Assignment disabled.
-    Plotter & operator=(const Plotter & rhs);
-
-    //! Create a PyList object from a buffer!
-    PyObject * makePyListFromBuffer(const Buffer & buffer) const;
-
-    //! Create a PyInt
-    PyObject * makePyIntFromUint32(const uint32 & i) const;
-
 };
 
 } // namespace
 
 // :mode=c++: jEdit modeline
-

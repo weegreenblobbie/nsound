@@ -289,7 +289,11 @@ plot(boolean show_phase)
 
         Buffer pr = getPhaseResponse().getdB();
 
-        pylab.plot(x,pr);
+        // The phase response has its own FFT size, its axis has as many
+        // points.
+        Buffer px = getFrequencyAxis(2 * (pr.getLength() - 1));
+
+        pylab.plot(px,pr);
 
         pylab.xlabel("Frequency (Hz)");
         pylab.ylabel("Phase Response (dB)");

@@ -61,26 +61,38 @@ If you're on Windows, OS X, or Linux:
 
     python3 -m pip install Nsound
 
+To build it from a source checkout, with Python 3.10 or newer and a C++20
+compiler:
+
+.. code-block:: bash
+
+    python3 -m pip install .
+
+``tools/test_pip_install.py`` checks that: it installs the checkout into a
+new venv and runs the Python tests there.
+
 
 Building with Bazel
 -------------------
 
-The C++ library, programs and unit tests can be built with
-`Bazel <https://bazel.build>`_ on Linux, macOS and Windows.  Use
+The C++ library, programs, unit tests and the Python module can be built
+with `Bazel <https://bazel.build>`_ on Linux, macOS and Windows.  Use
 `Bazelisk <https://github.com/bazelbuild/bazelisk>`_, it reads the pinned
-version from ``.bazelversion``.  The SCons build still works as before.
+version from ``.bazelversion``.  Bazel fetches its own Python and its
+packages, matplotlib and numpy.
 
 On Windows, run ``.\setup-windows.ps1`` from a PowerShell window in the
 nsound folder.  It installs Bazelisk as ``bazel`` and the Visual Studio C++
-Build Tools, then ``bazel build //...`` and ``bazel test //...`` build with
-MSVC.  The compiler, sanitizer and coverage configs below are Linux only.
+Build Tools, and turns on Developer Mode and long paths, which the Python
+tests need for their symlinks and deep paths.  Then ``bazel build //...`` and ``bazel test //...`` build
+with MSVC.  The compiler, sanitizer and coverage configs below are Linux only.
 
 .. code-block:: bash
 
     bazel build //...                   # library and programs, gcc
-    bazel test //...                    # C++ unit tests
+    bazel test //...                    # C++ and Python unit tests
     bazel build --config=clang //...    # build with clang
-    bazel test --config=asan //...      # AddressSanitizer
+    bazel test --config=asan //...      # AddressSanitizer, C++ tests only
     bazel test --config=ubsan //...     # UndefinedBehaviorSanitizer
     bazel build --config=debug //...    # -c dbg
     bazel build --config=opt //...      # -c opt
@@ -93,9 +105,11 @@ Main targets:
 Target                            Description
 ================================  ==========================================
 ``//src/Nsound:nsound``           The Nsound C++ library
+``//src/python:Nsound``           The Python module, pybind11 bindings
 ``//src/bin:ns_readwaveheader``   Prints a wave file header
 ``//src/bin:ns_vocoder``          Vocoder command line program
 ``//src/test:<Class>_test``       Catch2 unit tests, one per class
+``//src/test:py_test_*``          Python unit tests, src/test/test_*.py
 ``//src/test:test_*``             Test programs, run by hand (tagged manual)
 ``//src/examples:*``              Examples, e.g.
                                   ``bazel run //src/examples:mynameis``,
@@ -115,16 +129,27 @@ Flag                               Default  Description
                                             clang, /openmp with MSVC).  Off
                                             on macOS, where Apple clang
                                             needs Homebrew's libomp
-``--//bazel:c_pylab``              off      Plotter uses the matplotlib C API,
-                                            does not build yet: Bazel has no
-                                            target for the numpy headers
+``--//bazel:c_pylab``              on       Plotter plots with matplotlib in
+                                            Bazel's Python, which C++
+                                            programs link and start.  Off,
+                                            Plotter does nothing.  The
+                                            Python module always plots
 =================================  =======  ===================================
 
 For example, ``bazel build --//bazel:libao --//bazel:portaudio //...``.
 
+C++ programs plot with ``bazel run``, e.g.
+``bazel run //src/examples:cepstral_pitch_estimate``, or run from
+``bazel-bin``: the first ``Plotter`` starts Bazel's Python from the
+program's runfiles.  A program copied away from its runfiles prints why it
+can't plot and runs without plotting.  The C++ tests plot with matplotlib's
+Agg backend, which opens no windows.
+
 The CUDA sources (``*.cu``) are not built with Bazel.  ``Nsound.h`` is
 generated from ``src/Nsound/Nsound.h.in`` with the version from
-``version.bzl``.  Local options can go in ``user.bazelrc``.
+``version.bzl``.  Local options can go in ``user.bazelrc``.  The Python
+packages are pinned in ``requirements_lock.txt``, made from
+``requirements.in`` by the ``uv`` command at its top.
 
 ``tools/coverage.sh`` measures the line coverage of ``src/Nsound`` and the
 ``linux / bazel / coverage`` check fails if it drops below

@@ -109,7 +109,6 @@ class FilterLowPassFIR : public Filter
 
     float64 frequency_1_Hz_;
 
-    #ifndef SWIG
     //! A class to store calculated kernels.
     struct Kernel
     {
@@ -125,7 +124,6 @@ class FilterLowPassFIR : public Filter
     typedef std::set<Kernel> KernelCache;
 
     KernelCache lp_cache_;
-    #endif
 
     public:
 

@@ -4,9 +4,16 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <Nsound/Nsound.h>
+
+#ifdef NSOUND_C_PYLAB
+    #include "plot_check.h"
+#endif
+
 #include <Nsound/AudioStream.h>
 #include <Nsound/AudioStreamSelection.h>
 #include <Nsound/Buffer.h>
+#include <Nsound/Sine.h>
 #include <Nsound/Wavefile.h>
 
 #include "gold_check.h"
@@ -298,17 +305,6 @@ TEST_CASE("AudioStream assignment, comparison, element access")
         }
 
         CHECK(n == 2);
-    }
-
-    SECTION("_set_at_index()")
-    {
-        as._set_at_index(0, Buffer({1.0}));
-        as._set_at_index(-1, Buffer({2.0}));
-
-        check_channels(as, {Buffer({1.0}), Buffer({2.0})});
-
-        CHECK_THROWS_AS(as._set_at_index(2, Buffer({0.0})), Exception);
-        CHECK_THROWS_AS(as._set_at_index(-3, Buffer({0.0})), Exception);
     }
 
     SECTION("setNChannels() starts with empty channels")
@@ -626,7 +622,44 @@ TEST_CASE("AudioStream ones(), zeros(), rand()")
     CHECK(noise.getMax() > noise.getMin());
 }
 
+#ifdef NSOUND_C_PYLAB
+
+TEST_CASE("AudioStream plot()")
+{
+    using namespace plot_check;
+
+    AudioStream as = make_stereo(LEFT, RIGHT);
+
+    as.plot("the title");
+
+    // A subplot per channel, against time in seconds, the title on top.
+    auto axes = figure_axes();
+
+    REQUIRE(axes.size() == 2);
+
+    CHECK(text(axes[0].attr("title")) == "the title");
+    CHECK(text(axes[1].attr("title")) == "");
+
+    Buffer time = Sine(as.getSampleRate()).drawLine(
+        as.getDuration(), 0.0, as.getDuration());
+
+    for(uint32 c = 0; c < 2; ++c)
+    {
+        INFO("channel " << c);
+
+        check_data(xdata(lines(axes[c])[0]), time);
+        check_data(ydata(lines(axes[c])[0]), as[c]);
+        CHECK(text(axes[c].attr("xaxis").attr("label")) == "Time (sec)");
+    }
+
+    pyplot().attr("close")("all");
+}
+
+#else
+
 TEST_CASE("AudioStream plot() without matplotlib")
 {
     CHECK_NOTHROW(make_stereo(LEFT, RIGHT).plot("title"));
 }
+
+#endif

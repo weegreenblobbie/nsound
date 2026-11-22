@@ -4,6 +4,12 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <Nsound/Nsound.h>
+
+#ifdef NSOUND_C_PYLAB
+    #include "plot_check.h"
+#endif
+
 #include <Nsound/AudioStream.h>
 #include <Nsound/Buffer.h>
 #include <Nsound/FilterIIR.h>
@@ -165,8 +171,22 @@ TEST_CASE("FilterIIR copies, overloads and output")
         CHECK_FALSE(out.str().empty());
     }
 
-    SECTION("plot() without matplotlib")
+    SECTION("plot()")
     {
-        CHECK_NOTHROW(f.plot());
+        #ifdef NSOUND_C_PYLAB
+            using namespace plot_check;
+
+            // The frequency response in dB against the frequency axis.
+            f.plot();
+
+            REQUIRE(figure_axes().size() == 1);
+
+            check_data(xdata(lines(gca())[0]), f.getFrequencyAxis());
+            check_data(ydata(lines(gca())[0]), f.getFrequencyResponse().getdB());
+
+            pyplot().attr("close")("all");
+        #else
+            CHECK_NOTHROW(f.plot());
+        #endif
     }
 }

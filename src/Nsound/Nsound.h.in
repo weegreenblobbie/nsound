@@ -68,25 +68,8 @@
 // Define if we have lib ao available
 @NSOUND_LIBAO@
 
-// Define if we have Python module pylab (matplotlib) C API
+// Define if Plotter plots with matplotlib
 @NSOUND_C_PYLAB@
-
-// Ensure Python.h is included before anything else.
-#if defined(NSOUND_C_PYLAB) || defined(NSOUND_IN_PYTHON_MODULE)
-
-    #ifdef __clang__
-        #pragma clang diagnostic push
-        #pragma clang diagnostic ignored "-Wdeprecated"
-        #pragma clang diagnostic ignored "-Wdeprecated-register"
-    #endif
-
-    #include <Python.h>
-
-    #ifdef __clang__
-        #pragma clang diagnostic pop
-    #endif
-
-#endif
 
 // OpenMP usage
 @NSOUND_OPENMP@
@@ -122,10 +105,6 @@
 #ifndef M_PI
     #define M_PI 3.141592653589793
 #endif
-
-//#ifndef SWIG
-//	extern "C++" {
-//#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 // Basic types
@@ -175,8 +154,7 @@ struct Exception : public std::exception
 	std::string _message;
 };
 
-// Alias std::string for the SWIG interface to use a custom typemap to convert
-// a binary string to Python bytearray.
+// Bytes held in a std::string, the Python module returns them as a bytearray.
 using bytearray = std::string;
 
 }; // namespace
@@ -192,10 +170,6 @@ using bytearray = std::string;
 #define WARNING_HEADER  __FILE__ << ":" << __LINE__ << ": ***WARNING: "
 
 #include <Nsound/Macros.h>
-
-//#ifndef SWIG
-//	}; //extern "C++" {
-//#endif
 
 
 // :mode=c++: jEdit modeline

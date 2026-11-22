@@ -1,0 +1,4 @@
+# The Python packages Bazel's Python uses: matplotlib for Plotter, numpy for
+# the Python tests.  requirements_lock.txt pins them, see its first lines.
+numpy
+matplotlib

@@ -8,12 +8,13 @@ test --test_output=errors
 
 # Linux ----------------------------------------------------------------------
 
-# Nsound is C++20, matching the SCons build.
+# Nsound is C++20.
 build:linux --cxxopt=-std=c++20
 build:linux --copt=-Wall
 build:linux --copt=-Wextra
 
-# Same code generation flags as the SCons build.
+# No strict aliasing and wrapping signed overflow, the code generation nsound
+# has always been built with.
 build:linux --copt=-fno-strict-aliasing
 build:linux --copt=-fwrapv
 
@@ -36,13 +37,13 @@ build:macos --copt=-fwrapv
 # libc++ bounds checks, the macOS version of _GLIBCXX_ASSERTIONS above.
 build:macos --copt=-D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE
 
-# OpenMP is off on macOS, as in the SCons build: Apple clang needs Homebrew's
+# OpenMP is off on macOS: Apple clang needs Homebrew's
 # libomp and its paths for -fopenmp.
 build:macos --//bazel:openmp=false
 
 # Windows --------------------------------------------------------------------
 
-# MSVC, with the same flags as the SCons build.  The toolchain's own
+# MSVC, warning level 3 with C++ exceptions.  The toolchain's own
 # /std:c++17 is turned off so cl doesn't warn about two /std flags (D9025).
 build:windows --features=-default_cpp_std
 build:windows --cxxopt=/std:c++20
@@ -73,6 +74,9 @@ build:asan --copt=-fno-omit-frame-pointer
 build:asan --copt=-g
 build:asan --strip=never
 build:asan --linkopt=-fsanitize=address
+# The Python tests load the module into a Python without the ASan runtime,
+# which ASan needs loaded first.
+test:asan --test_tag_filters=-python
 
 build:ubsan --copt=-fsanitize=undefined
 build:ubsan --copt=-fno-sanitize-recover=undefined
@@ -86,7 +90,9 @@ build:ubsan --linkopt=-fsanitize=undefined
 # `bazel coverage` always uses this config.
 coverage --config=coverage
 build:coverage --combined_report=lcov
-build:coverage --instrumentation_filter=^//src[/:]
+# The C++ library only: its Python module variant (//src/Nsound:nsound_python)
+# adds Plotter's matplotlib code, which has no tests yet, and the bindings.
+build:coverage --instrumentation_filter=^//src/Nsound:nsound$
 
 # Local overrides, not checked in.
 try-import %workspace%/user.bazelrc

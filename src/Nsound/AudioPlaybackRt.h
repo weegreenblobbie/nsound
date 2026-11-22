@@ -125,8 +125,6 @@ class AudioPlaybackRt
 
     AudioPlaybackRtDebug get_debug_info() const;
 
-    void _swig_shadow() {}
-
     private:
 
     // disable these

@@ -496,6 +496,9 @@ plot(boolean show_fc, boolean show_phase)
     {
         Plotter pylab;
 
+        // The frequency response's axes, above the phase response.
+        pylab.subplot(show_phase ? 2 : 1, 1, 1);
+
         pylab.axvline(frequency_,"color='red'");
 
         char title[128];

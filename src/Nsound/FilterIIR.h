@@ -115,12 +115,10 @@ class FilterIIR : public Filter
     FilterIIR &
     operator=(const FilterIIR & rhs);
 
-    #ifndef SWIG
     //! Prints the coeffents.
     friend
     std::ostream &
     operator<<(std::ostream & out,const FilterIIR & rhs);
-    #endif
 
     void
     reset() override;

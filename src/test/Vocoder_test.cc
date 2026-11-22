@@ -4,6 +4,12 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <Nsound/Nsound.h>
+
+#ifdef NSOUND_C_PYLAB
+    #include "plot_check.h"
+#endif
+
 #include <Nsound/Buffer.h>
 #include <Nsound/Sine.h>
 #include <Nsound/Vocoder.h>
@@ -124,7 +130,31 @@ TEST_CASE("Vocoder checks its arguments")
     CHECK_THROWS_AS(Vocoder(8000.0, 0.02, 3, 4000.0), Exception);
     CHECK_THROWS_AS(Vocoder(8000.0, 0.02, 8, 399.0), Exception);
 
+    #ifdef NSOUND_C_PYLAB
+        plot_check::pyplot().attr("close")("all");
+    #endif
+
     Vocoder v(8000.0, 0.02, 8, 4000.0, false, true);
 
     CHECK(v.getSampleRate() == 8000.0);
+
+    #ifdef NSOUND_C_PYLAB
+    {
+        using namespace plot_check;
+
+        // plot_filter_bank draws each band's frequency response in dB.
+        REQUIRE(n_figures() == 1);
+
+        auto axes = gca();
+
+        CHECK(lines(axes).size() == 8);
+        CHECK(axes.attr("get_xlim")().cast<std::vector<double>>()
+            == std::vector<double>({0.0, 4000.0}));
+        CHECK(axes.attr("get_ylim")().cast<std::vector<double>>()
+            == std::vector<double>({-40.0, 10.0}));
+        CHECK(text(axes.attr("yaxis").attr("label")) == "Filter Frequency Response (dB)");
+
+        pyplot().attr("close")("all");
+    }
+    #endif
 }

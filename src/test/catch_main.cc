@@ -9,6 +9,17 @@
 #include <cstdlib>
 #include <filesystem>
 
+//! LeakSanitizer's suppressions, under --config=asan: the Python that Plotter
+//! starts runs until the program ends, it and its packages keep their memory.
+extern "C"
+const char *
+__lsan_default_suppressions()
+{
+    return
+        "leak:libpython\n"
+        "leak:site-packages\n";
+}
+
 int main(int argc, char ** argv)
 {
     // Under `bazel test` the working directory is the read-only runfiles tree,

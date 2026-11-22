@@ -93,7 +93,6 @@ class FilterTone : public Filter
     float64 a_ = 0.0;
     float64 last_output_ = 0.0;
 
-    #ifndef SWIG
     //! A class to store calculated kernels.
     struct Kernel
     {
@@ -110,7 +109,6 @@ class FilterTone : public Filter
     typedef std::set<Kernel> KernelCache;
 
     KernelCache kernel_cache_;
-    #endif
 };
 
 }; // Nsound
