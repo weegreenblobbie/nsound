@@ -1,6 +1,5 @@
 include *
 recursive-include src *
-recursive-include external *
 global-exclude *.log
 global-exclude *.pyc
 global-exclude *.wav

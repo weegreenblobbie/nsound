@@ -27,8 +27,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         lcov \
         # memory and undefined-behaviour checking
         valgrind \
-        # nsound's optional audio backends (same as its GitHub Actions job)
-        portaudio19-dev libao-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Windows bind mounts show up with a different owner, which makes git refuse

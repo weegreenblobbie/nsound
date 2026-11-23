@@ -170,11 +170,9 @@ void operator>>(const Buffer & lhs, AudioPlayback & rhs);
 //! \code
 //! // C++
 //! Nsound::use("portaudio");
-//! Nsound::use("ao");
 //!
 //! // Python
 //! Nsound.use("portaudio");
-//! Nsound.use("ao");
 //! \endcode
 void use(const std::string & backend);
 void use(const AudioBackendType & type);

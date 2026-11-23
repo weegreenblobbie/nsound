@@ -118,7 +118,7 @@ class AudioBackendLibportaudio : public AudioBackend
         stream_(nullptr),
 //~        pos_(0),
         n_frames_per_buffer_(64),
-        driver_id_(0){};
+        driver_id_(-1){};
 
     AudioBackendLibportaudio & operator=(const AudioBackendLibportaudio & rhs)
     {return *this;};
@@ -134,7 +134,9 @@ class AudioBackendLibportaudio : public AudioBackend
 
     uint32 n_frames_per_buffer_;
 
-    uint32 driver_id_;
+    //! The portaudio host API whose default output device plays, -1 for
+    //! portaudio's default output device.
+    int32 driver_id_;
 
 };
 

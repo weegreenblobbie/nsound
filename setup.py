@@ -20,9 +20,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # Where the generated Nsound.h goes, before src on the include path.
 GENERATED_INCLUDE_DIR = os.path.join("build", "nsound_python_h")
 
-# The audio backends need their libraries, so the pip build leaves them out,
-# as Bazel does by default.
-BACKEND_SOURCES = ["AudioBackendLibao.cc", "AudioBackendLibportaudio.cc"]
+# The portaudio backend needs portaudio, which Bazel builds, so the pip build
+# leaves it out.
+BACKEND_SOURCES = ["AudioBackendLibportaudio.cc"]
 
 
 def read_version():
@@ -82,7 +82,6 @@ def write_nsound_h(version_a, version_b, version_c, version):
         "@NSOUND_RAW_U_INT_64@": "unsigned long long",
         "@NSOUND_RAW_FLOAT_64@": "double",
         "@NSOUND_PLATFORM_OS@": platform_os(),
-        "@NSOUND_LIBAO@": "#undef NSOUND_LIBAO // disabled",
         "@NSOUND_LIBPORTAUDIO@": "#undef NSOUND_LIBPORTAUDIO // disabled",
         "@NSOUND_OPENMP@": "#undef NSOUND_OPENMP // disabled",
         "@NSOUND_IN_PYTHON_MODULE@": "#define NSOUND_IN_PYTHON_MODULE 1",

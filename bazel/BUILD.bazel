@@ -4,21 +4,11 @@ load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 
 package(default_visibility = ["//visibility:public"])
 
-# Audio backend using libao, links -lao.
-bool_flag(
-    name = "libao",
-    build_setting_default = False,
-)
-
-config_setting(
-    name = "libao_enabled",
-    flag_values = {":libao": "True"},
-)
-
-# Audio backend using portaudio v19, links -lportaudio.
+# Audio playback with portaudio, which Bazel builds: ALSA on Linux,
+# CoreAudio on macOS, WMME on Windows.
 bool_flag(
     name = "portaudio",
-    build_setting_default = False,
+    build_setting_default = True,
 )
 
 config_setting(

@@ -94,6 +94,25 @@ TEST_CASE("DrumKickBass")
 
     CHECK(d.play().getLength() > 0);
     CHECK_FALSE(d.getInfo().empty());
+
+    SECTION("a kick dies away, peaking at 0.98")
+    {
+        Buffer kick = d.play(0.6, 120.0, 51.0)[0];
+
+        CHECK(std::fabs(kick.getAbs().getMax() - 0.98) < 1e-12);
+
+        uint32 n = kick.getLength();
+
+        auto rms = [&](uint32 start, uint32 length)
+        {
+            Buffer part = kick.subbuffer(start, length);
+            part *= part;
+            return std::sqrt(part.getMean());
+        };
+
+        // atan() saturates its start and lifts its tail, a tone stays level.
+        CHECK(rms(n - n / 10, n / 10) < 0.2 * rms(0, n / 4));
+    }
 }
 
 TEST_CASE("FluteSlide")

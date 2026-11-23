@@ -11,19 +11,10 @@ import sys
 
 # The coverage reached so far, rounded down to 0.1%. Raise it as tests are
 # added so it can only go up.
-MINIMUM_PERCENT = 96.0
+MINIMUM_PERCENT = 94.0
 
 # The library code that is measured.
 MEASURED_PREFIX = "src/Nsound/"
-
-# Code that can't run in CI because it needs a sound card or an optional
-# library, matched by path prefix.
-EXCLUDED_PREFIXES = (
-    "src/Nsound/AudioBackendLibao.",        # libao, --//bazel:libao
-    "src/Nsound/AudioBackendLibportaudio.", # portaudio, --//bazel:portaudio
-    "src/Nsound/AudioPlayback.",            # plays through an audio backend
-    "src/Nsound/AudioPlaybackRt.",          # real time playback, portaudio
-)
 
 
 def read_line_hits(report_path: str) -> dict[str, dict[int, int]]:
@@ -51,8 +42,8 @@ def read_line_hits(report_path: str) -> dict[str, dict[int, int]]:
 
 
 def is_measured(source: str) -> bool:
-    """True for src/Nsound files that are not excluded."""
-    return source.startswith(MEASURED_PREFIX) and not source.startswith(EXCLUDED_PREFIXES)
+    """True for src/Nsound files."""
+    return source.startswith(MEASURED_PREFIX)
 
 
 def main(argv: list[str]) -> int:

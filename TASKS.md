@@ -28,8 +28,9 @@ Switch to using pybind11 and verify plotting
 Support audio playback
 ----------------------
 
-[ ] How can we test audio playback in linux bazel test builds?
-[ ] Update the windows bazel build so AudioPlayback works, can it be tested with bazel test too?
+[x] How can we test audio playback in linux bazel test builds?
+[x] Update the windows bazel build so AudioPlayback works
+[ ] Can audio playback be tested with bazel test on Windows too?
 
 Publish to pypi
 ---------------

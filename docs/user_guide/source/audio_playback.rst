@@ -2,8 +2,8 @@
 Nsound Audio Playback
 *********************
 
-As of Nsound-0.8.1, playback through the soundcard is now supported on
-platforms that have libao or libportaudio.
+Nsound plays through the soundcard with portaudio, which the Bazel build
+includes on Linux, macOS and Windows.
 
 .. image:: /images/audioplayback_interface.*
     :height: 278px
@@ -59,7 +59,6 @@ the audio backend to use.
     The backend to use; currently recognized backends:
 
         1. "portaudio" or "libportaudio"
-        #. "ao" or "libao"
 
 The backend must be selected before initializing the AudioPlayback class::
 

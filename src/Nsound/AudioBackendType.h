@@ -37,7 +37,6 @@ namespace Nsound
     enum AudioBackendType
     {
         BACKEND_TYPE_NONE,
-        BACKEND_TYPE_LIBAO,
         BACKEND_TYPE_LIBPORTAUDIO,
     };
 };
