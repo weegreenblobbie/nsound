@@ -12,8 +12,10 @@
 #include "gold_check.h"
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
 
 #include <cstdint>
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -607,4 +609,134 @@ TEST_CASE("ID3v1Tag errors")
     {
         CHECK_THROWS_AS(tag.write("no_such_dir/test.wav"), Exception);
     }
+}
+
+//! Returns how many files this process has open, -1 where it can't be
+//! counted (Linux only).
+static
+int
+count_open_files()
+{
+    const std::filesystem::path fd_dir("/proc/self/fd");
+
+    if(!std::filesystem::exists(fd_dir)) return -1;
+
+    int count = 0;
+
+    for([[maybe_unused]] const auto & entry : std::filesystem::directory_iterator(fd_dir))
+    {
+        ++count;
+    }
+
+    return count;
+}
+
+TEST_CASE("Wavefile::read() checks every chunk against the file's size")
+{
+    using Catch::Matchers::ContainsSubstring;
+
+    // The 44 byte header Wavefile writes:
+    //   0 "RIFF", 8 "WAVE", 12 "fmt ", 16 its size, 36 "data", 40 its size.
+    AudioStream as(1000, 1);
+    as << Buffer::ones(10);
+
+    CHECK(Wavefile::write("test_chunks.wav", as, 16));
+
+    AudioStream read;
+
+    SECTION("a chunk that says it's about 4 GB")
+    {
+        // 0xfffffff8 is -8 as a 32 bit long, it seeked back to the chunk
+        // itself on Windows, forever.
+        patch_file("test_chunks.wav", 12, "junk");
+        patch_file("test_chunks.wav", 16, std::string({
+            static_cast<char>(0xf8), static_cast<char>(0xff),
+            static_cast<char>(0xff), static_cast<char>(0xff)}));
+
+        CHECK_THROWS_WITH(read << "test_chunks.wav", ContainsSubstring("goes past the end of the file"));
+    }
+
+    SECTION("a 'fmt ' chunk past the end of the file")
+    {
+        patch_file("test_chunks.wav", 16, std::string({0, 0, 0, 0x40}));
+
+        CHECK_THROWS_WITH(read << "test_chunks.wav", ContainsSubstring("goes past the end of the file"));
+    }
+
+    SECTION("a 'fmt ' chunk shorter than its 16 bytes of fields")
+    {
+        patch_file("test_chunks.wav", 16, std::string({14, 0, 0, 0}));
+
+        CHECK_THROWS_WITH(read << "test_chunks.wav", ContainsSubstring("shorter than 16"));
+    }
+
+    SECTION("a file shorter than the RIFF header")
+    {
+        std::ofstream("test_chunks.wav", std::ios::binary) << "RIFF";
+
+        CHECK_THROWS_WITH(read << "test_chunks.wav", ContainsSubstring("too short for a wave file"));
+    }
+}
+
+TEST_CASE("Wavefile and ID3v1Tag close the file when they throw")
+{
+    int before = count_open_files();
+
+    if(before < 0) SKIP("open files are counted on Linux only");
+
+    AudioStream as(1000, 1);
+    as << Buffer::ones(10);
+
+    AudioStream read;
+    Buffer buffer;
+    ID3v1Tag tag;
+
+    // No data.
+    CHECK(Wavefile::write("test_leak.wav", as, 16));
+    patch_file("test_leak.wav", 40, std::string(4, '\0'));
+    CHECK_THROWS_AS(read << "test_leak.wav", Exception);
+
+    // 0 channels.
+    CHECK(Wavefile::write("test_leak.wav", as, 16));
+    patch_file("test_leak.wav", 22, uint16_bytes(0));
+    CHECK_THROWS_AS(read << "test_leak.wav", Exception);
+
+    // An IEEE float sample size that isn't 32 or 64.
+    CHECK(Wavefile::write("test_leak.wav", as, 16));
+    patch_file("test_leak.wav", 20, uint16_bytes(0x0003));
+    CHECK_THROWS_AS(read << "test_leak.wav", Exception);
+    CHECK_THROWS_AS(buffer << "test_leak.wav", Exception);
+
+    // Not a wave file.
+    patch_file("test_leak.wav", 8, "AVI ");
+    CHECK_THROWS_AS(tag.read("test_leak.wav"), Exception);
+    CHECK_THROWS_AS(tag.write("test_leak.wav"), Exception);
+
+    CHECK(count_open_files() == before);
+}
+
+TEST_CASE("ID3v1Tag::write() to a file without a tag keeps the audio")
+{
+    AudioStream as(1000, 1);
+    as << Buffer({0.5, -0.25, 0.75, -0.5});
+
+    CHECK(Wavefile::write("test_tag_append.wav", as, 16));
+
+    // 2 bytes after the data: the scan for 'TAG' stopped short of the end
+    // and wrote the tag over the last 3 bytes of the audio.
+    std::ofstream("test_tag_append.wav", std::ios::binary | std::ios::app) << "xy";
+
+    ID3v1Tag tag;
+    tag.title = "a title";
+
+    CHECK(tag.write("test_tag_append.wav"));
+
+    AudioStream read;
+    read << "test_tag_append.wav";
+
+    check_close(read[0], Buffer({0.5, -0.25, 0.75, -0.5}), 1.0 / 32767.0);
+
+    ID3v1Tag tag_read("test_tag_append.wav");
+
+    CHECK(tag_read.title == "a title");
 }

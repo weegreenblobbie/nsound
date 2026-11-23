@@ -779,6 +779,30 @@ TEST_CASE("Buffer write(), read()")
 
         CHECK_THROWS_AS(read.read(data.data(), data.size()), Exception);
     }
+
+    // write()'s bytes: "buff", the uint32 sample count, the samples.
+    SECTION("read() throws when the bytes end before the samples")
+    {
+        std::string data = b.write();
+        data.resize(data.size() - 8);
+
+        Buffer read({7.0});
+
+        CHECK_THROWS_AS(read.read(data.data(), data.size()), Exception);
+
+        // Unchanged.
+        check_close(read, Buffer({7.0}), 0.0);
+    }
+
+    SECTION("read() of a forged sample count throws, it doesn't reserve 32 GB")
+    {
+        std::string data = b.write();
+        data.replace(4, 4, std::string(4, static_cast<char>(0xff)));
+
+        Buffer read;
+
+        CHECK_THROWS_AS(read.read(data.data(), data.size()), Exception);
+    }
 }
 
 TEST_CASE("Buffer speedUp()")

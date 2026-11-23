@@ -154,6 +154,54 @@ TEST_CASE("Plotter plot()")
     pylab.hide();
 }
 
+TEST_CASE("Plotter kwargs are parsed, never run")
+{
+    Plotter pylab;
+    pylab.figure();
+
+    Buffer y({1.0, 2.0, 3.0});
+
+    auto builtins = py::module_::import("builtins");
+
+    // Each would set builtins.nsound_ran if it were run.
+    const std::string ran = "__import__('builtins').setattr(__import__('builtins'), 'nsound_ran', 1)";
+
+    SECTION("a value that isn't a literal")
+    {
+        CHECK_THROWS_AS(pylab.plot(y, "", "linewidth=" + ran), py::error_already_set);
+    }
+
+    SECTION("code after the keyword arguments")
+    {
+        CHECK_THROWS_AS(pylab.plot(y, "", "linewidth=2) or " + ran + " or f("), py::error_already_set);
+    }
+
+    SECTION("a positional argument")
+    {
+        CHECK_THROWS_AS(pylab.plot(y, "", ran), py::error_already_set);
+    }
+
+    SECTION("**")
+    {
+        CHECK_THROWS_AS(pylab.plot(y, "", "**{'color': 'red'}"), py::error_already_set);
+    }
+
+    CHECK_FALSE(py::hasattr(builtins, "nsound_ran"));
+
+    SECTION("literals are passed on")
+    {
+        pylab.plot(y, "", "color='red', linewidth=2.5, label=\"it's\", dashes=(2, 1)");
+
+        py::object line = pyplot().attr("gca")().attr("get_lines")()[py::int_(0)];
+
+        CHECK(line.attr("get_color")().cast<std::string>() == "red");
+        CHECK(line.attr("get_linewidth")().cast<double>() == 2.5);
+        CHECK(line.attr("get_label")().cast<std::string>() == "it's");
+    }
+
+    pylab.hide();
+}
+
 TEST_CASE("Plotter axhline(), axvline(), text() and the labels")
 {
     Plotter pylab;
@@ -346,22 +394,6 @@ TEST_CASE("Plotter subplot()")
     }
 
     pylab.hide();
-}
-
-TEST_CASE("Plotter run_string()")
-{
-    Plotter pylab;
-
-    // In __main__, where pyplot is _pyplot_nsound_.
-    pylab.run_string("nsound_value = 6 * 7");
-    pylab.run_string("nsound_pyplot = _pyplot_nsound_");
-
-    auto main = py::module_::import("__main__");
-
-    CHECK(main.attr("nsound_value").cast<int>() == 42);
-    CHECK(py::object(main.attr("nsound_pyplot")).is(pyplot()));
-
-    CHECK_THROWS_AS(pylab.run_string("1 / 0"), py::error_already_set);
 }
 
 TEST_CASE("Plotter savefig() and show()")

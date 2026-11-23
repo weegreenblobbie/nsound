@@ -126,7 +126,7 @@ FilterLowPassMoogVcf::
 plot(boolean show_fc, boolean show_phase)
 {
     char title[128];
-    sprintf(title,
+    snprintf(title, sizeof(title),
         "Moog 24 dB Resonant Lowpass\n"
         "Resonance = %.3f, Cutoff = %0.1f Hz, sr = %0.1f Hz",
         resonance_,

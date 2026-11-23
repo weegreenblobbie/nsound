@@ -137,14 +137,8 @@ class AudioPlayback
 
     private:
 
-    AudioPlayback(const AudioPlayback & copy)
-        :
-        sample_rate_(copy.sample_rate_),
-        channels_(copy.channels_),
-        bits_per_sample_(copy.bits_per_sample_),
-        backend_(nullptr){};
-
-    AudioPlayback & operator=(const AudioPlayback & rhs){return *this;};
+    AudioPlayback(const AudioPlayback &) = delete;
+    AudioPlayback & operator=(const AudioPlayback &) = delete;
 
     // Members
 

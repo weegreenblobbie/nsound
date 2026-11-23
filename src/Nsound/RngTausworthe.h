@@ -60,6 +60,8 @@ class RngTausworthe : public RandomNumberGenerator
     float64
     get(const Nsound::float64 & min, const Nsound::float64 & max) override;
 
+    RngTausworthe(const RngTausworthe & copy) = default;
+
     //! assignment operator
     RngTausworthe &
     operator=(const RngTausworthe & rhs);

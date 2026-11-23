@@ -62,9 +62,9 @@ using std::endl;
 AudioBackend *
 allocate_backend(
     const AudioBackendType & type,
-    const uint32 sample_rate,
-    const uint32 channels,
-    const uint32 bits_per_sample)
+    [[maybe_unused]] const uint32 sample_rate,
+    [[maybe_unused]] const uint32 channels,
+    [[maybe_unused]] const uint32 bits_per_sample)
 {
     AudioBackend * backend = nullptr;
 
@@ -380,13 +380,11 @@ play_int(
 
     array.reserve(n_samples * n_channels);
 
-    uint32 k = 0;
     for(uint32 i = 0; i < n_samples; ++i)
     {
         for(uint32 j = 0; j < n_channels; ++j)
         {
             array.push_back(to_sample<T>(b[i], scale));
-            ++k;
         }
     }
 

@@ -245,7 +245,7 @@ FilterFlanger::
 plot(boolean show_fc, boolean show_phase)
 {
     char title[128];
-    sprintf(title,
+    snprintf(title, sizeof(title),
         "Flanger Frequency Response\n"
         "sr = %0.1f Hz, f = %0.1f Hz, delay = %0.3f ms",
         sample_rate_,

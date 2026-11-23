@@ -66,7 +66,7 @@ class FilterPhaser : public Filter
     filter(const float64 & x) override;
 
     float64
-    filter(const float64 & x, const float64 & ignored) override
+    filter(const float64 & x, const float64 & /* ignored */) override
     { return filter(x); };
 
     void

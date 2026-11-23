@@ -74,12 +74,12 @@ class FilterLeastSquaresFIR : public Filter
 
     // ! This filter type does not support dynamic frequency response.
     AudioStream
-    filter(const AudioStream & x, const float64 & frequency)
+    filter(const AudioStream & x, const float64 & /* frequency */)
     { return filter(x); };
 
     // ! This filter type does not support dynamic frequency response.
     AudioStream
-    filter(const AudioStream & x, const Buffer & frequencies)
+    filter(const AudioStream & x, const Buffer & /* frequencies */)
     { return filter(x); };
 
     Buffer
@@ -87,12 +87,12 @@ class FilterLeastSquaresFIR : public Filter
 
     // ! This filter type does not support dynamic frequency response.
     Buffer
-    filter(const Buffer & x, const float64 & frequency)
+    filter(const Buffer & x, const float64 & /* frequency */)
     { return filter(x); };
 
     // ! This filter type does not support dynamic frequency response.
     Buffer
-    filter(const Buffer & x, const Buffer & frequencies)
+    filter(const Buffer & x, const Buffer & /* frequencies */)
     { return filter(x); };
 
     float64
@@ -100,7 +100,7 @@ class FilterLeastSquaresFIR : public Filter
 
     // ! This filter type does not support dynamic frequency response.
     float64
-    filter(const float64 & x, const float64 & frequency_Hz) override
+    filter(const float64 & x, const float64 & /* frequency_Hz */) override
     { return filter(x); };
 
     ///////////////////////////////////////////////////////////////////////////////

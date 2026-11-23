@@ -66,7 +66,7 @@ filter(const AudioStream & x)
 
 AudioStream
 FilterBandPassVocoder::
-filter(const AudioStream & x, const Buffer & frequencies)
+filter(const AudioStream & x, const Buffer & /* frequencies */)
 {
     return Filter::filter(x);
 }
@@ -107,7 +107,7 @@ filter(const Buffer & x)
 
 Buffer
 FilterBandPassVocoder::
-filter(const Buffer & x, const Buffer & frequencies)
+filter(const Buffer & x, const Buffer & /* frequencies */)
 {
     return Filter::filter(x);
 }
@@ -151,7 +151,7 @@ filter(const float64 & x)
 
 float64
 FilterBandPassVocoder::
-filter(const float64 & x, const float64 & frequency)
+filter(const float64 & x, const float64 & /* frequency */)
 {
     return FilterBandPassVocoder::filter(x);
 }
@@ -172,7 +172,7 @@ FilterBandPassVocoder::
 plot(boolean show_fc, boolean show_phase)
 {
     char title[256];
-    sprintf(title,
+    snprintf(title, sizeof(title),
         "Band Pass IIR Frequency Response\n"
         "fl = %0.1f Hz, fh = %01f Hz, omega2 = %0.1f Hz, f_ = %0.1f Hz, att_ = %0.1f",
         frequency_low_,

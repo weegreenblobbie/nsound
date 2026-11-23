@@ -497,10 +497,10 @@ to_int16(float64 sample)
 int
 AudioPlaybackRt::
 _callback(
-    const void *                     input,
+    const void *                     /* input */,
     void *                           output,
     const uint32                     frames_per_buffer,
-    const PaStreamCallbackTimeInfo * time_info,
+    const PaStreamCallbackTimeInfo * /* time_info */,
     PaStreamCallbackFlags            status_flags)
 {
     if(frames_per_buffer != driver_.n_frames_per_buffer_) ++unknown_error_count_;

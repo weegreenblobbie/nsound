@@ -13,6 +13,13 @@ build:linux --cxxopt=-std=c++20
 build:linux --copt=-Wall
 build:linux --copt=-Wextra
 
+# Warnings are errors in Nsound's files, not the dependencies'.  The
+# dependencies' headers are -isystem, so their warnings aren't reported in
+# Nsound's files either, e.g. Python's pyconfig.h redefining _POSIX_C_SOURCE
+# on newer glibc.
+build:linux --per_file_copt=^src/.*@-Werror
+build:linux --features=external_include_paths
+
 # No strict aliasing and wrapping signed overflow, the code generation nsound
 # has always been built with.
 build:linux --copt=-fno-strict-aliasing
@@ -31,6 +38,8 @@ build:linux --repo_env=CC=gcc
 build:macos --cxxopt=-std=c++20
 build:macos --copt=-Wall
 build:macos --copt=-Wextra
+build:macos --per_file_copt=^src/.*@-Werror
+build:macos --features=external_include_paths
 build:macos --copt=-fno-strict-aliasing
 build:macos --copt=-fwrapv
 
@@ -50,6 +59,7 @@ build:windows --cxxopt=/std:c++20
 # Nsound's files only: portaudio turns its warnings off with /w, and cl warns
 # that /w overrides /W3 (D9025).
 build:windows --per_file_copt=^src/.*@/W3
+build:windows --per_file_copt=^src/.*@/WX
 build:windows --copt=/EHsc
 build:windows --copt=/D_CRT_SECURE_NO_WARNINGS
 

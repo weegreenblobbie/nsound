@@ -98,14 +98,14 @@ filter(const AudioStream & x)
 
 AudioStream
 FilterBandRejectIIR::
-filter(const AudioStream & x, const float64 & f)
+filter(const AudioStream & x, const float64 & /* f */)
 {
     return Filter::filter(x);
 }
 
 AudioStream
 FilterBandRejectIIR::
-filter(const AudioStream & x, const Buffer & frequencies)
+filter(const AudioStream & x, const Buffer & /* frequencies */)
 {
     return Filter::filter(x);
 }
@@ -145,14 +145,14 @@ filter(const Buffer & x)
 
 Buffer
 FilterBandRejectIIR::
-filter(const Buffer & x, const float64 & f)
+filter(const Buffer & x, const float64 & /* f */)
 {
     return Filter::filter(x);
 }
 
 Buffer
 FilterBandRejectIIR::
-filter(const Buffer & x, const Buffer & frequencies)
+filter(const Buffer & x, const Buffer & /* frequencies */)
 {
     return Filter::filter(x);
 }
@@ -206,7 +206,7 @@ filter(const float64 & x)
 
 float64
 FilterBandRejectIIR::
-filter(const float64 & x, const float64 & frequency)
+filter(const float64 & x, const float64 & /* frequency */)
 {
     return FilterBandRejectIIR::filter(x);
 }
@@ -227,7 +227,7 @@ FilterBandRejectIIR::
 plot(boolean show_fc, boolean show_phase)
 {
     char title[128];
-    sprintf(title,
+    snprintf(title, sizeof(title),
         "Band Reject IIR Frequency Response\n"
         "order = %d, fl = %0.1f Hz, fl = %0.1f Hz, sr = %0.1f Hz",
         low_->getKernelSize() - 1,

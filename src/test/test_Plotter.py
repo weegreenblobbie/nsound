@@ -65,3 +65,18 @@ class TestPlotter(unittest.TestCase):
         """Errors in the kwargs are raised as Python exceptions."""
         with self.assertRaises(SyntaxError):
             ns.Plotter().plot(ns.Buffer([1.0]), "", "linewidth=")
+
+    def test_kwargs_are_not_run(self):
+        """The kwargs values must be literals, other code raises, unrun."""
+        import builtins
+
+        code = "__import__('builtins').setattr(__import__('builtins'), 'nsound_ran', 1)"
+
+        with self.assertRaises(ValueError):
+            ns.Plotter().plot(ns.Buffer([1.0]), "", "linewidth=" + code)
+
+        with self.assertRaises(ValueError):
+            ns.Plotter().plot(ns.Buffer([1.0]), "", "linewidth=2) or " + code + " or f(")
+
+        self.assertFalse(hasattr(builtins, "nsound_ran"))
+        self.assertFalse(hasattr(ns.Plotter(), "run_string"))

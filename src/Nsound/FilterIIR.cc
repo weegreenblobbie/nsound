@@ -632,7 +632,7 @@ filter(const float64 & x)
 
 float64
 FilterIIR::
-filter(const float64 & x, const float64 & frequency)
+filter(const float64 & x, const float64 & /* frequency */)
 {
     return FilterIIR::filter(x);
 }
@@ -724,21 +724,21 @@ savePlot(
 
     char buffer[256];
 
-    sprintf(buffer, "Generation %06d", n);
+    snprintf(buffer, sizeof(buffer), "Generation %06d", n);
 
     pylab.title(std::string(buffer));
 
     pylab.xlim(0.0, faxis[fr_reference.getLength() - 1]);
     pylab.ylim(0.0, 1.1 * max);
 
-    sprintf(buffer, "Error = %5.2f", error);
+    snprintf(buffer, sizeof(buffer), "Error = %5.2f", error);
 
     pylab.text(
         faxis[static_cast<uint32>(faxis.getLength() * 0.66)],
         0.66,
         std::string(buffer));
 
-    sprintf(buffer, "generation_%06d.png", n);
+    snprintf(buffer, sizeof(buffer), "generation_%06d.png", n);
 
 //~    pylab.savefig(std::string(buffer));
 

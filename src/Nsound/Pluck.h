@@ -49,32 +49,32 @@ class Pluck : public Generator
     generate(const float64 & duration, const float64 & frequency) override;
 
     // These don't do anything yet.
-    float64 generate(const float64 & f) override {return 0.0;}
-    float64 generate2(const float64 & f, const float64 & p) override {return 0.0;}
+    float64 generate(const float64 & /* f */) override {return 0.0;}
+    float64 generate2(const float64 & /* f */, const float64 & /* p */) override {return 0.0;}
 
     Buffer generate2(
-        const float64 & d,
-        const float64 & f,
-        const float64 & p) override {return Buffer();}
+        const float64 & /* d */,
+        const float64 & /* f */,
+        const float64 & /* p */) override {return Buffer();}
 
     Buffer generate(
-        const float64 & d,
-        const Buffer &  f) override {return Buffer();}
+        const float64 & /* d */,
+        const Buffer &  /* f */) override {return Buffer();}
 
     Buffer generate2(
-        const float64 & d,
-        const float64 & f,
-        const Buffer &  p) override {return Buffer();}
+        const float64 & /* d */,
+        const float64 & /* f */,
+        const Buffer &  /* p */) override {return Buffer();}
 
     Buffer generate2(
-        const float64 & d,
-        const Buffer &  f,
-        const float64 & p) override {return Buffer();}
+        const float64 & /* d */,
+        const Buffer &  /* f */,
+        const float64 & /* p */) override {return Buffer();}
 
     Buffer generate2(
-        const float64 & d,
-        const Buffer &  f,
-        const Buffer &  p) override {return Buffer();}
+        const float64 & /* d */,
+        const Buffer &  /* f */,
+        const Buffer &  /* p */) override {return Buffer();}
 
     protected:
 

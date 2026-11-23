@@ -131,7 +131,7 @@ FilterTone::
 plot(boolean show_fc, boolean show_phase)
 {
     char title[128];
-    sprintf(title,
+    snprintf(title, sizeof(title),
         "Tone Filter Frequency Response\n"
         "order = %d, fc = %0.1f Hz, sr = %0.1f Hz",
         2, hp_frequency_, sample_rate_);

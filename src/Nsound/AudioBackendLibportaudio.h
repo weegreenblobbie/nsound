@@ -107,21 +107,8 @@ class AudioBackendLibportaudio : public AudioBackend
 
     private:
 
-    // disable copy constructor and op=
-
-    AudioBackendLibportaudio(const AudioBackendLibportaudio & copy)
-        :
-        AudioBackend(),
-        options_(),
-        error_buffer_(""),
-        out_params_(nullptr),
-        stream_(nullptr),
-//~        pos_(0),
-        n_frames_per_buffer_(64),
-        driver_id_(-1){};
-
-    AudioBackendLibportaudio & operator=(const AudioBackendLibportaudio & rhs)
-    {return *this;};
+    AudioBackendLibportaudio(const AudioBackendLibportaudio &) = delete;
+    AudioBackendLibportaudio & operator=(const AudioBackendLibportaudio &) = delete;
 
 
     std::vector< std::string > options_;

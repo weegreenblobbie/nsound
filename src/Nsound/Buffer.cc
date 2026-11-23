@@ -1907,20 +1907,30 @@ read(std::istream & in)
 
     in & id[0] & id[1] & id[2] & id[3] & size;
 
-    if(id[0] != 'b' || id[1] != 'u' || id[2] != 'f' || id[3] != 'f')
+    if(!in || id[0] != 'b' || id[1] != 'u' || id[2] != 'f' || id[3] != 'f')
     {
         M_THROW("Did not find any Nsound Buffer data in input stream!");
     }
 
-    data_.clear();
-    data_.reserve(size);
+    // The size can't be trusted: the samples are kept as they're read, a
+    // forged size can't reserve gigabytes, and this Buffer only changes when
+    // they're all there.
+    FloatVector data;
 
     for(uint32 i = 0; i < size; ++i)
     {
         float64 d;
-        in & d;
-        data_.push_back(d);
+
+        if(!(in & d))
+        {
+            M_THROW("Buffer::read(): the input ends after " << i
+                << " of its " << size << " samples");
+        }
+
+        data.push_back(d);
     }
+
+    data_.swap(data);
 
     return in;
 }

@@ -57,7 +57,7 @@ class FilterMovingAverage : public Filter
 
     //////////////////////////////////////////////////////////////////////////
     AudioStream
-    filter(const AudioStream & x, const Buffer & frequencies)
+    filter(const AudioStream & x, const Buffer & /* frequencies */)
     { return filter(x); };
 
     //////////////////////////////////////////////////////////////////////////
@@ -66,7 +66,7 @@ class FilterMovingAverage : public Filter
 
     //////////////////////////////////////////////////////////////////////////
     Buffer
-    filter(const Buffer & x, const Buffer & frequencies)
+    filter(const Buffer & x, const Buffer & /* frequencies */)
     { return filter(x); };
 
     //////////////////////////////////////////////////////////////////////////
@@ -75,7 +75,7 @@ class FilterMovingAverage : public Filter
 
     //////////////////////////////////////////////////////////////////////////
     float64
-    filter(const float64 & x, const float64 & frequency) override
+    filter(const float64 & x, const float64 & /* frequency */) override
     { return filter(x); };
 
     //////////////////////////////////////////////////////////////////////////

@@ -125,7 +125,7 @@ FilterHighPassIIR::
 plot(boolean show_fc, boolean show_phase)
 {
     char title[128];
-    sprintf(title,
+    snprintf(title, sizeof(title),
         "High Pass IIR Frequency Response\n"
         "order = %d, fc = %0.1f Hz, sr = %0.1f Hz",
         n_poles_ - 1, frequency_, sample_rate_);

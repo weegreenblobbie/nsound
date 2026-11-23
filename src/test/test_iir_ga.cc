@@ -86,7 +86,7 @@ int main(int argc, char ** argv)
     float64 error = evolution[n_generations - 1];
 
     char buffer[1024];
-    sprintf(buffer, "%5.2f RMS error in %d generations",
+    snprintf(buffer, sizeof(buffer), "%5.2f RMS error in %d generations",
         error,
         n_generations);
 
@@ -103,13 +103,13 @@ int main(int argc, char ** argv)
 
     pylab.ylim(0.0, ref_response.getMax() * 1.10);
 
-    sprintf(buffer, "Generation %06d", n_generations);
+    snprintf(buffer, sizeof(buffer), "Generation %06d", n_generations);
 
     pylab.title(std::string(buffer));
 
     pylab.xlim(0.0, faxis[fr.getLength() - 1]);
 
-    sprintf(buffer, "Error = %.3f RMS", error);
+    snprintf(buffer, sizeof(buffer), "Error = %.3f RMS", error);
 
     pylab.text(
         faxis[static_cast<uint32>(faxis.getLength() * 0.5)],

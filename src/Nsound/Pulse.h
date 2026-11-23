@@ -106,44 +106,44 @@ class Pulse : public Generator
     //! This does nothing for now.
     Buffer
     generate(
-        const float64 & duration,
-        const float64 & frequency,
-        const float64 & pulse_width){return Buffer();};
+        const float64 & /* duration */,
+        const float64 & /* frequency */,
+        const float64 & /* pulse_width */){return Buffer();};
 
     //! This does nothing for now.
     Buffer
     generate(
-        const float64 & duration,
-        const float64 & frequency,
-        const Buffer &  pulse_widths){return Buffer();};
+        const float64 & /* duration */,
+        const float64 & /* frequency */,
+        const Buffer &  /* pulse_widths */){return Buffer();};
 
     //! This does nothing for now.
     Buffer
     generate(
-        const float64 & duration,
-        const Buffer &  frequencies,
-        const Buffer &  pulse_widths){return Buffer();};
+        const float64 & /* duration */,
+        const Buffer &  /* frequencies */,
+        const Buffer &  /* pulse_widths */){return Buffer();};
 
     //! This does nothing for now.
     Buffer
     generate2(
-        const float64 & duration,
-        const float64 & frequency,
-        const Buffer &  pulse_width) override {return Buffer();};
+        const float64 & /* duration */,
+        const float64 & /* frequency */,
+        const Buffer &  /* pulse_width */) override {return Buffer();};
 
     //! This does nothing for now.
     Buffer
     generate2(
-        const float64 & duration,
-        const Buffer &  frequency,
-        const float64 & pulse_width) override {return Buffer();};
+        const float64 & /* duration */,
+        const Buffer &  /* frequency */,
+        const float64 & /* pulse_width */) override {return Buffer();};
 
     //! This does nothing for now.
     Buffer
     generate2(
-        const float64 & duration,
-        const Buffer &  frequency,
-        const Buffer &  pulse_width) override {return Buffer();};
+        const float64 & /* duration */,
+        const Buffer &  /* frequency */,
+        const Buffer &  /* pulse_width */) override {return Buffer();};
 
     void reset() override;
 

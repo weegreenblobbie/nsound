@@ -137,7 +137,7 @@ filter(const float64 & x)
 
 float64
 FilterBandPassFIR::
-filter(const float64 & x, const float64 & frequency)
+filter(const float64 & x, const float64 & /* frequency */)
 {
     return low_->filter(high_->filter(x));
 }
@@ -157,7 +157,7 @@ FilterBandPassFIR::
 plot(boolean show_fc,boolean show_phase)
 {
     char title[128];
-    sprintf(title,
+    snprintf(title, sizeof(title),
         "Band Pass FIR Frequency Response\n"
         "order = %d, fl = %0.1f Hz, fl = %0.1f Hz, sr = %0.1f Hz",
         low_->getKernelSize() - 1,

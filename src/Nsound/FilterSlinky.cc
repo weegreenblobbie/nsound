@@ -127,7 +127,7 @@ filter(const AudioStream & x)
 
 AudioStream
 FilterSlinky::
-filter(const AudioStream & x, const Buffer & frequencies)
+filter(const AudioStream & x, const Buffer & /* frequencies */)
 {
     return FilterSlinky::filter(x);
 }
@@ -141,7 +141,7 @@ filter(const Buffer & x)
 
 Buffer
 FilterSlinky::
-filter(const Buffer & x, const Buffer & frequencies)
+filter(const Buffer & x, const Buffer & /* frequencies */)
 {
     return FilterSlinky::filter(x);
 }
@@ -177,7 +177,7 @@ filter(const float64 & x)
 
 float64
 FilterSlinky::
-filter(const float64 & x, const float64 & frequency)
+filter(const float64 & x, const float64 & /* frequency */)
 {
     return FilterSlinky::filter(x);
 }
