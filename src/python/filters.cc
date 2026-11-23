@@ -1110,7 +1110,7 @@ bind_filters(py::module_ & m)
             py::arg("sample_rate"),
             py::arg("frequency"),
             py::arg("resonance") = 0.707106781187,
-            py::arg("boost_dB") = 0.0)
+            py::arg("gain") = 1.0)
         .def("filter",
             py::overload_cast<const AudioStream &>(&FilterParametricEqualizer::filter),
             py::arg("x"))
@@ -1128,7 +1128,7 @@ bind_filters(py::module_ & m)
             py::arg("x"),
             py::arg("frequencies"),
             py::arg("resonance"),
-            py::arg("boost_dB"))
+            py::arg("gain"))
         .def("filter",
             py::overload_cast<const Buffer &>(&FilterParametricEqualizer::filter),
             py::arg("x"))
@@ -1146,7 +1146,7 @@ bind_filters(py::module_ & m)
             py::arg("x"),
             py::arg("frequencies"),
             py::arg("resonance"),
-            py::arg("boost_dB"))
+            py::arg("gain"))
         .def("filter",
             py::overload_cast<const float64 &>(&FilterParametricEqualizer::filter),
             py::arg("x"))
@@ -1164,12 +1164,12 @@ bind_filters(py::module_ & m)
             py::arg("x"),
             py::arg("frequency"),
             py::arg("resonance"),
-            py::arg("boost_dB"))
+            py::arg("gain"))
         .def("makeKernel",
             &FilterParametricEqualizer::makeKernel,
             py::arg("frequency"),
             py::arg("resonance"),
-            py::arg("boost_dB"))
+            py::arg("gain"))
         .def("plot",
             &FilterParametricEqualizer::plot,
             py::arg("show_fc") = true,

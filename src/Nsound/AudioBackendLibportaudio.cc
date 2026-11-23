@@ -88,9 +88,8 @@ AudioBackendLibportaudio(
     stream_(nullptr),
 //~    pos_(0),
     n_frames_per_buffer_(64),
-    driver_id_(0)
+    driver_id_(-1)
 {
-    initialize();
 };
 
 //-----------------------------------------------------------------------------
@@ -171,7 +170,7 @@ getInfo()
 
         api_info = Pa_GetHostApiInfo(info->hostApi);
 
-        if(info == nullptr)
+        if(api_info == nullptr)
         {
             M_THROW("Nsound::AudioBackendLibportaudio::getInfo():"
                 << ": Pa_GetHostApiInfo() failed\n");
@@ -241,7 +240,14 @@ initialize()
         }
 
         // Get the default ouput device
-        out_params_->device = Pa_GetDefaultOutputDevice();
+        if(driver_id_ < 0)
+        {
+            out_params_->device = Pa_GetDefaultOutputDevice();
+        }
+        else
+        {
+            out_params_->device = Pa_GetHostApiInfo(driver_id_)->defaultOutputDevice;
+        }
 
         if(out_params_->device == paNoDevice)
         {
@@ -482,10 +488,11 @@ play(void * data, uint32 n_bytes)
         uint32 bytes_per_sample = bits / 8;
         uint32 n_samples = n_bytes / bytes_per_sample / n_channels;
 
+        // Whole buffers, then the frames left over.
         uint32 i = 0;
         for(
             i = 0;
-            i < n_samples - n_frames_per_buffer_;
+            i + n_frames_per_buffer_ <= n_samples;
             i += n_frames_per_buffer_)
         {
             ecode = write_stream(
@@ -522,7 +529,7 @@ play(void * data, uint32 n_bytes)
         ecode = write_stream(
             stream_,
             data,
-            i,
+            i * n_channels,
             n_samples - i,
             out_params_->sampleFormat);
 
@@ -605,7 +612,7 @@ void
 AudioBackendLibportaudio::
 scanDevices(AudioPlayback & pb, const AudioStream & test_clip)
 {
-    uint32 orig_driver_id = driver_id_;
+    int32 orig_driver_id = driver_id_;
 
     uint32 n_host_apis = Pa_GetHostApiCount();
 
@@ -696,11 +703,14 @@ setOption(const std::string & key, const std::string & value)
         {
             std::string driver_name = lower(value);
 
-            uint32 n_host_apis = Pa_GetHostApiCount();
+            // The host APIs are known once portaudio is initialized.
+            Pa_Initialize();
+
+            int32 n_host_apis = Pa_GetHostApiCount();
 
             bool found_driver = false;
 
-            for(uint32 i = 0; i < n_host_apis; ++i)
+            for(int32 i = 0; i < n_host_apis; ++i)
             {
                 const PaHostApiInfo * info = Pa_GetHostApiInfo(i);
 
@@ -716,12 +726,14 @@ setOption(const std::string & key, const std::string & value)
                 }
             }
 
+            Pa_Terminate();
+
             if(!found_driver)
             {
                 state_ = BACKEND_ERROR;
                 M_THROW("Nsound::AudioBackendLibportaudio::setOption():"
                     << ": failed to select driver '"
-                    << key
+                    << value
                     << "'\n");
                 return;
             }

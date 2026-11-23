@@ -52,7 +52,7 @@ class Buffer;
 //!
 //! f   =   Frequency in Hz
 //! sr  =   Sample Rate in samples per second
-//! V   =   10^(boost_dB / 20), the gain (1.0 = no boost, < 1.0 = cut signal, > 1.0 boost signal)
+//! V   =   gain, a linear scale (1.0 = no change, < 1.0 = cut signal, > 1.0 boost signal)
 //! Q   =   Resonance or Q of the filter, sqrt(1/2) == no resonance
 //!
 //! omega = 2*pi*f/sr
@@ -107,13 +107,13 @@ class FilterParametricEqualizer : public Filter
         HIGH_SHELF
     };
 
-    //! boost is in dB
+    //! gain is V, a linear scale, 1.0 passes the signal
     FilterParametricEqualizer(
         const Type & type,
         const float64 & sample_rate,
         const float64 & frequency,
         const float64 & resonance = 0.707106781187,
-        const float64 & boost_dB = 0.0);
+        const float64 & gain = 1.0);
 
     AudioStream
     filter(const AudioStream & x);
@@ -127,13 +127,13 @@ class FilterParametricEqualizer : public Filter
         const Buffer & frequencies,
         const Buffer & resonance);
 
-    //! boost is in dB
+    //! gain is V, a linear scale, 1.0 passes the signal
     AudioStream
     filter(
         const AudioStream & x,
         const Buffer & frequencies,
         const Buffer & resonance,
-        const Buffer & boost_dB);
+        const Buffer & gain);
 
     Buffer
     filter(const Buffer & x);
@@ -147,13 +147,13 @@ class FilterParametricEqualizer : public Filter
         const Buffer & frequencies,
         const Buffer & resonance);
 
-    //! boost is in dB
+    //! gain is V, a linear scale, 1.0 passes the signal
     Buffer
     filter(
         const Buffer & x,
         const Buffer & frequencies,
         const Buffer & resonance,
-        const Buffer & boost_dB);
+        const Buffer & gain);
 
     float64
     filter(const float64 & x) override;
@@ -161,26 +161,26 @@ class FilterParametricEqualizer : public Filter
     float64
     filter(const float64 & x, const float64 & frequency) override;
 
-    //! boost is in dB
+    //! gain is V, a linear scale, 1.0 passes the signal
     float64
     filter(
         const float64 & x,
         const float64 & frequency,
         const float64 & resonance);
 
-    //! boost is in dB
+    //! gain is V, a linear scale, 1.0 passes the signal
     float64
     filter(
         const float64 & x,
         const float64 & frequency,
         const float64 & resonance,
-        const float64 & boost_dB);
+        const float64 & gain);
 
     void
     makeKernel(
         const float64 & frequency,
         const float64 & resonance,
-        const float64 & boost_dB);
+        const float64 & gain);
 
     void
     plot(
@@ -195,7 +195,7 @@ class FilterParametricEqualizer : public Filter
     Type    type_;
     float64 frequency_;
     float64 resonance_;
-    float64 boost_;
+    float64 gain_;
 
     std::vector<float64> a_;
     std::vector<float64> b_;

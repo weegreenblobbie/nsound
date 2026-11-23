@@ -65,9 +65,6 @@
 // Define if we have lib portaudio available
 @NSOUND_LIBPORTAUDIO@
 
-// Define if we have lib ao available
-@NSOUND_LIBAO@
-
 // Define if Plotter plots with matplotlib
 @NSOUND_C_PYLAB@
 

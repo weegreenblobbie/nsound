@@ -22,6 +22,17 @@ cc_library(
     ],
 )
 
+# Plays into a file instead of a sound card.
+cc_library(
+    name = "playback_capture",
+    testonly = True,
+    hdrs = ["playback_capture.h"],
+    deps = [
+        "//src/Nsound:nsound",
+        "@catch2//:catch2",
+    ],
+)
+
 # Checks what Plotter drew, by asking matplotlib.
 cc_library(
     name = "plot_check",
@@ -52,12 +63,15 @@ cc_library(
         name = name + "_test",
         srcs = [name + "_test.cc"],
         size = "small",
-        data = glob(["gold/**"]),
+        # The playback tests all skip where playback can't be captured.
+        args = ["--allow-running-no-tests"] if name.startswith("AudioPlayback") else [],
+        data = glob(["gold/**"]) + ["alsa_capture.conf"],
         # matplotlib draws into images, it opens no windows.
         env = {"MPLBACKEND": "Agg"},
         deps = [
             ":filter_signals",
             ":gold_check",
+            ":playback_capture",
             ":plot_check",
             ":test_main",
             "//src/Nsound:nsound",
@@ -65,6 +79,8 @@ cc_library(
         ],
     )
     for name in [
+        "AudioPlayback",
+        "AudioPlaybackRt",
         "AudioStream",
         "CircularBuffer",
         "Buffer",
@@ -157,7 +173,7 @@ cc_library(
         ],
         # src/test is on the path, the test loads as a top level module.
         args = [test[:-len(".py")]],
-        data = glob(["gold/*.wav"]),
+        data = glob(["gold/*.wav"]) + ["alsa_capture.conf"],
         env = {"MPLBACKEND": "Agg"},
         imports = ["."],
         main = "unittest_main.py",

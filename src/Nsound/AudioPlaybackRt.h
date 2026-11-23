@@ -46,6 +46,9 @@
 #endif
 
 #include <atomic>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace Nsound
 {
@@ -90,6 +93,14 @@ class AudioPlaybackRt
 
     static void use_jack(bool flag) { use_jack_ = flag; }
 
+    //! Plays through the portaudio host API with this name, e.g. "Windows
+    //! WASAPI", any case, see getHostApis(); "" is portaudio's default.  It
+    //! applies to the AudioPlaybackRt made after it.
+    static void use_host_api(const std::string & name) { host_api_name_ = name; }
+
+    //! Returns the names of the portaudio host APIs compiled in.
+    static std::vector<std::string> getHostApis();
+
     AudioPlaybackRt(
         float64 sample_rate     = 44100.0,
         uint32 channels         = 1,
@@ -128,8 +139,8 @@ class AudioPlaybackRt
     private:
 
     // disable these
-    AudioPlaybackRt(const AudioPlaybackRt & copy){}
-    AudioPlaybackRt & operator=(const AudioPlaybackRt & rhs){return *this;}
+    AudioPlaybackRt(const AudioPlaybackRt &) = delete;
+    AudioPlaybackRt & operator=(const AudioPlaybackRt &) = delete;
 
     int
     _callback(
@@ -151,8 +162,17 @@ class AudioPlaybackRt
 
     void _start();
 
+    //! Waits until the buffer play() writes to next isn't waiting to be
+    //! played: when every buffer is, it starts playing and waits for one.
+    void _wait_for_free_buffer();
+
+    //! Plays what play() wrote and waits for it: the last buffer is filled
+    //! with silence, playing starts if it hadn't, until the buffers are
+    //! played or twice their time.
+    void _play_written();
+
     typedef std::vector< int16 > Int16Vector;
-    typedef std::vector< Int16Vector * > Pool;
+    typedef std::vector< Int16Vector > Pool;
 
     //-------------------------------------------------------------------------
     // Data members
@@ -172,7 +192,7 @@ class AudioPlaybackRt
 
     std::vector<uint32> n_history_;
 
-    Sine * sine_; // used to generate noise or tones on buffer underrun
+    std::unique_ptr<Sine> sine_; // used to generate noise or tones on buffer underrun
 
     Pool pool_;
     uint32 pool_size_;
@@ -191,13 +211,13 @@ class AudioPlaybackRt
     {
         Driver()
             :
-            out_params_(nullptr),
+            out_params_(),
             stream_(nullptr),
             n_frames_per_buffer_(64),
             n_samples_per_buffer_(64),
             driver_id_(0){}
 
-        PaStreamParameters * out_params_;
+        std::unique_ptr<PaStreamParameters> out_params_;
         PaStream * stream_;
 
         uint32 n_frames_per_buffer_;
@@ -213,6 +233,7 @@ class AudioPlaybackRt
     float64 actual_latency_sec_;
 
     static bool use_jack_;
+    static std::string host_api_name_;
 
 }; // AudioPlaybackRt
 

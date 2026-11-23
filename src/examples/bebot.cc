@@ -18,6 +18,7 @@ using namespace Nsound;
 int
 main(void)
 {
+    std::cerr << "rendering audio ..." << std::endl;
     run_from_examples_dir();
 
     float64 sr = 44100.0;
@@ -124,6 +125,8 @@ main(void)
     aout *= 0.666;
 
     aout >> "bebot.wav";
+
+    std::cerr << "wrote bebot.wav\nplaying audio ..." << std::endl;
 
     AudioPlaybackRt pb(sr, 1, 3, 0.05);
 

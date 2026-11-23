@@ -44,9 +44,6 @@ NSOUND_H_SUBSTITUTIONS = {
     "@platforms//os:windows": {"@NSOUND_PLATFORM_OS@": "NSOUND_PLATFORM_OS_WINDOWS"},
     "//conditions:default": {"@NSOUND_PLATFORM_OS@": "NSOUND_PLATFORM_OS_LINUX"},
 }) | select({
-    "//bazel:libao_enabled": {"@NSOUND_LIBAO@": "#define NSOUND_LIBAO 1"},
-    "//conditions:default": {"@NSOUND_LIBAO@": "#undef NSOUND_LIBAO // disabled"},
-}) | select({
     "//bazel:portaudio_enabled": {"@NSOUND_LIBPORTAUDIO@": "#define NSOUND_LIBPORTAUDIO 1"},
     "//conditions:default": {"@NSOUND_LIBPORTAUDIO@": "#undef NSOUND_LIBPORTAUDIO // disabled"},
 }) | select({
@@ -79,17 +76,12 @@ expand_template(
 
 # Sources compiled only when their feature flag is on.  The CUDA sources
 # (*.cu) are not built by Bazel.
-LIBAO_SRCS = ["AudioBackendLibao.cc"]
-
 PORTAUDIO_SRCS = ["AudioBackendLibportaudio.cc"]
 
 NSOUND_SRCS = glob(
     ["*.cc", "*.cpp"],
-    exclude = LIBAO_SRCS + PORTAUDIO_SRCS,
+    exclude = PORTAUDIO_SRCS,
 ) + select({
-    "//bazel:libao_enabled": LIBAO_SRCS,
-    "//conditions:default": [],
-}) + select({
     "//bazel:portaudio_enabled": PORTAUDIO_SRCS,
     "//conditions:default": [],
 })
@@ -107,14 +99,13 @@ NSOUND_COPTS = select({
 })
 
 NSOUND_LINKOPTS = select({
-    "//bazel:libao_enabled": ["-lao"],
-    "//conditions:default": [],
-}) + select({
-    "//bazel:portaudio_enabled": ["-lportaudio"],
-    "//conditions:default": [],
-}) + select({
     "//bazel:openmp_enabled_windows": [],
     "//bazel:openmp_enabled": ["-fopenmp"],
+    "//conditions:default": [],
+})
+
+NSOUND_DEPS = select({
+    "//bazel:portaudio_enabled": ["@portaudio"],
     "//conditions:default": [],
 })
 
@@ -150,7 +141,7 @@ cc_library(
     }),
     strip_include_prefix = "/src",
     visibility = ["//visibility:public"],
-    deps = select({
+    deps = NSOUND_DEPS + select({
         "//bazel:c_pylab_enabled": [
             ":embedded_python",
             "@pybind11",
@@ -178,7 +169,7 @@ cc_library(
     linkopts = NSOUND_LINKOPTS,
     strip_include_prefix = "/src",
     visibility = ["//src/python:__pkg__"],
-    deps = [
+    deps = NSOUND_DEPS + [
         ":nsound_python_header",
         "@pybind11",
     ],

@@ -9,6 +9,7 @@ load("@rules_cc//cc:defs.bzl", "cc_binary")
         deps = ["//src/Nsound:nsound"],
     )
     for name in [
+        "ns_playback",
         "ns_readwaveheader",
         "ns_vocoder",
     ]

@@ -54,7 +54,6 @@ bind_constants(py::module_ & m)
 
     py::native_enum<AudioBackendType>(m, "AudioBackendType", "enum.IntEnum")
         .value("BACKEND_TYPE_NONE", BACKEND_TYPE_NONE)
-        .value("BACKEND_TYPE_LIBAO", BACKEND_TYPE_LIBAO)
         .value("BACKEND_TYPE_LIBPORTAUDIO", BACKEND_TYPE_LIBPORTAUDIO)
         .export_values()
         .finalize();
@@ -88,10 +87,6 @@ bind_constants(py::module_ & m)
 
     #ifdef NSOUND_IN_PYTHON_MODULE
         m.attr("NSOUND_IN_PYTHON_MODULE") = 1;
-    #endif
-
-    #ifdef NSOUND_LIBAO
-        m.attr("NSOUND_LIBAO") = 1;
     #endif
 
     #ifdef NSOUND_LIBPORTAUDIO

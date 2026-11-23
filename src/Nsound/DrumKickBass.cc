@@ -109,14 +109,23 @@ play(
 
     y = f1.filter(signal, filter_freqs);
 
+    // A mild saturation: it rounds the loudest peaks by about 20% and keeps
+    // the kick's decay within 8% of the sound before it saturated every
+    // sample, when it was atan(20 x) on one sample only.
     for(uint32 i = 0; i < y.getLength(); ++i)
     {
-        y[0][1] = std::atan(y[0][i] * 20.0);
+        y[0][i] = std::atan(y[0][i] * 2.0);
     }
 
     y = f2.filter(y, signal_freqs * 3.0);
 
-    y = f3.filter(y) * 0.56;
+    y = f3.filter(y);
+
+    // The atan() saturation and the shelves' boosts take the kick far past
+    // full scale, bring its peak back to 0.98.
+    float64 peak = y[0].getAbs().getMax();
+
+    if(peak > 0.0) y *= 0.98 / peak;
 
     return y;
 }

@@ -68,18 +68,16 @@ TEST_CASE("FilterParametricEqualizer")
     }
 }
 
-TEST_CASE("FilterParametricEqualizer boosts in dB")
+TEST_CASE("FilterParametricEqualizer gain is a linear scale")
 {
     // 8000 / 8192 Hz bins, so 1000 Hz is bin 1024.
-    auto response = [](FilterParametricEqualizer::Type type, float64 boost_dB)
+    auto response = [](FilterParametricEqualizer::Type type, float64 gain)
     {
-        FilterParametricEqualizer f(type, 8000.0, 1000.0, 0.707106781187, boost_dB);
+        FilterParametricEqualizer f(type, 8000.0, 1000.0, 0.707106781187, gain);
         return f.getFrequencyResponse(8192);
     };
 
-    float64 gain_6dB = std::pow(10.0, 6.0 / 20.0);
-
-    SECTION("0 dB, the default, passes everything")
+    SECTION("1.0, the default, passes everything")
     {
         for(auto type : {
             FilterParametricEqualizer::PEAKING,
@@ -97,23 +95,31 @@ TEST_CASE("FilterParametricEqualizer boosts in dB")
 
     SECTION("peaking boosts its center")
     {
-        Buffer h = response(FilterParametricEqualizer::PEAKING, 6.0);
+        Buffer h = response(FilterParametricEqualizer::PEAKING, 2.0);
 
-        CHECK(std::fabs(h[1024] - gain_6dB) < 1e-3);
+        CHECK(std::fabs(h[1024] - 2.0) < 1e-3);
         CHECK(std::fabs(h[1] - 1.0) < 1e-3);
         CHECK(std::fabs(h[h.getLength() - 2] - 1.0) < 1e-3);
     }
 
     SECTION("low shelf boosts DC, high shelf Nyquist")
     {
-        Buffer low = response(FilterParametricEqualizer::LOW_SHELF, 6.0);
-        Buffer high = response(FilterParametricEqualizer::HIGH_SHELF, 6.0);
+        Buffer low = response(FilterParametricEqualizer::LOW_SHELF, 2.0);
+        Buffer high = response(FilterParametricEqualizer::HIGH_SHELF, 2.0);
 
-        CHECK(std::fabs(low[1] - gain_6dB) < 1e-3);
+        CHECK(std::fabs(low[1] - 2.0) < 1e-3);
         CHECK(std::fabs(low[low.getLength() - 2] - 1.0) < 1e-3);
 
         CHECK(std::fabs(high[1] - 1.0) < 1e-3);
-        CHECK(std::fabs(high[high.getLength() - 2] - gain_6dB) < 1e-3);
+        CHECK(std::fabs(high[high.getLength() - 2] - 2.0) < 1e-3);
+    }
+
+    SECTION("0.0 cuts, as DrumKickBass's high shelf does")
+    {
+        Buffer high = response(FilterParametricEqualizer::HIGH_SHELF, 0.0);
+
+        CHECK(std::fabs(high[1] - 1.0) < 1e-3);
+        CHECK(high[high.getLength() - 2] < 1e-3);
     }
 }
 
@@ -128,7 +134,7 @@ TEST_CASE("FilterParametricEqualizer overloads agree")
     Buffer x = s.input.subbuffer(0, n);
     Buffer freqs = 50.0 * Buffer::ones(n);
     Buffer resonances = 0.5 * Buffer::ones(n);
-    Buffer boosts = 6.0 * Buffer::ones(n);
+    Buffer gains = 6.0 * Buffer::ones(n);
 
     FilterParametricEqualizer f(
         FilterParametricEqualizer::PEAKING, s.sample_rate, 50.0, 0.5, 6.0);
@@ -162,7 +168,7 @@ TEST_CASE("FilterParametricEqualizer overloads agree")
 
     check_close(f.filter(x, freqs), y, 0.0);
     check_close(f.filter(x, freqs, resonances), y, 0.0);
-    check_close(f.filter(x, freqs, resonances, boosts), y, 0.0);
+    check_close(f.filter(x, freqs, resonances, gains), y, 0.0);
 
     AudioStream as(s.sample_rate, 2);
     as << x;
@@ -170,11 +176,11 @@ TEST_CASE("FilterParametricEqualizer overloads agree")
     check_every_channel(f.filter(as), y);
     check_every_channel(f.filter(as, freqs), y);
     check_every_channel(f.filter(as, freqs, resonances), y);
-    check_every_channel(f.filter(as, freqs, resonances, boosts), y);
+    check_every_channel(f.filter(as, freqs, resonances, gains), y);
 
-    // Another resonance and boost filter differently.
+    // Another resonance and gain filter differently.
     CHECK((f.filter(x, freqs, 2.0 * resonances) - y).getAbs().getMax() > 0.01);
-    CHECK((f.filter(x, freqs, resonances, 2.0 * boosts) - y).getAbs().getMax() > 0.01);
+    CHECK((f.filter(x, freqs, resonances, 2.0 * gains) - y).getAbs().getMax() > 0.01);
 }
 
 TEST_CASE("FilterParametricEqualizer in real time keeps its state between calls")
@@ -187,7 +193,7 @@ TEST_CASE("FilterParametricEqualizer in real time keeps its state between calls"
 
     Buffer freqs = 50.0 * Buffer::ones(1000);
     Buffer resonances = 0.5 * Buffer::ones(1000);
-    Buffer boosts = 6.0 * Buffer::ones(1000);
+    Buffer gains = 6.0 * Buffer::ones(1000);
 
     FilterParametricEqualizer whole(
         FilterParametricEqualizer::LOW_SHELF, s.sample_rate, 50.0, 0.5, 6.0);
@@ -220,11 +226,11 @@ TEST_CASE("FilterParametricEqualizer in real time keeps its state between calls"
         check_close(y, expected, 0.0);
     }
 
-    SECTION("filter(x, frequencies, resonances, boosts)")
+    SECTION("filter(x, frequencies, resonances, gains)")
     {
         Buffer y;
-        y << f.filter(first, freqs, resonances, boosts)
-          << f.filter(second, freqs, resonances, boosts);
+        y << f.filter(first, freqs, resonances, gains)
+          << f.filter(second, freqs, resonances, gains);
         check_close(y, expected, 0.0);
     }
 
@@ -236,7 +242,7 @@ TEST_CASE("FilterParametricEqualizer in real time keeps its state between calls"
         CHECK_THROWS_AS(f.filter(stereo), Exception);
         CHECK_THROWS_AS(f.filter(stereo, freqs), Exception);
         CHECK_THROWS_AS(f.filter(stereo, freqs, resonances), Exception);
-        CHECK_THROWS_AS(f.filter(stereo, freqs, resonances, boosts), Exception);
+        CHECK_THROWS_AS(f.filter(stereo, freqs, resonances, gains), Exception);
     }
 }
 
@@ -248,9 +254,9 @@ struct PeakingEqualizer : public FilterParametricEqualizer
         const float64 & sample_rate,
         const float64 & frequency,
         const float64 & resonance,
-        const float64 & boost_dB)
+        const float64 & gain)
         :
-        FilterParametricEqualizer(PEAKING, sample_rate, frequency, resonance, boost_dB)
+        FilterParametricEqualizer(PEAKING, sample_rate, frequency, resonance, gain)
     {
     }
 };

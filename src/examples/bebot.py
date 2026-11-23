@@ -41,6 +41,7 @@ import Nsound as ns
 SR = 48000.0
 CHANNELS = 1
 N_BUFFERS = 3
+CHUNK = 0.01 # The seconds of sound made per mouse position read
 
 LO_T = 0.01
 HI_T = 0.10 # Higher latency for non-JACK
@@ -69,7 +70,29 @@ def limit(x, y):
     return x, y
 
 
-def worker(q, t):
+def print_settings(playback, n_buffers, t, chunk):
+    """Prints the playback settings and the latency they add up to."""
+
+    # getInfo() names the device, then the host API.
+    names = [
+        line.split(":", 1)[1].strip()
+        for line in playback.getInfo().splitlines()
+        if line.strip().startswith("name:")]
+
+    device, api = (names + ["?", "?"])[:2]
+
+    latency = playback.getActualLatencySeconds()
+
+    print("Playing through %s, %s" % (api, device))
+    print("    %g Hz, %d channel(s)" % (SR, CHANNELS))
+    print("    %d buffers of %g s, chunks of %g s" % (n_buffers, t, chunk))
+    print("    output latency: %.1f ms" % (1000.0 * latency))
+    print("    mouse to sound, at most: chunk + buffers + output latency = %.1f ms" % (
+        1000.0 * (chunk + n_buffers * t + latency)))
+    sys.stdout.flush()
+
+
+def worker(q, t, host_api, position, n_buffers, chunk):
 
     #--------------------------------------------------------------------------
     # Initialize
@@ -82,12 +105,18 @@ def worker(q, t):
     RELEASING = enum; enum += 1
 
     try:
-        playback = ns.AudioPlaybackRt(SR, CHANNELS, N_BUFFERS, t)
+        # Here, not in main(): on Windows this process starts a new Python.
+        if host_api:
+            ns.AudioPlaybackRt.use_host_api(host_api)
+
+        playback = ns.AudioPlaybackRt(SR, CHANNELS, n_buffers, t)
     except:
         q.put(False)
         sys.stderr.write("FAILURE: failed to create audio playback object!\n")
         sys.stderr.flush()
         return
+
+    print_settings(playback, n_buffers, t, chunk)
 
     gen = ns.Sine(SR)
     gen.setRealtime(True)
@@ -148,7 +177,7 @@ def worker(q, t):
     #--------------------------------------------------------------------------
     # Sound processing loop
 
-    dur = 0.01
+    dur = chunk
 
     process_pos = True
 
@@ -202,14 +231,13 @@ def worker(q, t):
 
                 state = PLAYING
 
-            elif state == PLAYING:
-                x1, y1 = pos
-                y1 = WINDOW_SIZE - y1
-
-                x1, y1 = limit(x1, y1)
-
         if state != PLAYING:
             continue
+
+        # The newest mouse position, the window writes it as the mouse moves.
+        x1, y1 = position[0], WINDOW_SIZE - position[1]
+
+        x1, y1 = limit(x1, y1)
 
         f0 = freq_table[x0]
         f1 = freq_table[x1]
@@ -260,6 +288,36 @@ def main():
         help    = """Use the JACK portaudio Host API, if the JACK server isn't
 running, you will get undefined behavior""")
 
+    parser.add_argument(
+        '--host-api',
+        dest    = 'host_api',
+        default = None,
+        help    = """The portaudio host API to play through, with low latency,
+e.g. "Windows WASAPI", ns_playback lists them""")
+
+    parser.add_argument(
+        '--buffer',
+        dest    = 'buffer_seconds',
+        default = None,
+        type    = float,
+        help    = """The seconds of audio in each buffer""")
+
+    parser.add_argument(
+        '--buffers',
+        dest    = 'n_buffers',
+        default = N_BUFFERS,
+        type    = int,
+        help    = """How many buffers the sound can be ahead of what is heard,
+%d by default""" % N_BUFFERS)
+
+    parser.add_argument(
+        '--chunk',
+        dest    = 'chunk',
+        default = CHUNK,
+        type    = float,
+        help    = """The seconds of sound made per mouse position read, %g by
+default: smaller follows the mouse sooner, too small crackles""" % CHUNK)
+
     args = parser.parse_args()
 
     # Low latency
@@ -269,16 +327,29 @@ running, you will get undefined behavior""")
         ns.AudioPlaybackRt.use_jack(True)
         t = LO_T
 
+    elif args.host_api:
+        print("Using %s with low latency" % args.host_api)
+        t = LO_T
+
     # High latency
     else:
         print("Using Higher Latency")
         t = HI_T
 
+    if args.buffer_seconds:
+        t = args.buffer_seconds
+
     print("Hello Bebot!")
     print("Press ESC to quit.")
 
+    # The button presses and quitting go through the queue, the mouse
+    # position is shared: the worker reads the newest when it needs one, it
+    # doesn't fall behind a queue of old ones.
     q = multiprocessing.Queue(maxsize = 1)
-    p = multiprocessing.Process(target=worker, args = (q,t))
+    position = multiprocessing.Array("i", 2)
+    p = multiprocessing.Process(
+        target=worker,
+        args = (q, t, args.host_api, position, args.n_buffers, args.chunk))
     p.start()
 
     # read from queue that the process initialized and is ready.
@@ -313,9 +384,10 @@ running, you will get undefined behavior""")
         #print "event = ", event
 
         if state == PLAYING and event.type == pygame.MOUSEMOTION:
-            q.put(event.pos)
+            position[0], position[1] = event.pos
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
+            position[0], position[1] = event.pos
             q.put(event.pos)
             state = PLAYING
 

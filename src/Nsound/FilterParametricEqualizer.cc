@@ -47,13 +47,13 @@ FilterParametricEqualizer(
     const float64 & sample_rate,
     const float64 & frequency,
     const float64 & resonance,
-    const float64 & boost)
+    const float64 & gain)
     :
     Filter(sample_rate),
     type_(type),
     frequency_(frequency),
     resonance_(resonance),
-    boost_(boost),
+    gain_(gain),
     a_(N_POLES, 0.0),
     b_(N_POLES, 0.0),
     x_history_(N_POLES + 1, 0.0),
@@ -140,7 +140,7 @@ filter(
     const AudioStream & x,
     const Buffer & frequencies,
     const Buffer & resonance,
-    const Buffer & boost)
+    const Buffer & gain)
 {
     uint32 n_channels = x.getNChannels();
 
@@ -153,7 +153,7 @@ filter(
 
     for(uint32 channel = 0; channel < n_channels; ++channel)
     {
-        y[channel] = filter(x[channel], frequencies, resonance, boost);
+        y[channel] = filter(x[channel], frequencies, resonance, gain);
     }
 
     return y;
@@ -226,14 +226,14 @@ filter(
     const Buffer & x,
     const Buffer & frequencies,
     const Buffer & resonance,
-    const Buffer & boost)
+    const Buffer & gain)
 {
     if(!is_realtime_) reset();
 
     uint32 n_samples = x.getLength();
     uint32 n_freqs   = frequencies.getLength();
     uint32 n_rezzies = resonance.getLength();
-    uint32 n_boosts  = boost.getLength();
+    uint32 n_gains  = gain.getLength();
 
     Buffer y;
 
@@ -242,7 +242,7 @@ filter(
         y << filter(x[n],
             frequencies[n % n_freqs],
             resonance[n % n_rezzies],
-            boost[n % n_boosts]);
+            gain[n % n_gains]);
     }
 
     return y;
@@ -315,7 +315,7 @@ float64
 FilterParametricEqualizer::
 filter(const float64 & x, const float64 & frequency)
 {
-    makeKernel(frequency, resonance_, boost_);
+    makeKernel(frequency, resonance_, gain_);
 
     return filter(x);
 }
@@ -327,7 +327,7 @@ filter(
     const float64 & frequency,
     const float64 & resonance)
 {
-    makeKernel(frequency, resonance, boost_);
+    makeKernel(frequency, resonance, gain_);
 
     return filter(x);
 }
@@ -338,9 +338,9 @@ filter(
     const float64 & x,
     const float64 & frequency,
     const float64 & resonance,
-    const float64 & boost)
+    const float64 & gain)
 {
-    makeKernel(frequency, resonance, boost);
+    makeKernel(frequency, resonance, gain);
 
     return filter(x);
 }
@@ -350,12 +350,12 @@ FilterParametricEqualizer::
 makeKernel(
     const float64 & frequency,
     const float64 & resonance,
-    const float64 & boost_dB)
+    const float64 & gain)
 {
     Kernel new_kernel(N_POLES, N_POLES,
         static_cast<int32>(std::fabs(frequency)),
         static_cast<int32>(resonance * 1e3),
-        static_cast<int32>(boost_dB * 1e3));
+        static_cast<int32>(gain * 1e3));
 
     // See if the kernel is in the cache.
     KernelCache::iterator itor = kernel_cache_.find(new_kernel);
@@ -368,9 +368,6 @@ makeKernel(
 
         return;
     }
-
-    // The gain V of the formulas.
-    float64 boost = std::pow(10.0, boost_dB / 20.0);
 
     memset(a_.data(), 0, sizeof(float64) * N_POLES);
     memset(b_.data(), 0, sizeof(float64) * N_POLES);
@@ -394,7 +391,7 @@ makeKernel(
 
             float64 K = tan(omega / 2.0);
             float64 KK = K * K;
-            float64 vkdq = boost * K / resonance;
+            float64 vkdq = gain * K / resonance;
 
             b_[0] = 1.0 + vkdq + KK;
             b_[1] = 2.0 * (KK - 1.0);
@@ -424,8 +421,8 @@ makeKernel(
             float64 K = tan(omega / 2.0);
             float64 KK = K * K;
 
-            float64 sqvk = sqrt(2.0 * boost) * K;
-            float64 vkk = boost * KK;
+            float64 sqvk = sqrt(2.0 * gain) * K;
+            float64 vkk = gain * KK;
 
             b_[0] = 1.0 + sqvk + vkk;
             b_[1] = 2.0 * (vkk - 1.0);
@@ -453,9 +450,9 @@ makeKernel(
 
             float64 K = tan((M_PI - omega) * 0.5);
             float64 KK = K * K;
-            float64 vkk = boost * KK;
+            float64 vkk = gain * KK;
 
-            float64 sq = sqrt(2.0 * boost);
+            float64 sq = sqrt(2.0 * gain);
 
             b_[0] =  1.0 + sq * K + vkk;
             b_[1] = -2.0 * (vkk - 1.0);
@@ -522,6 +519,6 @@ reset()
     x_ptr_ = x_history_.data();
     y_ptr_ = y_history_.data();
 
-    makeKernel(frequency_, resonance_, boost_);
+    makeKernel(frequency_, resonance_, gain_);
 }
 

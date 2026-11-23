@@ -106,6 +106,10 @@ Target                            Description
 ================================  ==========================================
 ``//src/Nsound:nsound``           The Nsound C++ library
 ``//src/python:Nsound``           The Python module, pybind11 bindings
+``//src/bin:ns_playback``         Lists the audio host APIs, plays a
+                                  test sweep through one, e.g.
+                                  ``bazel run //src/bin:ns_playback --
+                                  "Windows WASAPI"``
 ``//src/bin:ns_readwaveheader``   Prints a wave file header
 ``//src/bin:ns_vocoder``          Vocoder command line program
 ``//src/test:<Class>_test``       Catch2 unit tests, one per class
@@ -121,9 +125,10 @@ Optional features are set with flags:
 =================================  =======  ===================================
 Flag                               Default  Description
 =================================  =======  ===================================
-``--//bazel:libao``                off      libao audio backend, links -lao
-``--//bazel:portaudio``            off      portaudio audio backend, links
-                                            -lportaudio
+``--//bazel:portaudio``            on       Audio playback with portaudio,
+                                            which Bazel builds: ALSA on
+                                            Linux, CoreAudio on macOS, WMME
+                                            on Windows
 ``--//bazel:openmp``               on       OpenMP in Stretcher, -fopenmp
                                             (libgomp with gcc, libomp with
                                             clang, /openmp with MSVC).  Off
@@ -136,7 +141,7 @@ Flag                               Default  Description
                                             Python module always plots
 =================================  =======  ===================================
 
-For example, ``bazel build --//bazel:libao --//bazel:portaudio //...``.
+For example, ``bazel build --//bazel:portaudio=false //...``.
 
 C++ programs plot with ``bazel run``, e.g.
 ``bazel run //src/examples:cepstral_pitch_estimate``, or run from
@@ -154,7 +159,8 @@ packages are pinned in ``requirements_lock.txt``, made from
 ``tools/coverage.sh`` measures the line coverage of ``src/Nsound`` and the
 ``linux / bazel / coverage`` check fails if it drops below
 ``MINIMUM_PERCENT`` in ``tools/check_coverage.py``; raise it as tests are
-added.  Code that needs a sound card or an optional library (audio
-playback and the libao and portaudio backends) is not measured, see
-``EXCLUDED_PREFIXES`` there.  Bazel can't collect C++ coverage with MSVC, so
+added.  The playback tests play into a file on Linux: their ALSA
+configuration, ``src/test/alsa_capture.conf``, makes the default device
+write what it plays to a file, so no sound card is needed.  Bazel can't
+collect C++ coverage with MSVC, so
 on Windows ``tools\coverage.ps1`` only says where to run it instead.

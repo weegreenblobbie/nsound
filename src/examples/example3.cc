@@ -65,6 +65,7 @@ drum(
 int
 my_main(void)
 {
+    std::cerr << "rendering audio ..." << std::endl;
     Sine sine(sr);
 
     DrumBD01     db01(sr);
@@ -99,11 +100,11 @@ my_main(void)
 
     out2 >> "example3_reverb.wav";
 
-    // Try to play the audio
-
+    std::cerr << "playing audio ..." << std::endl;
     try
     {
         AudioPlayback pb(sr, 2, 16);
+        out >> pb;
         out2 >> pb;
     }
     catch(std::exception & e)

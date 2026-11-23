@@ -33,7 +33,6 @@
 
 #include <Nsound/Nsound.h>
 #include <Nsound/AudioBackend.h>
-#include <Nsound/AudioBackendLibao.h>
 #include <Nsound/AudioBackendLibportaudio.h>
 #include <Nsound/AudioBackendType.h>
 #include <Nsound/AudioPlayback.h>
@@ -43,6 +42,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <limits>
 #include <sstream>
 #include <string>
 
@@ -53,8 +53,6 @@ using std::endl;
 
 #ifdef NSOUND_LIBPORTAUDIO
     AudioBackendType AudioPlayback::backend_type_ = BACKEND_TYPE_LIBPORTAUDIO;
-#elif defined(NSOUND_LIBAO)
-    AudioBackendType AudioPlayback::backend_type_ = BACKEND_TYPE_LIBAO;
 #else
     AudioBackendType AudioPlayback::backend_type_ = BACKEND_TYPE_NONE;
 #endif
@@ -72,15 +70,6 @@ allocate_backend(
 
     switch(type)
     {
-        case BACKEND_TYPE_LIBAO:
-            #ifdef NSOUND_LIBAO
-                backend = new AudioBackendLibao(
-                    sample_rate,
-                    channels,
-                    bits_per_sample);
-            #endif
-            break;
-
         case BACKEND_TYPE_LIBPORTAUDIO:
             #ifdef NSOUND_LIBPORTAUDIO
                 backend = new AudioBackendLibportaudio(
@@ -294,6 +283,18 @@ initialize()
 // to these templates, they are also not class members.  I did this to avoid
 // including <iostream> in the header and keep the header a little cleaner.
 
+//! Returns x * scale as a T sample, clipped to T's range: full scale, 1.0,
+//! is one more than T's largest value.
+template <typename T>
+T
+to_sample(float64 x, float64 scale)
+{
+    float64 lowest = static_cast<float64>(std::numeric_limits<T>::min());
+    float64 highest = static_cast<float64>(std::numeric_limits<T>::max());
+
+    return static_cast<T>(std::clamp(x * scale, lowest, highest));
+}
+
 // forward delcare
 
 template <typename T>
@@ -353,7 +354,7 @@ play_int(
     {
         for(uint32 j = 0; j < n_channels; ++j)
         {
-            array[k] = static_cast<T>(a[j][i] * scale);
+            array[k] = to_sample<T>(a[j][i], scale);
             ++k;
         }
     }
@@ -384,7 +385,7 @@ play_int(
     {
         for(uint32 j = 0; j < n_channels; ++j)
         {
-            array.push_back(static_cast<T>(b[i] * scale));
+            array.push_back(to_sample<T>(b[i], scale));
             ++k;
         }
     }
@@ -476,6 +477,8 @@ scanDevices()
             channels_,
             bits_per_sample_);
 
+        backend_->initialize();
+
         if(backend_->getState() == AudioBackend::BACKEND_READY)
         {
             backend_->scanDevices(*this, test_clip);
@@ -558,11 +561,6 @@ use(const std::string & backend)
 {
     std::string be = mylower(backend);
 
-    if(be == "ao" || be == "libao")
-    {
-        AudioPlayback::setBackendType(BACKEND_TYPE_LIBAO);
-    }
-    else
     if(be == "portaudio" || be == "libportaudio")
     {
         AudioPlayback::setBackendType(BACKEND_TYPE_LIBPORTAUDIO);
@@ -597,10 +595,6 @@ use(const AudioBackendType & type)
 {
     switch(type)
     {
-        case BACKEND_TYPE_LIBAO:
-            use("ao");
-            break;
-
         case BACKEND_TYPE_LIBPORTAUDIO:
             use("portaudio");
             break;
@@ -622,10 +616,6 @@ getBackends()
         vec.push_back("portaudio");
     #endif
 
-    #if defined(NSOUND_LIBAO)
-        vec.push_back("ao");
-    #endif
-
     return vec;
 }
 
@@ -637,10 +627,6 @@ getBackendTypes()
 
     #if defined(NSOUND_LIBPORTAUDIO)
         vec.push_back(BACKEND_TYPE_LIBPORTAUDIO);
-    #endif
-
-    #if defined(NSOUND_LIBAO)
-        vec.push_back(BACKEND_TYPE_LIBAO);
     #endif
 
     return vec;

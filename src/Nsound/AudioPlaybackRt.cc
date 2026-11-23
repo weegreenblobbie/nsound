@@ -48,9 +48,15 @@
 #include <Nsound/Sine.h>
 #include <Nsound/Wavefile.h>
 
+#if defined(NSOUND_LIBPORTAUDIO) && defined(NSOUND_PLATFORM_OS_WINDOWS)
+    #include <pa_win_wasapi.h>
+#endif
+
+#include <algorithm>
 #include <atomic>
 #include <cstring> // for memset
 #include <limits>
+#include <chrono>
 #include <thread>
 
 using std::cerr;
@@ -61,6 +67,7 @@ namespace Nsound
 {
 
 bool AudioPlaybackRt::use_jack_ = false;
+std::string AudioPlaybackRt::host_api_name_;
 
 //-----------------------------------------------------------------------------
 // stub out class if we don't have portaudio
@@ -83,12 +90,42 @@ bool AudioPlaybackRt::use_jack_ = false;
     std::string AudioPlaybackRt::debug_print() { return "nsound was compiled without rt playback"; }
 
     AudioPlaybackRtDebug AudioPlaybackRt::get_debug_info() const { return AudioPlaybackRtDebug(); }
+    std::vector<std::string> AudioPlaybackRt::getHostApis() { return {}; }
 
 
 //-----------------------------------------------------------------------------
 // Real class implementation with portaudio
 
 #else
+
+//! Returns s in lower case.
+static
+std::string
+lower(std::string s)
+{
+    std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+    return s;
+}
+
+std::vector<std::string>
+AudioPlaybackRt::
+getHostApis()
+{
+    std::vector<std::string> names;
+
+    if(Pa_Initialize() != paNoError) return names;
+
+    for(PaHostApiIndex i = 0; i < Pa_GetHostApiCount(); ++i)
+    {
+        const PaHostApiInfo * info = Pa_GetHostApiInfo(i);
+
+        if(info != nullptr) names.push_back(info->name);
+    }
+
+    Pa_Terminate();
+
+    return names;
+}
 
 void my_atomic_init(std::atomic_uint & a, unsigned int v)
 {
@@ -117,7 +154,7 @@ AudioPlaybackRt(
     pa_underrun_count_(0),
     pa_overrun_count_(0),
     n_history_(),
-    sine_(new Sine(sample_rate)),
+    sine_(std::make_unique<Sine>(sample_rate)),
     pool_(),
     pool_size_(n_buffers),
     pool_begin_(),
@@ -151,9 +188,8 @@ AudioPlaybackRt(
     }
 
     // Allocate params object
-    driver_.out_params_ = new PaStreamParameters();
-
-    std::memset(driver_.out_params_, 0, sizeof(PaStreamParameters));
+    // Zeroed.
+    driver_.out_params_ = std::make_unique<PaStreamParameters>();
 
     // Try to get the JACK Audio Connection Ket Host API if available.
 
@@ -162,6 +198,18 @@ AudioPlaybackRt(
     if(use_jack_)
     {
         api_index = Pa_HostApiTypeIdToHostApiIndex(paJACK);
+    }
+    else if(! host_api_name_.empty())
+    {
+        for(PaHostApiIndex i = 0; i < Pa_GetHostApiCount(); ++i)
+        {
+            const PaHostApiInfo * api = Pa_GetHostApiInfo(i);
+
+            if(api != nullptr && lower(api->name) == lower(host_api_name_))
+            {
+                api_index = i;
+            }
+        }
     }
     else
     {
@@ -178,6 +226,20 @@ AudioPlaybackRt(
                 "Nsound::AudioPlaybackRt"
                 << ": could not find JACK host api!  "
                 "Is the JACK server running?");
+        }
+        else if(! host_api_name_.empty())
+        {
+            std::string names;
+
+            for(const std::string & name : getHostApis())
+            {
+                names += " '" + name + "'";
+            }
+
+            M_THROW(
+                "Nsound::AudioPlaybackRt"
+                << ": no host api '" << host_api_name_
+                << "', the ones compiled in:" << names);
         }
         else
         {
@@ -210,36 +272,60 @@ AudioPlaybackRt(
     if(driver_.out_params_->device == paNoDevice)
     {
         Pa_Terminate();
-        delete driver_.out_params_;
-        driver_.out_params_ = nullptr;
+        driver_.out_params_.reset();
 
         M_THROW(
             "Nsound::AudioPlaybackRt"
             << ": failed to get default output device!");
     }
 
+    const PaDeviceInfo * dinfo = Pa_GetDeviceInfo(
+        driver_.out_params_->device);
+
+    if(dinfo == nullptr)
+    {
+        Pa_Terminate();
+
+        M_THROW(
+            "Nsound::AudioPlaybackRt"
+            << ": Pa_GetDeviceInfo() failed\n");
+    }
+
     // use default low output latency if unspecified by user.
     if(buffer_size_sec <= 0.0)
     {
-        const PaDeviceInfo * dinfo = Pa_GetDeviceInfo(
-            driver_.out_params_->device);
-
-        if(dinfo == nullptr)
-        {
-            Pa_Terminate();
-
-            M_THROW(
-                "Nsound::AudioPlaybackRt"
-                << ": Pa_GetDeviceInfo() failed\n");
-        }
-
         buffer_size_sec = dinfo->defaultLowOutputLatency;
     }
 
     driver_.out_params_->channelCount = channels_;
     driver_.out_params_->sampleFormat = paInt16;
-    driver_.out_params_->suggestedLatency = buffer_size_sec;
+
+    // Never less latency than the device's lowest: below it, a Windows MME
+    // device distorts without reporting underruns.  The buffers stay the
+    // size asked for.
+    driver_.out_params_->suggestedLatency = std::max(
+        buffer_size_sec,
+        dinfo->defaultLowOutputLatency);
     driver_.out_params_->hostApiSpecificStreamInfo = nullptr;
+
+    #ifdef NSOUND_PLATFORM_OS_WINDOWS
+
+        // WASAPI plays in the format the device is set to in Windows, e.g.
+        // 48000 Hz stereo, unless it is asked to convert.  Used while the
+        // stream opens.
+        PaWasapiStreamInfo wasapi_info{};
+
+        if(info->type == paWASAPI)
+        {
+            wasapi_info.size = sizeof(PaWasapiStreamInfo);
+            wasapi_info.hostApiType = paWASAPI;
+            wasapi_info.version = 1;
+            wasapi_info.flags = paWinWasapiAutoConvert;
+
+            driver_.out_params_->hostApiSpecificStreamInfo = &wasapi_info;
+        }
+
+    #endif
 
     //-------------------------------------------------------------------------
     // Allocate circular buffers.
@@ -261,8 +347,7 @@ AudioPlaybackRt(
 
     for(uint32 i = 0; i < n_buffers; ++i)
     {
-        Int16Vector * buf = new Int16Vector(driver_.n_samples_per_buffer_, 0);
-        pool_.push_back(buf);
+        pool_.emplace_back(driver_.n_samples_per_buffer_, 0);
     }
 
     pool_begin_ = pool_.begin();
@@ -274,7 +359,7 @@ AudioPlaybackRt(
     //-------------------------------------------------------------------------
     // Check if format is supported.
 
-    ecode = Pa_IsFormatSupported(nullptr, driver_.out_params_, sample_rate_);
+    ecode = Pa_IsFormatSupported(nullptr, driver_.out_params_.get(), sample_rate_);
 
     if(ecode != paNoError)
     {
@@ -296,7 +381,7 @@ AudioPlaybackRt(
     ecode = Pa_OpenStream(
         &driver_.stream_,
         nullptr, // no input channel
-        driver_.out_params_,
+        driver_.out_params_.get(),
         sample_rate_,
         driver_.n_frames_per_buffer_,
         paClipOff | paDitherOff,
@@ -314,6 +399,9 @@ AudioPlaybackRt(
             << endl
             << Pa_GetErrorText(ecode));
     }
+
+    // The WASAPI settings were for opening only.
+    driver_.out_params_->hostApiSpecificStreamInfo = nullptr;
 
     // Grab output latencey.
     const PaStreamInfo * sinfo = Pa_GetStreamInfo(driver_.stream_);
@@ -335,6 +423,16 @@ AudioPlaybackRt(
 AudioPlaybackRt::
 ~AudioPlaybackRt()
 {
+    // Play what was written before stopping: a program that plays and ends
+    // would cut the last buffers off.  Failing, it stops all the same.
+    try
+    {
+        _play_written();
+    }
+    catch(...)
+    {
+    }
+
     stop();
 
     PaError ecode = paNoError;
@@ -345,11 +443,9 @@ AudioPlaybackRt::
 
         driver_.stream_ = nullptr;
 
-        delete driver_.out_params_;
-        driver_.out_params_ = nullptr;
+        driver_.out_params_.reset();
     }
 
-    delete sine_;
 
     if(ecode != paNoError)
     {
@@ -390,6 +486,14 @@ _pa_callback(
 
 #define SCALE static_cast<float64>(std::numeric_limits<int16>::max())
 
+//! Returns the sample as 16 bits, full scale, 1.0, is 32767, clipped there.
+static
+int16
+to_int16(float64 sample)
+{
+    return static_cast<int16>(std::clamp(SCALE * sample, -SCALE, SCALE));
+}
+
 int
 AudioPlaybackRt::
 _callback(
@@ -410,7 +514,7 @@ _callback(
 
     BufferUnderrunMode bum = underrun_mode_;
 
-    int16 * src = (*rd_ptr_)->data();
+    int16 * src = rd_ptr_->data();
 
     // No underrun
     if(n > 0)
@@ -539,9 +643,8 @@ stop()
     n_ready_ = wr_index_ = 0;
     rd_ptr_ = wr_ptr_ = pool_begin_;
 
-    for(size_t i = 0; i < pool_.size(); ++i)
+    for(Int16Vector & vec : pool_)
     {
-        Int16Vector & vec = *pool_[i];
         std::fill(vec.begin(), vec.end(), 0);
     }
 }
@@ -601,6 +704,54 @@ play(const Buffer & b)
 
 void
 AudioPlaybackRt::
+_play_written()
+{
+    if(driver_.stream_ == nullptr) return;
+
+    // Silence fills the last buffer, then it can be played.
+    while(wr_index_ != 0)
+    {
+        if(channels_ == 2) play(0.0, 0.0);
+        else play(0.0);
+    }
+
+    if(n_ready_.load() == 0) return;
+
+    _start();
+
+    // Twice the time the buffers take, the device may be slower.
+    float64 buffer_sec = driver_.n_frames_per_buffer_ / sample_rate_;
+
+    auto deadline = std::chrono::steady_clock::now()
+        + std::chrono::duration<float64>(2.0 * pool_size_ * buffer_sec + 1.0);
+
+    while(n_ready_.load() > 0 && std::chrono::steady_clock::now() < deadline)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+}
+
+void
+AudioPlaybackRt::
+_wait_for_free_buffer()
+{
+    uint32 n = n_ready_.load();
+
+    if(n == pool_size_)
+    {
+        _start();
+    }
+
+    while(n == pool_size_)
+    {
+        ++overrun_count_;
+        std::this_thread::yield();
+        n = n_ready_.load();
+    }
+}
+
+void
+AudioPlaybackRt::
 play(float64 sample)
 {
     if(channels_ == 2)
@@ -608,32 +759,15 @@ play(float64 sample)
         return play(sample, sample);
     }
 
-    Int16Vector * ptr = *wr_ptr_;
-
     M_ASSERT_VALUE(wr_index_, <, driver_.n_samples_per_buffer_);
 
-    M_ASSERT_VALUE(sample, <, 1.0);
-    M_ASSERT_VALUE(sample, >, -1.0);
+    if(wr_index_ == 0) _wait_for_free_buffer();
 
-    (*ptr)[wr_index_++] = static_cast<int16>(SCALE * sample);
+    (*wr_ptr_)[wr_index_++] = to_int16(sample);
 
-    // limit check, block until next buffer is available.
+    // The buffer is full, it's ready to play.
     if(wr_index_ == driver_.n_samples_per_buffer_)
     {
-        uint32 n = n_ready_.load();
-
-        if(n == pool_size_)
-        {
-            _start();
-        }
-
-        while(n == pool_size_)
-        {
-            ++overrun_count_;
-            std::this_thread::yield();
-            n = n_ready_.load();
-        }
-
         n_ready_.fetch_add(1);
 
         wr_index_ = 0;
@@ -651,30 +785,16 @@ void
 AudioPlaybackRt::
 play(float64 left, float64 right)
 {
-    Int16Vector * ptr = *wr_ptr_;
-
     M_ASSERT_VALUE(wr_index_, <, driver_.n_samples_per_buffer_);
 
-    (*ptr)[wr_index_++] = static_cast<int16>(SCALE * left);
-    (*ptr)[wr_index_++] = static_cast<int16>(SCALE * right);
+    if(wr_index_ == 0) _wait_for_free_buffer();
 
-    // limit check, block until next buffer is available.
+    (*wr_ptr_)[wr_index_++] = to_int16(left);
+    (*wr_ptr_)[wr_index_++] = to_int16(right);
+
+    // The buffer is full, it's ready to play.
     if(wr_index_ == driver_.n_samples_per_buffer_)
     {
-        uint32 n = n_ready_.load();
-
-        if(n == pool_size_)
-        {
-            _start();
-        }
-
-        while(n == pool_size_)
-        {
-            ++overrun_count_;
-            std::this_thread::yield();
-            n = n_ready_.load();
-        }
-
         n_ready_.fetch_add(1);
 
         wr_index_ = 0;
@@ -822,26 +942,9 @@ get_debug_info() const
     info.wr_index = wr_index_;
     info.n_history = n_history_;
 
-    info.wr_ptr = 0;
-
-    Int16Vector * ptr_wr = *wr_ptr_;
-    Int16Vector * ptr_rd = *rd_ptr_;
-
-    for(auto itor : pool_)
-    {
-        if(itor == ptr_wr) break;
-
-        ++info.wr_ptr;
-    }
-
-    info.rd_ptr = 0;
-
-    for(const auto & itor : pool_)
-    {
-        if(itor == ptr_rd) break;
-
-        ++info.rd_ptr;
-    }
+    // The buffers' indices in the pool.
+    info.wr_ptr = static_cast<uint32>(wr_ptr_ - pool_begin_);
+    info.rd_ptr = static_cast<uint32>(rd_ptr_ - pool_begin_);
 
     const PaStreamInfo * sinfo = Pa_GetStreamInfo(driver_.stream_);
 

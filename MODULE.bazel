@@ -9,6 +9,23 @@ bazel_dep(name = "rules_cc", version = "0.2.27")
 bazel_dep(name = "bazel_skylib", version = "1.9.2")
 bazel_dep(name = "platforms", version = "1.1.0")
 
+# Audio playback, Bazel builds it and ALSA on Linux.
+bazel_dep(name = "portaudio", version = "19.7.0.bcr.3")
+
+# With WASAPI and WDM-KS on Windows too, the registry's build has only MME.
+single_version_override(
+    module_name = "portaudio",
+    patch_strip = 1,
+    patches = ["//bazel:portaudio_windows_host_apis.patch"],
+)
+
+# portaudio's ALSA, without the ncurses portaudio's 1.2.9.bcr.2 builds: its
+# build tools, GNU sed among them, don't compile with clang on newer glibc.
+single_version_override(
+    module_name = "alsa_lib",
+    version = "1.2.9.bcr.4",
+)
+
 # Test-only dependencies.
 bazel_dep(name = "catch2", version = "3.15.1", dev_dependency = True)
 

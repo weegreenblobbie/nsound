@@ -155,6 +155,11 @@ bind_audio_io(py::module_ & m)
         .def_static("use_jack",
             &AudioPlaybackRt::use_jack,
             py::arg("flag"))
+        .def_static("use_host_api",
+            &AudioPlaybackRt::use_host_api,
+            py::arg("name"))
+        .def_static("getHostApis",
+            &AudioPlaybackRt::getHostApis)
         .def("getSamplesPerBuffer",
             &AudioPlaybackRt::getSamplesPerBuffer)
         .def("getActualLatencySeconds",

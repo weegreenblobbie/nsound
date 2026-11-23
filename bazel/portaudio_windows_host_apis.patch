@@ -1,0 +1,43 @@
+# Bazel's portaudio builds WASAPI and WDM-KS on Windows too, not only MME,
+# with advapi32 for WDM-KS.  Applied to the registry's BUILD.bazel, see MODULE.bazel.
+--- a/BUILD.bazel
++++ b/BUILD.bazel
+@@ -91,6 +91,8 @@
+             "src/os/unix/*.c",
+         ]),
+         "@platforms//os:windows": glob([
++            "src/hostapi/wasapi/*.c",
++            "src/hostapi/wdmks/*.c",
+             "src/hostapi/wmme/*.c",
+             "src/os/win/*.c",
+         ]),
+@@ -100,14 +102,18 @@
+     copts = ["-w"],
+     defines = LINUX_DEFINES + select({
+         "@platforms//os:macos": ["PA_USE_COREAUDIO=1"],
+-        "@platforms//os:windows": ["PA_USE_WMME=1"],
++        "@platforms//os:windows": [
++            "PA_USE_WASAPI=1",
++            "PA_USE_WDMKS=1",
++            "PA_USE_WMME=1",
++        ],
+         "//conditions:default": [],
+     }),
+     includes = [
+         "include",
+         "src/common",
+     ] + select({
+-        "@platforms//os:windows": [],
++        "@platforms//os:windows": ["src/os/win"],
+         "//conditions:default": ["src/os/unix"],
+     }),
+     linkopts = select({
+@@ -120,6 +126,8 @@
+             "-framework AudioToolbox",
+             "-framework Carbon",
+         ],
++        # WDM-KS reads the registry, it doesn't ask for advapi32 itself.
++        "@platforms//os:windows": ["advapi32.lib"],
+         "//conditions:default": [],
+     }),
+     textual_hdrs = glob([
