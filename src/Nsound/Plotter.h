@@ -75,7 +75,8 @@ class Axes
 //! running until the program ends; in the Python module it uses the running
 //! Python.  When Python or matplotlib can't be loaded it prints why, once, and
 //! the plotting functions do nothing.  The kwargs strings are Python keyword
-//! arguments, e.g. "color='red', linewidth=2".  Python errors are thrown as
+//! arguments, e.g. "color='red', linewidth=2", parsed and never run: their
+//! values must be Python literals.  Python errors are thrown as
 //! pybind11::error_already_set.
 class Plotter
 {
@@ -144,9 +145,6 @@ class Plotter
         const float64 & y,
         const std::string & fmt = "",
         const std::string & kwargs = "");
-
-    //! Runs the Python code in __main__, where pyplot is _pyplot_nsound_.
-    void run_string(const std::string & command) const;
 
     //! Saves the current figure to filename.
     void

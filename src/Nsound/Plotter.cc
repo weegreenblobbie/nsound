@@ -248,9 +248,6 @@ pyplot()
 
         py::object module = py::module_::import("matplotlib.pyplot");
 
-        // run_string() and the kwargs strings can use it by this name.
-        py::module_::import("__main__").attr("_pyplot_nsound_") = module;
-
         pyplot_ = new py::object(module);
     }
     catch(const std::exception & e)
@@ -262,16 +259,53 @@ pyplot()
     return pyplot_;
 }
 
+//! Throws a Python ValueError, as pybind11::error_already_set.
+[[noreturn]]
+void
+throw_value_error(const std::string & message)
+{
+    PyErr_SetString(PyExc_ValueError, message.c_str());
+    throw py::error_already_set();
+}
+
 //! Returns the Python keyword arguments in kwargs, e.g. "color='red'", as a
-//! dict, evaluated in __main__.
+//! dict.  They're parsed, never run: each value must be a Python literal, a
+//! string, number, tuple, list, dict, set, True, False or None.
 py::dict
 make_kwargs(const std::string & kwargs)
 {
     if(kwargs.empty()) return py::dict();
 
-    py::object globals = py::module_::import("__main__").attr("__dict__");
+    py::module_ ast = py::module_::import("ast");
 
-    return py::eval("dict(" + kwargs + ")", globals);
+    // A call's arguments, f(color='red'): parsing runs nothing, a SyntaxError
+    // is raised for what isn't Python.
+    py::object call = ast.attr("parse")("f(" + kwargs + ")", "<kwargs>", "eval").attr("body");
+
+    // "a=1) or g(" parses as f(a=1) or g(), not a call to f.
+    if(! py::isinstance(call, ast.attr("Call"))
+        || ! py::isinstance(call.attr("func"), ast.attr("Name"))
+        || call.attr("func").attr("id").cast<std::string>() != "f"
+        || py::len(call.attr("args")) != 0)
+    {
+        throw_value_error("Plotter: '" + kwargs + "' isn't keyword arguments, e.g. color='red'");
+    }
+
+    py::dict out;
+
+    for(py::handle keyword : call.attr("keywords"))
+    {
+        // **dict has no name.
+        if(keyword.attr("arg").is_none())
+        {
+            throw_value_error("Plotter: '" + kwargs + "' can't use **");
+        }
+
+        // A ValueError for what isn't a literal, e.g. a name or a call.
+        out[keyword.attr("arg")] = ast.attr("literal_eval")(keyword.attr("value"));
+    }
+
+    return out;
 }
 
 //! Returns the samples as a Python list.
@@ -638,20 +672,6 @@ plot(
     Buffer yy(1); yy << y;
 
     plot(xx, yy, fmt, kwargs);
-}
-
-void
-Plotter::
-run_string(const std::string & command) const
-{
-    #ifdef NSOUND_C_PYLAB
-        py::object * pyplot_ = pyplot();
-        if(pyplot_ == nullptr) return;
-
-        py::object globals = py::module_::import("__main__").attr("__dict__");
-
-        py::exec(command, globals);
-    #endif
 }
 
 void

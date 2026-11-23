@@ -577,7 +577,7 @@ FilterLeastSquaresFIR::
 plot(boolean show_fc, boolean show_phase)
 {
     char title[256];
-    sprintf(title,
+    snprintf(title, sizeof(title),
         "Least Square FIR Frequency Response\n"
         "order = %d, sr = %0.1f Hz",
         kernel_size_, sample_rate_);

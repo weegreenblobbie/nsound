@@ -88,7 +88,7 @@ class FilterIIR : public Filter
     { return Filter::filter(x);};
 
     AudioStream
-    filter(const AudioStream & x, const Buffer & frequencies)
+    filter(const AudioStream & x, const Buffer & /* frequencies */)
     { return Filter::filter(x);};
 
     Buffer
@@ -96,7 +96,7 @@ class FilterIIR : public Filter
     {return Filter::filter(x);};
 
     Buffer
-    filter(const Buffer & x, const Buffer & frequencies)
+    filter(const Buffer & x, const Buffer & /* frequencies */)
     {return filter(x);};
 
     float64

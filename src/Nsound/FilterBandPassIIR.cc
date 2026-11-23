@@ -104,14 +104,14 @@ filter(const AudioStream & x)
 
 AudioStream
 FilterBandPassIIR::
-filter(const AudioStream & x, const float64 & f)
+filter(const AudioStream & x, const float64 & /* f */)
 {
     return Filter::filter(x);
 }
 
 AudioStream
 FilterBandPassIIR::
-filter(const AudioStream & x, const Buffer & frequencies)
+filter(const AudioStream & x, const Buffer & /* frequencies */)
 {
     return Filter::filter(x);
 }
@@ -142,14 +142,14 @@ filter(const Buffer & x)
 
 Buffer
 FilterBandPassIIR::
-filter(const Buffer & x, const float64 & f)
+filter(const Buffer & x, const float64 & /* f */)
 {
     return Filter::filter(x);
 }
 
 Buffer
 FilterBandPassIIR::
-filter(const Buffer & x, const Buffer & frequencies)
+filter(const Buffer & x, const Buffer & /* frequencies */)
 {
     return Filter::filter(x);
 }
@@ -180,7 +180,7 @@ filter(const float64 & x)
 
 float64
 FilterBandPassIIR::
-filter(const float64 & x, const float64 & frequency)
+filter(const float64 & x, const float64 & /* frequency */)
 {
     return gain_ * low_->filter(high_->filter(x));
 }
@@ -201,7 +201,7 @@ FilterBandPassIIR::
 plot(boolean show_fc, boolean show_phase)
 {
     char title[256];
-    sprintf(title,
+    snprintf(title, sizeof(title),
         "Band Pass IIR Frequency Response\n"
         "order = %d, fl = %0.1f Hz, fh = %0.1f Hz, sr = %0.1f Hz",
         low_->getKernelSize() * 2,

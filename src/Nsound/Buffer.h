@@ -1618,6 +1618,10 @@ class Buffer
 
         //! Constructs a Buffer from seralized data in the inputstream.
         //
+        //! It throws when the data isn't a Buffer or ends before its samples,
+        //! and its memory never grows past the data's size.  Only read data
+        //! you trust: forged data reads as samples.
+        //
         //! \param in the std::istream to read bytes from
         //
         std::istream &

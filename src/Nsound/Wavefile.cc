@@ -39,7 +39,6 @@
 
 #include <math.h>
 #include <string.h>
-#include <stdio.h>
 #include <fstream>
 #include <iostream>
 #include <limits>
@@ -233,22 +232,16 @@ swapBytesInt16(const uint32 i)
     #pragma clang diagnostic pop
 #endif
 
-#ifdef NSOUND_PLATFORM_OS_WINDOWS
-    #define LM_UNUSED
-#else
-    #define LM_UNUSED __attribute__((unused))
-#endif
-
 //-----------------------------------------------------------------------------
 //! This method reads data from the file and does the proper byte
 //! conversion based on the endianess of the platform.
 inline static
 int64
-readInt(FILE * fd, uint32 n_bytes)
+readInt(std::istream & fd, uint32 n_bytes)
 {
     int64 temp64 = 0;
 
-    size_t _ LM_UNUSED = fread(reinterpret_cast<char*>(&temp64), n_bytes, 1, fd);
+    fd.read(reinterpret_cast<char*>(&temp64), n_bytes);
 
     // Swap the bytes if we are on a big endian platform.
     #ifdef NSOUND_BIG_ENDIAN
@@ -303,12 +296,12 @@ readInt(FILE * fd, uint32 n_bytes)
 //! conversion based on the endianess of the platform.
 inline static
 float32
-readFloat32(FILE * fd)
+readFloat32(std::istream & fd)
 {
     int32 temp32 = 0;
     float32 * f32 = reinterpret_cast<float32 *>(&temp32);
 
-    size_t _ LM_UNUSED = fread(reinterpret_cast<char*>(&temp32), sizeof(float32), 1, fd);
+    fd.read(reinterpret_cast<char*>(&temp32), sizeof(float32));
 
     // Swap the bytes if we are on a big endian platform.
     #ifdef NSOUND_BIG_ENDIAN
@@ -323,12 +316,12 @@ readFloat32(FILE * fd)
 //! conversion based on the endianess of the platform.
 inline static
 float64
-readFloat64(FILE * fd)
+readFloat64(std::istream & fd)
 {
     int64 temp64 = 0;
     float64 * f64 = reinterpret_cast<float64 *>(&temp64);
 
-    size_t _ LM_UNUSED = fread(reinterpret_cast<char*>(&temp64), sizeof(float64), 1, fd);
+    fd.read(reinterpret_cast<char*>(&temp64), sizeof(float64));
 
     // Swap the bytes if we are on a big endian platform.
     #ifdef NSOUND_BIG_ENDIAN
@@ -345,7 +338,7 @@ readFloat64(FILE * fd)
 inline static
 void
 writeInt(
-    FILE * output,
+    std::ostream & output,
     uint32 n_bytes,
     int64 value)
 {
@@ -354,7 +347,7 @@ writeInt(
         value = swapBytesInt64(value);
     #endif
 
-    fwrite(reinterpret_cast<char*>(&value), n_bytes, 1, output);
+    output.write(reinterpret_cast<char*>(&value), n_bytes);
 }
 
 //-----------------------------------------------------------------------------
@@ -363,7 +356,7 @@ writeInt(
 inline static
 void
 writeFloat32(
-    FILE * output,
+    std::ostream & output,
     float32 value)
 {
     // Swap the bytes if we are on a big endian platform
@@ -372,7 +365,7 @@ writeFloat32(
         *v = swapBytesInt32(*v);
     #endif
 
-    fwrite(reinterpret_cast<char*>(&value), 1, sizeof(float32), output);
+    output.write(reinterpret_cast<char*>(&value), sizeof(float32));
 }
 
 //-----------------------------------------------------------------------------
@@ -381,7 +374,7 @@ writeFloat32(
 inline static
 void
 writeFloat64(
-    FILE * output,
+    std::ostream & output,
     float64 value)
 {
     // Swap the bytes if we are on a big endian platform
@@ -392,7 +385,7 @@ writeFloat64(
         else if(sizeof(float64) == 4) *v = swapBytesInt32(*v);
     #endif
 
-    fwrite(reinterpret_cast<char*>(&value), sizeof(float64), 1, output);
+    output.write(reinterpret_cast<char*>(&value), sizeof(float64));
 }
 
 boolean
@@ -403,12 +396,29 @@ read(
     AudioStream * as,
     std::stringstream * ss)
 {
-    FILE * fd;
-    fd = fopen(filename.c_str(), "rb");
+    // The stream closes the file on every return and throw.
+    std::ifstream fd(filename, std::ios::binary);
 
-    if(fd == nullptr)
+    // The sizes in the file can't be trusted: every chunk is checked against
+    // the size of the file, from the OS by seeking to its end.
+    fd.seekg(0, std::ios::end);
+    std::streamoff end = fd.tellg();
+    fd.seekg(0);
+
+    if(!fd || end < 0)
     {
         M_THROW("Wavefile::read(): unable to open file '" << filename << "'");
+
+        return false;
+    }
+
+    uint64 file_size = static_cast<uint64>(end);
+
+    // 'RIFF', the RIFF chunk length and 'WAVE'.
+    if(file_size < 12)
+    {
+        M_THROW("Wavefile::read(): '" << filename
+            << "', " << file_size << " bytes is too short for a wave file");
 
         return false;
     }
@@ -420,8 +430,6 @@ read(
     chunk_id = static_cast<uint32>(readInt(fd,4));
     if(chunk_id != Wavefile::RIFF_)
     {
-        fclose(fd);
-
         M_THROW("Wavefile::read(): '" << filename
             << "', could not read 'RIFF' from file");
 
@@ -436,27 +444,12 @@ read(
 
     if(chunk_id != Wavefile::WAVE_)
     {
-        fclose(fd);
-
         M_THROW(
             "Wavefile::read(): '" << filename
             << "', could not read 'WAVE' from file");
 
         return false;
     }
-
-    // Determine end of file position.
-
-    size_t cur_pos = ftell(fd);
-    fseek(fd, 0, SEEK_END);
-    size_t end_pos = ftell(fd);
-
-    // Seek back to where we were.
-    #ifdef NSOUND_PLATFORM_OS_WINDOWS
-    	fseek(fd, static_cast<long>(cur_pos), SEEK_SET);
-    #else
-		fseek(fd, cur_pos, SEEK_SET);
-	#endif
 
     // Read in chunk ids until we find the data chunk, skipping all other chunk
     // ids except for the format chunk.
@@ -468,45 +461,14 @@ read(
     uint32 block_alignment = 0;
     uint32 bits_per_sample = 0;
 
-    chunk_id = static_cast<uint32>(readInt(fd, 4));
+    // The position of the next chunk.
+    uint64 pos = 12;
 
-    while(chunk_id != Wavefile::DATA_)
+    while(true)
     {
-        chunk_size = static_cast<uint32>(readInt(fd, 4));
-
-        if(chunk_id == Wavefile::FMT_)
+        // A chunk starts with its 4 byte id and 4 byte size.
+        if(pos + 8 > file_size)
         {
-            // Save the current postion.
-            size_t pos = ftell(fd);
-
-            format_tag               = static_cast<uint16>(readInt(fd, 2));
-            channels                 = static_cast<uint16>(readInt(fd, 2));
-            sample_rate              = static_cast<uint32>(readInt(fd, 4));
-            average_bytes_per_second = static_cast<uint32>(readInt(fd, 4));
-            block_alignment          = static_cast<uint32>(readInt(fd, 2));
-            bits_per_sample          = static_cast<uint32>(readInt(fd, 2));
-
-            #ifdef NSOUND_PLATFORM_OS_WINDOWS
-				fseek(fd, static_cast<long>(pos + static_cast<size_t>(chunk_size)), SEEK_SET);
-			#else
-				fseek(fd, pos + static_cast<size_t>(chunk_size), SEEK_SET);
-			#endif
-        }
-        else
-        {
-            // Seek over chunk.
-            fseek(fd, chunk_size, SEEK_CUR);
-        }
-
-        // Read in next chunk id
-        chunk_id = static_cast<uint32>(readInt(fd, 4));
-
-        cur_pos = ftell(fd);
-
-        if(cur_pos >= end_pos)
-        {
-            fclose(fd);
-
             M_THROW("Wavefile::read(): '"
                  << filename
                  << "', reached end of file before finding the "
@@ -514,23 +476,62 @@ read(
 
             return false;
         }
+
+        fd.seekg(static_cast<std::streamoff>(pos));
+
+        chunk_id = static_cast<uint32>(readInt(fd, 4));
+        chunk_size = static_cast<uint32>(readInt(fd, 4));
+
+        pos += 8;
+
+        if(chunk_id == Wavefile::DATA_) break;
+
+        if(chunk_size > file_size - pos)
+        {
+            M_THROW("Wavefile::read(): '"
+                 << filename
+                 << "', a chunk of " << chunk_size << " bytes at byte "
+                 << pos - 8 << " goes past the end of the file");
+
+            return false;
+        }
+
+        if(chunk_id == Wavefile::FMT_)
+        {
+            // The format fields below are 16 bytes.
+            if(chunk_size < 16)
+            {
+                M_THROW("Wavefile::read(): '"
+                     << filename
+                     << "', the 'fmt ' chunk is " << chunk_size
+                     << " bytes, shorter than 16");
+
+                return false;
+            }
+
+            format_tag               = static_cast<uint16>(readInt(fd, 2));
+            channels                 = static_cast<uint16>(readInt(fd, 2));
+            sample_rate              = static_cast<uint32>(readInt(fd, 4));
+            average_bytes_per_second = static_cast<uint32>(readInt(fd, 4));
+            block_alignment          = static_cast<uint32>(readInt(fd, 2));
+            bits_per_sample          = static_cast<uint32>(readInt(fd, 2));
+        }
+
+        pos += chunk_size;
     }
 
     // Data length
-    uint32 data_length = static_cast<uint32>(readInt(fd, 4));
+    uint32 data_length = chunk_size;
 
-    // Determine data_length by using fseek.
-    cur_pos = ftell(fd);
-
-    if(data_length > (end_pos - cur_pos))
+    if(data_length > file_size - pos)
     {
         cerr << WARNING_HEADER
              << "the data chunk size indicates the file is truncated!" << endl
              << "    data_chunk_size  = " << data_length << endl
-             << "    actual data size = " << (end_pos - cur_pos) << endl;
+             << "    actual data size = " << (file_size - pos) << endl;
 
         // Only read what is in the file, the header can't be trusted.
-        data_length = static_cast<uint32>(end_pos - cur_pos);
+        data_length = static_cast<uint32>(file_size - pos);
     }
 
     boolean fmt_found = true;
@@ -656,7 +657,6 @@ read(
 
     if(!fmt_found)
     {
-        fclose(fd);
         return false;
     }
 
@@ -664,8 +664,6 @@ read(
     if( format_tag != Wavefile::WAVE_FORMAT_PCM_ &&
         format_tag != Wavefile::WAVE_FORMAT_IEEE_FLOAT_)
     {
-        fclose(fd);
-
         M_THROW("Wavefile::read(): '"
              << filename
              << "', Nsound currently only supports PCM and IEEE Floating "
@@ -726,12 +724,34 @@ read(
             break;
         }
         default:
-            fclose(fd);
-
             M_THROW("Wavefile::read(): bits_per_sample = "
                  << bits_per_sample);
 
             return false;
+    }
+
+    // IEEE floats are 32 or 64 bit, readHeader() says so instead of throwing.
+    if(format_tag == WAVE_FORMAT_IEEE_FLOAT_ &&
+       bits_per_sample != 32 &&
+       bits_per_sample != 64)
+    {
+        if(ss != nullptr)
+        {
+            (*ss)
+                << "Wavefile::read(\""
+                << filename
+                << "\"): format is "
+                << "IEEE Float but bits_per_sample = "
+                << bits_per_sample;
+
+            return false;
+        }
+
+        M_THROW("Wavefile::read(): format is "
+            << "IEEE Float but bits_per_sample = "
+            << bits_per_sample);
+
+        return false;
     }
 
     ///////////////////////////////////////////////////////////////////////
@@ -753,8 +773,6 @@ read(
         {
             bv.push_back(Buffer(10));
 
-            bool format_mismatch = false;
-
             // Read the audio samples without scaling them.
             for(uint32 i = 0; i < n_samples; ++i)
             {
@@ -762,33 +780,15 @@ read(
                 {
                     bv[ch] << static_cast<float64>(readInt(fd,n_bytes));
                 }
-                else if(format_tag == WAVE_FORMAT_IEEE_FLOAT_)
+                else if(bits_per_sample == 32)
                 {
-                    if(bits_per_sample == 32)
-                    {
-                        bv[ch] << static_cast<float64>(readFloat32(fd));
-                    }
-                    else if(bits_per_sample == 64)
-                    {
-                        bv[ch] << readFloat64(fd);
-                    }
-                    else
-                    {
-                    	format_mismatch = true;
-                    }
+                    bv[ch] << static_cast<float64>(readFloat32(fd));
+                }
+                else
+                {
+                    bv[ch] << readFloat64(fd);
                 }
             }
-
-            if(format_mismatch)
-            {
-				(*ss)
-					<< "Wavefile::read(\""
-					<< filename
-					<< "\"): format is "
-					<< "IEEE Float but bits_per_sample = "
-					<< bits_per_sample;
-				return false;
-			}
 
             // Print out the results.
             (*ss) << "channel[" << ch << "] = ";
@@ -839,23 +839,14 @@ read(
                     *((*b_vector)[ch]) << static_cast<float64>(sample)
                                         / data_scale;
                 }
-                else if(format_tag == WAVE_FORMAT_IEEE_FLOAT_)
+                else if(bits_per_sample == 32)
                 {
-                    if(bits_per_sample == 32)
-                    {
-                        *((*b_vector)[ch]) << static_cast<float64>(
-                            readFloat32(fd));
-                    }
-                    else if(bits_per_sample == 64)
-                    {
-                        *((*b_vector)[ch]) << readFloat64(fd);
-                    }
-                    else
-                    {
-                        M_THROW("Wavefile::read(): format is "
-                            << "IEEE Float but bits_per_sample = "
-                            << bits_per_sample);
-                    }
+                    *((*b_vector)[ch]) << static_cast<float64>(
+                        readFloat32(fd));
+                }
+                else
+                {
+                    *((*b_vector)[ch]) << readFloat64(fd);
                 }
             }
 
@@ -888,34 +879,22 @@ read(
 
                     (*as)[ch] << static_cast<float64>(sample) / data_scale;
                 }
-                else if(format_tag == WAVE_FORMAT_IEEE_FLOAT_)
+                else if(bits_per_sample == 32)
                 {
-                    if(bits_per_sample == 32)
-                    {
-                        (*as)[ch] << static_cast<float64>(readFloat32(fd));
-                    }
-                    else if(bits_per_sample == 64)
-                    {
-                        (*as)[ch] << readFloat64(fd);
-                    }
-                    else
-                    {
-                        M_THROW("Wavefile::read(): format is "
-                            << "IEEE Float but bits_per_sample = "
-                            << bits_per_sample);
-                    }
+                    (*as)[ch] << static_cast<float64>(readFloat32(fd));
+                }
+                else
+                {
+                    (*as)[ch] << readFloat64(fd);
                 }
             }
         }
     }
     else
     {
-        fclose(fd);
         M_THROW("Wavefile::read(): unhandled case!");
         return false;
     }
-
-    fclose(fd);
 
     return true;
 }
@@ -970,11 +949,10 @@ write(const string & filename,
         return false;
     }
 
-    // open the file
-    FILE * output;
-    output = fopen(filename.c_str(), "wb");
+    // open the file, the stream closes it on every return and throw.
+    std::ofstream output(filename, std::ios::binary);
 
-    if(output == nullptr)
+    if(!output)
     {
         M_THROW("Wavefile::write(): "
             << "unable to open file '"
@@ -1145,7 +1123,6 @@ write(const string & filename,
         }
     }
 
-    fclose(output);
     return true;
 }
 
@@ -1169,11 +1146,10 @@ write(
         return false;
     }
 
-    // open the file
+    // open the file, the stream closes it on every return and throw.
+    std::ofstream output(filename, std::ios::binary);
 
-    FILE * output;
-    output = fopen(filename.c_str(), "wb");
-    if(output == nullptr)
+    if(!output)
     {
         M_THROW("Wavefile::write(): "
              << "unable to open file '"
@@ -1338,7 +1314,6 @@ write(
             }
     }
 
-    fclose(output);
     return true;
 }
 
@@ -1584,20 +1559,17 @@ ID3v1Tag(const std::string & filename, boolean show_warnings)
 #define IO_ERROR -2
 
 int64
-findID3v1Tag(FILE * fin)
+findID3v1Tag(std::istream & fin)
 {
     uint32 chunk_id = 0;
     uint32 header_limit = 72 ;  // The 'data' should be near the begging
                                 // of the file if it is a WAVE file.
 
-    size_t data_length = 0;
+    uint64 data_length = 0;
 
     uint32 count = 0;
 
-    M_CHECK_PTR(fin);
-    if(fin == nullptr) return IO_ERROR;
-
-    fseek(fin, 0, SEEK_SET);
+    fin.seekg(0);
 
     // Verify first tag is RIFF
     chunk_id = static_cast<uint32>(readInt(fin, 4));
@@ -1646,26 +1618,27 @@ findID3v1Tag(FILE * fin)
         return IO_ERROR;
     }
 
-    size_t cur_pos = ftell(fin);
-    fseek(fin, 0, SEEK_END);
-    size_t end_pos = ftell(fin);
+    std::streamoff cur_pos = fin.tellg();
+    fin.seekg(0, std::ios::end);
+    std::streamoff end_pos = fin.tellg();
+
+    // The tag is after the data, a data length past the end of the file
+    // leaves no room for one.
+    if(cur_pos < 0 || data_length > static_cast<uint64>(end_pos - cur_pos))
+    {
+        return NOT_FOUND;
+    }
 
     // Seek to the end of the data
-	#ifdef NSOUND_PLATFORM_OS_WINDOWS
-		fseek(fin, static_cast<long>(cur_pos), SEEK_SET);
-		fseek(fin, static_cast<long>(data_length), SEEK_CUR);
-	#else
-		fseek(fin, cur_pos, SEEK_SET);
-		fseek(fin, data_length, SEEK_CUR);
-	#endif
+    fin.seekg(cur_pos + static_cast<std::streamoff>(data_length));
 
     // Start scanning for 'TAG'
-    cur_pos = ftell(fin);
-    while(cur_pos < end_pos-2)
+    cur_pos = fin.tellg();
+    while(cur_pos + 3 <= end_pos)
     {
         char t[3];
 
-        if(3 != fread(t, 1, 3, fin))
+        if(!fin.read(t, 3))
         {
             M_THROW("ID3v1Tag::find(): IO error reading file");
             return IO_ERROR;
@@ -1673,31 +1646,26 @@ findID3v1Tag(FILE * fin)
 
         if(t[0] == 'T' && t[1] == 'A' && t[2] == 'G')
         {
-            break;
+            return cur_pos;
         }
 
-        cur_pos = ftell(fin);
+        // One byte on, the tag may start anywhere after the data.
+        ++cur_pos;
+        fin.seekg(cur_pos);
     }
 
     // No tag.
-    if(cur_pos >= end_pos)
-    {
-        return NOT_FOUND;
-    }
-
-    // We have the tag, back up three bytes and return position.
-    fseek(fin, -3, SEEK_CUR);
-
-    return ftell(fin);
+    return NOT_FOUND;
 }
 
 boolean
 ID3v1Tag::
 read(const std::string & filename, boolean show_warnings)
 {
-    FILE * fin = fopen(filename.c_str(), "rb");
+    // The stream closes the file on every return and throw.
+    std::ifstream fin(filename, std::ios::binary);
 
-    if(fin == nullptr)
+    if(!fin)
     {
         M_THROW("ID3v1Tag::read(): could not open the file '"
              << filename
@@ -1705,44 +1673,39 @@ read(const std::string & filename, boolean show_warnings)
         return false;
     }
 
-    int64 tag_pos = static_cast<size_t>(findID3v1Tag(fin));
+    int64 tag_pos = findID3v1Tag(fin);
 
     if(tag_pos == IO_ERROR)
     {
-        fclose(fin);
         M_THROW("ID3v1Tag::read(): ID3v1Tag::find() failed!");
         return false;
     }
 
-    if(tag_pos == NOT_FOUND && show_warnings)
+    if(tag_pos == NOT_FOUND)
     {
-        fclose(fin);
-        cerr << "*** Warning --> ID3v1Tag::read(): could not find the ID3v1 'TAG'"
-             << endl;
+        if(show_warnings)
+        {
+            cerr << "*** Warning --> ID3v1Tag::read(): could not find the ID3v1 'TAG'"
+                 << endl;
+        }
         return false;
     }
 
     // Seek to the tag.
-    #ifdef NSOUND_PLATFORM_OS_WINDOWS
-		fseek(fin, static_cast<long>(tag_pos), SEEK_SET);
-	#else
-		fseek(fin, tag_pos, SEEK_SET);
-	#endif
+    fin.clear();
+    fin.seekg(tag_pos);
 
     RawTag tag;
 
     memset(reinterpret_cast<char *>(&tag), 0, sizeof(RawTag));
 
     // Read the tag.
-    if(sizeof(RawTag) != fread(tag.header, 1, sizeof(RawTag), fin))
+    if(!fin.read(reinterpret_cast<char *>(&tag), sizeof(RawTag)))
     {
-        fclose(fin);
         cerr << "*** Error --> ID3v1Tag::read(): failed to read the ID3v1 TAG!"
              << endl;
         return false;
     }
-
-    fclose(fin);
 
     this->title.clear();
     this->artist.clear();
@@ -1794,11 +1757,12 @@ read(const std::string & filename, boolean show_warnings)
 
 boolean
 ID3v1Tag::
-write(const std::string & filename, boolean show_warnings)
+write(const std::string & filename, boolean /* show_warnings */)
 {
-    FILE * fin = fopen(filename.c_str(), "r+b");
+    // The stream closes the file on every return and throw.
+    std::fstream fin(filename, std::ios::in | std::ios::out | std::ios::binary);
 
-    if(fin == nullptr)
+    if(!fin)
     {
         M_THROW("ID3v1Tag::write(): could not open the file '"
              << filename
@@ -1816,20 +1780,18 @@ write(const std::string & filename, boolean show_warnings)
         return false;
     }
 
+    fin.clear();
+
     // If he tag wasn't found, just go to the end of the file.
-    else if(tag_pos == NOT_FOUND)
+    if(tag_pos == NOT_FOUND)
     {
-        fseek(fin, 0, SEEK_END);
+        fin.seekp(0, std::ios::end);
     }
 
     // Seek to the tag.
     else
     {
-		#ifdef NSOUND_PLATFORM_OS_WINDOWS
-			fseek(fin, static_cast<long>(tag_pos), SEEK_SET);
-		#else
-			fseek(fin, tag_pos, SEEK_SET);
-		#endif
+        fin.seekp(tag_pos);
     }
 
     RawTag tag;
@@ -1876,14 +1838,12 @@ write(const std::string & filename, boolean show_warnings)
     tag.genre = this->genre;
 
     // Write the tag.
-    if(sizeof(RawTag) != fwrite(tag.header, 1, sizeof(RawTag), fin))
+    if(!fin.write(reinterpret_cast<const char *>(&tag), sizeof(RawTag)))
     {
-        fclose(fin);
         M_THROW("ID3v1Tag::write(): failed to write the ID3v1Tag!");
         return false;
     }
 
-    fclose(fin);
     return true;
 }
 

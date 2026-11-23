@@ -499,7 +499,7 @@ plot(boolean show_fc, boolean show_phase)
         pylab.axvline(frequency_,"color='red'");
 
         char title[128];
-        sprintf(title,
+        snprintf(title, sizeof(title),
             "Parametric Equalizing Frequency Response\n"
             "order = %.0f, f = %0.1f Hz, sr = %0.1f Hz",
             static_cast<float64>(N_POLES - 1),

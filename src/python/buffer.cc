@@ -159,7 +159,11 @@ bind_buffer(py::module_ & m)
         .def(py::init<const BufferSelection &>(),
             py::keep_alive<1, 2>());
 
-    py::class_<Buffer> buffer(m, "Buffer");
+    py::class_<Buffer> buffer(m, "Buffer",
+        "An array of samples.\n\n"
+        "Pickles and the bytes from write(): only load ones you trust.\n"
+        "pickle.loads() of untrusted bytes can run any Python code, before\n"
+        "Nsound sees them.  read() checks its bytes and raises on bad ones.");
 
     buffer
         .def(py::init<>())
@@ -324,7 +328,8 @@ bind_buffer(py::module_ & m)
                 self.read(data.data(), data.size());
             },
             py::arg("data"),
-            "Reads the samples from write()'s bytes or bytearray.")
+            "Reads the samples from write()'s bytes or bytearray.  Only read\n"
+            "bytes you trust: bad ones raise, but forged ones read as samples.")
         .def("smooth",
             &Buffer::smooth,
             py::arg("n_passes"),

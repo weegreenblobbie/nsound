@@ -906,17 +906,29 @@ read(std::istream & in)
         & sr & n_channels;
 
     if(
+        !in ||
         id[0] != 'a' || id[1] != 'u' || id[2] != 'd' || id[3] != 'i' ||
         id[4] != 'o' || id[5] != 's' || id[6] != 't' || id[7] != 'r')
     {
         M_THROW("Did not find any Nsound AudioStream data in input stream!");
     }
 
+    // The channel count can't be trusted: each channel is read before it's
+    // kept, a forged count throws at the first channel that isn't there.
+    std::vector<Buffer> channels;
+
+    for(uint32 i = 0; i < n_channels; ++i)
+    {
+        Buffer channel;
+        channel.read(in);
+        channels.push_back(std::move(channel));
+    }
+
     sample_rate_ = sr;
 
     setNChannels(n_channels);
 
-    for(auto * ptr : buffers_) ptr->read(in);
+    for(uint32 i = 0; i < n_channels; ++i) *buffers_[i] = channels[i];
 
     return in;
 }

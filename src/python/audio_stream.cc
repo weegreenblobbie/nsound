@@ -76,7 +76,11 @@ bind_audio_stream(py::module_ & m)
             py::arg("rhs"),
             py::return_value_policy::reference_internal);
 
-    py::class_<AudioStream> audio_stream(m, "AudioStream");
+    py::class_<AudioStream> audio_stream(m, "AudioStream",
+        "Channels of samples at a sample rate.\n\n"
+        "Pickles and the bytes from write(): only load ones you trust.\n"
+        "pickle.loads() of untrusted bytes can run any Python code, before\n"
+        "Nsound sees them.  read() checks its bytes and raises on bad ones.");
 
     audio_stream
         .def(py::init<>())
@@ -222,7 +226,8 @@ bind_audio_stream(py::module_ & m)
                 self.read(data.data(), data.size());
             },
             py::arg("data"),
-            "Reads the channels from write()'s bytes or bytearray.")
+            "Reads the channels from write()'s bytes or bytearray.  Only read\n"
+            "bytes you trust: bad ones raise, but forged ones read as samples.")
         .def("setNChannels",
             &AudioStream::setNChannels,
             py::arg("channels"))

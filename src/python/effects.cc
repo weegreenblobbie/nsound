@@ -334,9 +334,6 @@ bind_effects(py::module_ & m)
             py::arg("y"),
             py::arg("fmt") = "",
             py::arg("kwargs") = "")
-        .def("run_string",
-            &Plotter::run_string,
-            py::arg("command"))
         .def("savefig",
             &Plotter::savefig,
             py::arg("filename"),

@@ -37,6 +37,9 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $bazeliskVersion = 'v1.30.0'
+# The release's bazelisk-windows-amd64.exe.sha256, pinned here: a hash from
+# the same place as the download would only catch a broken download.
+$bazeliskSha256 = '5d14a31e9d8a363c48ba1900dbd56764d730835232eb0d113cce255856ffe3ef'
 $bazeliskUrl = "https://github.com/bazelbuild/bazelisk/releases/download/$bazeliskVersion/bazelisk-windows-amd64.exe"
 $bazeliskDir = Join-Path $env:LOCALAPPDATA 'bazelisk'
 $bazelExe = Join-Path $bazeliskDir 'bazel.exe'
@@ -52,19 +55,17 @@ if (Get-Command bazel -ErrorAction SilentlyContinue) {
 
     New-Item -ItemType Directory -Force -Path $bazeliskDir | Out-Null
 
-    # The .sha256 file is served as binary, so save it and read it as text.
-    $shaFile = "$bazelExe.sha256"
     Invoke-WebRequest -Uri $bazeliskUrl -OutFile $bazelExe -UseBasicParsing
-    Invoke-WebRequest -Uri "$bazeliskUrl.sha256" -OutFile $shaFile -UseBasicParsing
-    $expected = ((Get-Content -Raw $shaFile).Trim() -split '\s+')[0]
-    Remove-Item $shaFile
     $actual = (Get-FileHash -Algorithm SHA256 $bazelExe).Hash
 
-    if ($actual -ne $expected) {
+    # -ne ignores case, Get-FileHash prints upper case.
+    if ($actual -ne $bazeliskSha256) {
         Remove-Item $bazelExe
-        Write-Error "SHA256 of $bazelExe is $actual, expected $expected."
+        Write-Error "SHA256 of $bazelExe is $actual, expected $bazeliskSha256."
         exit 1
     }
+
+    Write-Host "Bazelisk $bazeliskVersion SHA256 $actual passed." -ForegroundColor Green
 
     $userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
     if (($userPath -split ';') -notcontains $bazeliskDir) {
@@ -97,6 +98,9 @@ if ($msvc) {
     }
 
     Write-Host "Installing the Visual Studio 2022 C++ Build Tools (this takes a while) ..." -ForegroundColor Cyan
+
+    # winget checks the installer against the SHA256 in its package manifest
+    # and prints "Successfully verified installer hash".
 
     & winget install --id Microsoft.VisualStudio.2022.BuildTools --exact `
         --accept-package-agreements --accept-source-agreements `

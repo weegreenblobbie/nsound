@@ -605,6 +605,32 @@ TEST_CASE("AudioStream write(), read()")
 
         CHECK_THROWS_AS(read.read(data.data(), data.size()), Exception);
     }
+
+    // write()'s bytes: "audiostr", the float64 sample rate, the uint32
+    // channel count, the channels.
+    SECTION("read() throws when the bytes end before the channels")
+    {
+        std::string data = as.write();
+        data.resize(data.size() - 8);
+
+        AudioStream read(7.0, 1);
+
+        CHECK_THROWS_AS(read.read(data.data(), data.size()), Exception);
+
+        // Unchanged.
+        CHECK(read.getSampleRate() == 7.0);
+        CHECK(read.getNChannels() == 1);
+    }
+
+    SECTION("read() of a forged channel count throws, it doesn't make 4 billion")
+    {
+        std::string data = as.write();
+        data.replace(16, 4, std::string(4, static_cast<char>(0xff)));
+
+        AudioStream read;
+
+        CHECK_THROWS_AS(read.read(data.data(), data.size()), Exception);
+    }
 }
 
 TEST_CASE("AudioStream ones(), zeros(), rand()")

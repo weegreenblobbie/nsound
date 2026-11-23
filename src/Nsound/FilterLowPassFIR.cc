@@ -202,7 +202,7 @@ FilterLowPassFIR::
 plot(boolean show_fc, boolean show_phase)
 {
     char title[256];
-    sprintf(title,
+    snprintf(title, sizeof(title),
         "Low Pass FIR Frequency Response\n"
         "order = %d, fc = %0.1f Hz, sr = %0.1f Hz",
         kernel_size_ - 1, frequency_1_Hz_, sample_rate_);

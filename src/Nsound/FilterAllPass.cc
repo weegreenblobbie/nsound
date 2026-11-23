@@ -131,7 +131,7 @@ FilterAllPass::
 plot(boolean show_fc, boolean show_phase)
 {
     char title[128];
-    sprintf(title,
+    snprintf(title, sizeof(title),
         "All Pass Frequency Response\n"
         "sr = %0.1f Hz",
         sample_rate_);

@@ -1,0 +1,14 @@
+# The dev container's Python packages (see Dockerfile): pytest, coverage
+# reports, numpy/matplotlib for plotting and the Python tests, pybind11, and
+# the wheel builders.  docker_requirements_lock.txt pins them with their
+# hashes, see its first lines.
+wheel
+setuptools
+build
+pytest
+numpy
+matplotlib
+gcovr
+pybind11[global]
+scikit-build-core
+pybind11-stubgen

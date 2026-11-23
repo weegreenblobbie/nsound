@@ -30,7 +30,12 @@ Support audio playback
 
 [x] How can we test audio playback in linux bazel test builds?
 [x] Update the windows bazel build so AudioPlayback works
-[ ] Can audio playback be tested with bazel test on Windows too?
+[x] Can audio playback be tested with bazel test on Windows too?
+
+Remove all C++ build warnings
+-----------------------------
+
+[x] Treat warnings as errors
 
 Publish to pypi
 ---------------
