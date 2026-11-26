@@ -146,6 +146,29 @@ TEST_CASE("AudioPlaybackRt plays every sample, in order")
     CHECK(not_silence() == to_int16(samples));
 }
 
+TEST_CASE("AudioPlaybackRt waits for free buffers, buffer after buffer")
+{
+    START_CAPTURE();
+
+    const uint32 n_buffers = 500;
+    Buffer samples = ramp(n_buffers * N);
+
+    {
+        AudioPlaybackRt pb(SR, 1, 4, BUFFER_SECONDS);
+
+        pb.play(samples);
+
+        // It waits at most once for each buffer written.
+        CHECK(pb.get_debug_info().overrun_count > 0);
+        CHECK(pb.get_debug_info().overrun_count <= n_buffers);
+
+        play_until_played(pb, 1);
+        pb.stop();
+    }
+
+    CHECK(not_silence() == to_int16(samples));
+}
+
 TEST_CASE("AudioPlaybackRt plays stereo interleaved")
 {
     START_CAPTURE();

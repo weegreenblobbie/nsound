@@ -29,45 +29,67 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import argparse
 import sys
-import queue as queue
+import time
 import multiprocessing
 
 import pygame
 import Nsound as ns
 
+import bebot_synth as synth
+
 #------------------------------------------------------------------------------
 # Globals
 
-SR = 48000.0
+SR = synth.SR
 CHANNELS = 1
 N_BUFFERS = 3
-CHUNK = 0.01 # The seconds of sound made per mouse position read
+CHUNK = 0.01 # The seconds of sound made per read of the controls
 
 LO_T = 0.01
 HI_T = 0.10 # Higher latency for non-JACK
 
 
 N_THREADS = 1
-WINDOW_SIZE = 400
+
+REPORT_SECONDS = 5.0 # The seconds of sound between --debug reports
+
+# The window: the square X-Y pad on the left, the panel on the right.
+PAD_SIZE = 400
+PANEL_WIDTH = 220
+
+ROW_HEIGHT = 28
+CHORD_BOX = pygame.Rect(PAD_SIZE + 20, 30, PANEL_WIDTH - 40, ROW_HEIGHT)
+SNAP_BOX = pygame.Rect(PAD_SIZE + 20, 68, 18, 18)
+ARPEGGIO_BOX = pygame.Rect(PAD_SIZE + 20, 94, 18, 18)
+TEMPO_BAR = pygame.Rect(PAD_SIZE + 20, 140, PANEL_WIDTH - 40, 18)
+# A button for each note value: five in a row, then the triplets below the
+# notes they divide, 1/8 and 1/16.
+NOTE_BOXES = tuple(
+    pygame.Rect(PAD_SIZE + 10 + 40 * column, 186 + 26 * row, 38, 22)
+    for row, column in [(0, i) for i in range(5)] + [(1, 3), (1, 4)])
+# A slider for each chord note's level, the root's on top.
+LEVEL_BARS = tuple(
+    pygame.Rect(PAD_SIZE + 88, 268 + 32 * i, 84, 18)
+    for i in range(synth.N_VOICES))
+
+# The semitones above the root, named.
+INTERVAL_NAMES = {
+    0: "Root", 2: "2nd", 3: "Min 3rd", 4: "Maj 3rd", 5: "4th", 6: "Dim 5th",
+    7: "5th", 8: "Aug 5th", 10: "Min 7th", 11: "Maj 7th"}
+
+NOTE_NAMES = (
+    "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
+
+BACKGROUND = (18, 20, 28)
+PANEL_COLOR = (32, 35, 46)
+BOX_COLOR = (58, 63, 82)
+GUIDE_COLOR = (44, 48, 64)
+OCTAVE_COLOR = (80, 86, 112)
+TEXT_COLOR = (220, 224, 236)
+ACCENT_COLOR = (90, 200, 250)
+IDLE_COLOR = (120, 126, 150)
 
 DEBUG_RECORD = False
-
-
-def limit(x, y):
-
-    if x < 0:
-        x = 0
-
-    if x >= WINDOW_SIZE:
-        x = WINDOW_SIZE - 1
-
-    if y < 0:
-        y = 0
-
-    if y >= WINDOW_SIZE:
-        y = WINDOW_SIZE - 1
-
-    return x, y
 
 
 def print_settings(playback, n_buffers, t, chunk):
@@ -92,83 +114,69 @@ def print_settings(playback, n_buffers, t, chunk):
     sys.stdout.flush()
 
 
-def worker(q, t, host_api, position, n_buffers, chunk):
+def print_counters(playback, seconds, render_times, chunk):
+    """Prints how long chunks took to render and the playback's counters."""
+    info = playback.get_debug_info()
+
+    print(
+        "%6.1f s: render ms per %g ms chunk: mean %.3f, max %.3f, late %d/%d"
+        " | underrun %d, overrun %d, pa_underrun %d, pa_overrun %d,"
+        " unknown %d" % (
+            seconds,
+            1000.0 * chunk,
+            1000.0 * sum(render_times) / len(render_times),
+            1000.0 * max(render_times),
+            sum(used > chunk for used in render_times),
+            len(render_times),
+            info.underrun_count,
+            info.overrun_count,
+            info.pa_underrun_count,
+            info.pa_overrun_count,
+            info.unknown_error_count))
+    sys.stdout.flush()
+
+
+def short_name(host_api):
+    """Returns a host API's name as typed: lower case, without "windows "."""
+    return host_api.lower().removeprefix("windows ")
+
+
+def full_host_api_name(name, host_apis):
+    """Returns the host API in host_apis that name is short for, else name."""
+    for host_api in host_apis:
+        if short_name(host_api) == short_name(name):
+            return host_api
+
+    return name
+
+
+def worker(ready, t, host_api, shared, quitting, n_buffers, chunk, debug):
+    """The sound's process: renders and plays what the shared controls ask."""
 
     #--------------------------------------------------------------------------
     # Initialize
 
-    # worker state machine
-    enum = 0
-
-    WAITING = enum ; enum += 1
-    PLAYING = enum ; enum += 1
-    RELEASING = enum; enum += 1
-
     try:
         # Here, not in main(): on Windows this process starts a new Python.
         if host_api:
-            ns.AudioPlaybackRt.use_host_api(host_api)
+            ns.AudioPlaybackRt.use_host_api(full_host_api_name(
+                host_api, ns.AudioPlaybackRt.getHostApis()))
 
         playback = ns.AudioPlaybackRt(SR, CHANNELS, n_buffers, t)
     except:
-        q.put(False)
+        ready.put(False)
         sys.stderr.write("FAILURE: failed to create audio playback object!\n")
         sys.stderr.flush()
         return
 
     print_settings(playback, n_buffers, t, chunk)
 
-    gen = ns.Sine(SR)
-    gen.setRealtime(True)
-
-    lpf = ns.FilterLowPassIIR(SR, 6, 80, 0.00)
-    lpf.setRealtime(True)
-
-    gent = ns.Triangle(SR, 0.02, 0.02)
-    gent.setRealtime(True)
-
-    gend = ns.GeneratorDecay(SR)
-    gend.setRealtime(True)
-
-    gend.addSlaveSync(gen)
+    voices = synth.Synth()
 
     # Tell the main thread we succeeded in initializing our
     # nsound objects.
 
-    q.put(True)
-
-    while q.full():
-        pass
-
-    #--------------------------------------------------------------------------
-    # lookup tables
-
-    freq_min = 40
-    freq_max = 650
-
-    ks_min = 200
-    ks_max = 8000
-
-    alpha_min = 6
-    alpha_max = 36
-
-    f_cut_min = 1000
-    f_cut_max = 7000
-
-    # Make tables
-    g = ns.Generator(1)
-
-    freq_table  = g.drawLine(WINDOW_SIZE, freq_min,  freq_max)
-    ks_table    = g.drawLine(WINDOW_SIZE, ks_min,    ks_max)
-    alpha_table = g.drawLine(WINDOW_SIZE, alpha_min, alpha_max)
-    f_cut_table = g.drawLine(WINDOW_SIZE, f_cut_min, f_cut_max)
-
-    state = WAITING
-
-    x0, y0 = None, None
-    x1, y1 = None, None
-
-    reset_first = False
+    ready.put(True)
 
     if DEBUG_RECORD:
         aout = ns.AudioStream(SR, 1)
@@ -177,102 +185,291 @@ def worker(q, t, host_api, position, n_buffers, chunk):
     #--------------------------------------------------------------------------
     # Sound processing loop
 
-    dur = chunk
+    # Stopping drops what is still in the buffers, so after the sound fades
+    # out, this much silence pushes the end of the fade to the device.
+    tail_seconds = (n_buffers + 1) * t
+    silence_left = 0.0
+    playing = False
 
-    process_pos = True
+    # For --debug: the seconds played since the sound started, and the time
+    # each chunk took to render since the last report.
+    seconds = 0.0
+    render_times = []
 
-    while True:
+    while not quitting.is_set():
 
-        try:
-            pos = q.get(False)
-            process_pos = True
-        except queue.Empty:
-            process_pos = False
+        # All the controls at once, as the window last wrote them.
+        with shared.get_lock():
+            controls = synth.Controls.from_list(shared[:])
 
-        if process_pos:
+        pressed = controls.presses != voices.presses
 
-            if pos == "QUIT":
-                playback.stop()
-                return
-
-            elif pos == "STOP":
-
-                gen.reset()
-                gend.reset()
-                gent.reset()
-                lpf.reset()
-
-                playback.stop()
-
-                state = WAITING
-
-                # db_info = playback.get_debug_info()
-                # print "db_info =", db_info
-
-                if DEBUG_RECORD:
-                    fn = "bebot-rt-%02d.wav" % aid
-                    aout >> fn
-
-                    print("Wrote %s" % fn)
-
-                    aout = ns.AudioStream(SR, 1)
-                    aid += 1
-
-            elif state == WAITING:
-
-                x1, y1 = pos
-
-                y1 = WINDOW_SIZE - y1
-
-                x1, y1 = limit(x1, y1)
-
-                if x0 is None:
-                    x0, y0 = x1, y1
-
-                state = PLAYING
-
-        if state != PLAYING:
+        if not (playing or controls.held or pressed):
+            time.sleep(0.002)
             continue
 
-        # The newest mouse position, the window writes it as the mouse moves.
-        x1, y1 = position[0], WINDOW_SIZE - position[1]
-
-        x1, y1 = limit(x1, y1)
-
-        f0 = freq_table[x0]
-        f1 = freq_table[x1]
-
-        k0 = ks_table[y0]
-        k1 = ks_table[y1]
-
-        a0 = alpha_table[y0]
-        a1 = alpha_table[y1]
-
-        fc0 = f_cut_table[y0]
-        fc1 = f_cut_table[y1]
-
-        freqs = gen.drawLine(dur, f0, f1)
-        ks    = gen.drawLine(dur, k0, k1)
-        alpha = gen.drawLine(dur, a0, a1)
-        f_cut = gen.drawLine(dur, fc0, fc1)
-
-        temp = gend.generate2(dur, freqs, alpha)
-        temp *= gen.generate(dur, ks)
-
-        temp += 1.0
-
-        temp *= gent.generate(dur, freqs)
-
-        temp /= 2.0
-
-        temp = 0.333 * lpf.filter(temp, f_cut)
-
+        # Blocks while the buffers are full.
+        start = time.perf_counter()
+        temp = voices.render(controls, chunk)
+        used = time.perf_counter() - start
         temp >> playback
+        playing = True
+
+        if debug:
+            seconds += chunk
+            render_times.append(used)
+
+            if len(render_times) * chunk >= REPORT_SECONDS:
+                print_counters(playback, seconds, render_times, chunk)
+                render_times = []
 
         if DEBUG_RECORD:
             aout << temp
 
-        x0, y0 = x1, y1
+        if controls.held or pressed or not voices.is_silent():
+            silence_left = tail_seconds
+            continue
+
+        silence_left -= chunk
+
+        if silence_left <= 0.0:
+            if render_times:
+                print_counters(playback, seconds, render_times, chunk)
+
+            seconds = 0.0
+            render_times = []
+
+            playback.stop()
+            playing = False
+
+            if DEBUG_RECORD:
+                fn = "bebot-rt-%02d.wav" % aid
+                aout >> fn
+
+                print("Wrote %s" % fn)
+
+                aout = ns.AudioStream(SR, 1)
+                aid += 1
+
+    playback.stop()
+
+
+def limit(x, y):
+    """Returns the position moved onto the pad."""
+    last = PAD_SIZE - 1
+
+    return max(0, min(x, last)), max(0, min(y, last))
+
+
+class Window:
+    """Turns mouse events into Controls and draws them."""
+
+    def __init__(self):
+        """Starts with nothing pressed."""
+        self.controls = synth.Controls()
+        self.cursor = None          # The mouse's position on the pad
+        self.menu_open = False      # The chord list is showing
+        self.sliding = None         # The slider's bar being dragged
+
+    def handle(self, event):
+        """Updates the controls for a mouse event."""
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            self._press(event.pos)
+
+        elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+            self.controls.held = False
+            self.sliding = None
+
+        elif event.type == pygame.MOUSEMOTION:
+            if self.controls.held:
+                self._move(event.pos)
+            elif event.pos[0] < PAD_SIZE:
+                self.cursor = limit(*event.pos)
+
+            if self.sliding:
+                self._slide(event.pos[0])
+
+    def _press(self, pos):
+        """Handles the left button going down at pos."""
+        # The open chord list covers what is under it, a click closes it.
+        if self.menu_open:
+            for i in range(len(synth.CHORDS)):
+                if self._menu_item(i).collidepoint(pos):
+                    self.controls.chord = i
+
+            self.menu_open = False
+
+        elif pos[0] < PAD_SIZE:
+            self.controls.held = True
+            self.controls.presses += 1
+            self._move(pos)
+
+        elif CHORD_BOX.collidepoint(pos):
+            self.menu_open = True
+
+        # The check boxes' labels toggle them too.
+        elif self._row(SNAP_BOX).collidepoint(pos):
+            self.controls.snap = not self.controls.snap
+
+        elif self._row(ARPEGGIO_BOX).collidepoint(pos):
+            self.controls.arpeggio = not self.controls.arpeggio
+
+        else:
+            for i, box in enumerate(NOTE_BOXES):
+                if box.collidepoint(pos):
+                    self.controls.note_value = i
+
+            # Only the chord's notes have sliders.
+            n_notes = len(synth.CHORDS[self.controls.chord][1])
+
+            for bar in (TEMPO_BAR,) + LEVEL_BARS[:n_notes]:
+                if bar.collidepoint(pos):
+                    self.sliding = bar
+                    self._slide(pos[0])
+
+    def _move(self, pos):
+        """Moves the note to pos, clamped to the pad."""
+        x, y = limit(*pos)
+        self.cursor = x, y
+        self.controls.x = x / (PAD_SIZE - 1)
+        self.controls.y = 1.0 - y / (PAD_SIZE - 1)
+
+    def _slide(self, x):
+        """Sets the dragged slider's value from the position x."""
+        amount = (x - self.sliding.left) / (self.sliding.width - 1)
+        amount = max(0.0, min(amount, 1.0))
+
+        if self.sliding == TEMPO_BAR:
+            # Whole beats per minute.
+            self.controls.tempo = float(round(synth.mix(
+                synth.LOW_TEMPO, synth.HIGH_TEMPO, amount)))
+        else:
+            note = LEVEL_BARS.index(self.sliding) + 1
+            setattr(self.controls, "level%d" % note, amount)
+
+    @staticmethod
+    def _row(box):
+        """Returns the area of a check box and its label."""
+        return pygame.Rect(box.left, box.top, PANEL_WIDTH - 40, box.height)
+
+    @staticmethod
+    def _menu_item(i):
+        """Returns the area of the chord list's item i."""
+        return CHORD_BOX.move(0, (i + 1) * CHORD_BOX.height)
+
+    def draw(self, surface, font):
+        """Draws the pad and the panel."""
+        surface.fill(BACKGROUND, (0, 0, PAD_SIZE, PAD_SIZE))
+        surface.fill(PANEL_COLOR, (PAD_SIZE, 0, PANEL_WIDTH, PAD_SIZE))
+
+        if self.controls.snap:
+            self._draw_guides(surface)
+
+        if self.cursor:
+            self._draw_cursor(surface, font)
+
+        self._draw_panel(surface, font)
+
+    def _draw_guides(self, surface):
+        """Draws a line at each semitone, brighter at each C."""
+        span = synth.HIGH_NOTE - synth.LOW_NOTE
+
+        for note in synth.SEMITONES:
+            height = (note - synth.LOW_NOTE) / span
+            y = round((1.0 - height) * (PAD_SIZE - 1))
+            color = OCTAVE_COLOR if note % 12 == 0 else GUIDE_COLOR
+            pygame.draw.line(surface, color, (0, y), (PAD_SIZE - 1, y))
+
+    def _draw_cursor(self, surface, font):
+        """Draws the crosshair, and while held the root note."""
+        x, y = self.cursor
+        color = ACCENT_COLOR if self.controls.held else IDLE_COLOR
+
+        pygame.draw.line(surface, color, (x, 0), (x, PAD_SIZE - 1))
+        pygame.draw.line(surface, color, (0, y), (PAD_SIZE - 1, y))
+        pygame.draw.circle(surface, color, (x, y), 8, 2)
+
+        if self.controls.held:
+            note = synth.root_note(self.controls.y, self.controls.snap)
+            nearest = round(note)
+            text = "%s%d  %.1f Hz" % (
+                NOTE_NAMES[nearest % 12],
+                nearest // 12 - 1,
+                synth.note_frequency(note))
+            surface.blit(font.render(text, True, TEXT_COLOR), (8, 8))
+
+    def _draw_panel(self, surface, font):
+        """Draws the chord selector, the check boxes and the sliders."""
+
+        def write(text, pos):
+            surface.blit(font.render(text, True, TEXT_COLOR), pos)
+
+        write("Chord", (CHORD_BOX.left, 10))
+        pygame.draw.rect(surface, BOX_COLOR, CHORD_BOX)
+        write(
+            synth.CHORDS[self.controls.chord][0],
+            (CHORD_BOX.left + 8, CHORD_BOX.top + 7))
+        pygame.draw.polygon(surface, TEXT_COLOR, [
+            (CHORD_BOX.right - 18, CHORD_BOX.top + 11),
+            (CHORD_BOX.right - 8, CHORD_BOX.top + 11),
+            (CHORD_BOX.right - 13, CHORD_BOX.top + 17)])
+
+        for box, checked, label in (
+                (SNAP_BOX, self.controls.snap, "Snap to Semitones"),
+                (ARPEGGIO_BOX, self.controls.arpeggio, "Arpeggio")):
+            pygame.draw.rect(surface, BOX_COLOR, box)
+
+            if checked:
+                pygame.draw.rect(surface, ACCENT_COLOR, box.inflate(-8, -8))
+
+            write(label, (box.right + 8, box.top + 2))
+
+        write(
+            "Tempo: %.0f BPM" % self.controls.tempo,
+            (TEMPO_BAR.left, TEMPO_BAR.top - 20))
+        self._draw_bar(
+            surface,
+            TEMPO_BAR,
+            (self.controls.tempo - synth.LOW_TEMPO)
+                / (synth.HIGH_TEMPO - synth.LOW_TEMPO))
+
+        write("Note value", (TEMPO_BAR.left, NOTE_BOXES[0].top - 20))
+
+        for i, (box, (name, _)) in enumerate(
+                zip(NOTE_BOXES, synth.NOTE_VALUES)):
+            chosen = i == self.controls.note_value
+            pygame.draw.rect(
+                surface, ACCENT_COLOR if chosen else BOX_COLOR, box)
+            text = font.render(
+                name, True, BACKGROUND if chosen else TEXT_COLOR)
+            surface.blit(text, text.get_rect(center=box.center))
+
+        write("Note levels", (TEMPO_BAR.left, LEVEL_BARS[0].top - 22))
+
+        offsets = synth.CHORDS[self.controls.chord][1]
+
+        for bar, offset, level in zip(
+                LEVEL_BARS, offsets, self.controls.levels()):
+            write(INTERVAL_NAMES[offset], (TEMPO_BAR.left, bar.top + 2))
+            self._draw_bar(surface, bar, level)
+            write("%.0f%%" % (100.0 * level), (bar.right + 6, bar.top + 2))
+
+        if self.menu_open:
+            for i, (name, _) in enumerate(synth.CHORDS):
+                item = self._menu_item(i)
+                chosen = i == self.controls.chord
+                pygame.draw.rect(
+                    surface, OCTAVE_COLOR if chosen else BOX_COLOR, item)
+                write(name, (item.left + 8, item.top + 7))
+
+    @staticmethod
+    def _draw_bar(surface, bar, amount):
+        """Draws a slider filled to amount, 0 to 1."""
+        pygame.draw.rect(surface, BOX_COLOR, bar)
+
+        filled = bar.copy()
+        filled.width = round(amount * bar.width)
+        pygame.draw.rect(surface, ACCENT_COLOR, filled)
 
 
 def main():
@@ -293,7 +490,8 @@ running, you will get undefined behavior""")
         dest    = 'host_api',
         default = None,
         help    = """The portaudio host API to play through, with low latency,
-e.g. "Windows WASAPI", ns_playback lists them""")
+e.g. wasapi, wdm-ks or mme.  ns_playback lists them, "windows " can be left
+off and case doesn't matter""")
 
     parser.add_argument(
         '--buffer',
@@ -315,8 +513,16 @@ e.g. "Windows WASAPI", ns_playback lists them""")
         dest    = 'chunk',
         default = CHUNK,
         type    = float,
-        help    = """The seconds of sound made per mouse position read, %g by
+        help    = """The seconds of sound made per read of the controls, %g by
 default: smaller follows the mouse sooner, too small crackles""" % CHUNK)
+
+    parser.add_argument(
+        '--debug',
+        dest    = 'debug',
+        default = False,
+        action  = 'store_true',
+        help    = """Print the render times and playback counters every %g s of
+sound and at each release""" % REPORT_SECONDS)
 
     args = parser.parse_args()
 
@@ -342,75 +548,71 @@ default: smaller follows the mouse sooner, too small crackles""" % CHUNK)
     print("Hello Bebot!")
     print("Press ESC to quit.")
 
-    # The button presses and quitting go through the queue, the mouse
-    # position is shared: the worker reads the newest when it needs one, it
-    # doesn't fall behind a queue of old ones.
-    q = multiprocessing.Queue(maxsize = 1)
-    position = multiprocessing.Array("i", 2)
+    window = Window()
+
+    # The controls are shared, written and read all together under the lock:
+    # the worker reads the newest when it needs them, it doesn't fall behind
+    # a queue of old ones.
+    shared = multiprocessing.Array("d", window.controls.to_list())
+    quitting = multiprocessing.Event()
+    ready = multiprocessing.Queue()
     p = multiprocessing.Process(
         target=worker,
-        args = (q, t, args.host_api, position, args.n_buffers, args.chunk))
+        args = (
+            ready, t, args.host_api, shared, quitting, args.n_buffers,
+            args.chunk, args.debug))
     p.start()
 
     # read from queue that the process initialized and is ready.
-    good = q.get()
+    good = ready.get()
 
     if not good:
         sys.exit(1)
 
-    # Init only the display, otherwise when using JACK Audio Connection Kit,
-    # pygame won't exit cleanly.
+    # Init only the display and fonts, otherwise when using JACK Audio
+    # Connection Kit, pygame won't exit cleanly.
     pygame.display.init()
+    pygame.font.init()
 
     # Open window
-    window = pygame.display.set_mode((WINDOW_SIZE, WINDOW_SIZE))
+    screen = pygame.display.set_mode((PAD_SIZE + PANEL_WIDTH, PAD_SIZE))
     pygame.display.set_caption("Bebot! %s" % ns.__package__)
+    font = pygame.font.Font(None, 22)
 
     # Turn off key repeats
     pygame.key.set_repeat()
-
-    enum = 0
-    IDLE = enum ; enum += 1
-    PLAYING = enum ; enum += 1
-
-    state = IDLE
 
     main_loop = True
 
     while main_loop:
 
-        event = pygame.event.wait()
+        window.draw(screen, font)
+        pygame.display.flip()
 
-        #print "event = ", event
+        # Handle every waiting event before drawing again.
+        for event in [pygame.event.wait()] + pygame.event.get():
 
-        if state == PLAYING and event.type == pygame.MOUSEMOTION:
-            position[0], position[1] = event.pos
+            if event.type == pygame.KEYDOWN:
 
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            position[0], position[1] = event.pos
-            q.put(event.pos)
-            state = PLAYING
+                # Break out of loop
+                if event.key == pygame.K_ESCAPE:
+                    main_loop = False
 
-        elif event.type == pygame.MOUSEBUTTONUP:
-            q.put("STOP")
-            state = IDLE
-
-        elif event.type == pygame.KEYDOWN:
-
-            # Break out of loop
-            if event.key == pygame.K_ESCAPE:
+            elif event.type == pygame.QUIT:
+                print("Quitting main loop")
+                sys.stdout.flush()
                 main_loop = False
-                break
 
-        elif event.type == pygame.QUIT:
-            print("Quitting main loop")
-            sys.stdout.flush()
-            main_loop = False
-            break
+            else:
+                window.handle(event)
 
-    q.put("QUIT")
+                # Each event, so a quick press and release is seen.
+                with shared.get_lock():
+                    shared[:] = window.controls.to_list()
+
+    quitting.set()
     p.join()
-    pygame.display.quit()
+    pygame.quit()
     print("Goodbye!")
 
 

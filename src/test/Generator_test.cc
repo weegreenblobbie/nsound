@@ -274,6 +274,121 @@ TEST_CASE("Generator tell()")
 
     // 6 samples into 8.
     CHECK(gen.tell() == 0.75);
+
+    // The position stays within the waveform, however long it plays: 11
+    // samples into 8 is 3, then 14 back from there is 5.
+    gen.generate(5.0);
+
+    CHECK(gen.tell() == 0.375);
+
+    gen.generate(-14.0);
+
+    CHECK(gen.tell() == 0.625);
+}
+
+TEST_CASE("Generator plays on after a long run")
+{
+    Generator gen(8, make_ramp_waveform());
+
+    for(uint32 i = 0; i < 1000001; ++i) gen.generate(3.0);
+
+    // 3000003 samples into 8 is 3.
+    CHECK(gen.tell() == 0.375);
+    CHECK(gen.generate(3.0) == 0.375);
+}
+
+//! Checks that realtime generate2() in chunks of uneven lengths matches one
+//! call, with frequency and phase both ramping through negative values.
+static
+void
+check_chunks_match_one_call(Generator & whole, Generator & chunked)
+{
+    // A power of 2, so a chunk's duration gives its exact number of samples.
+    const uint32 sample_rate = 1024;
+
+    Buffer frequencies = whole.drawLine(3.0, -300.0, 500.0);
+    Buffer phases = whole.drawLine(3.0, -1.5, 2.5);
+
+    whole.setRealtime(true);
+    chunked.setRealtime(true);
+
+    Buffer expected = whole.generate2(3.0, frequencies, phases);
+    Buffer out;
+
+    const uint32 lengths[] = {1, 7, 64, 13, 500};
+
+    for(uint32 start = 0, i = 0; start < expected.getLength(); ++i)
+    {
+        uint32 length = std::min(
+            lengths[i % 5], expected.getLength() - start);
+
+        out << chunked.generate2(
+            static_cast<float64>(length) / sample_rate,
+            frequencies.subbuffer(start, length),
+            phases.subbuffer(start, length));
+
+        start += length;
+    }
+
+    REQUIRE(expected.getAbs().getMax() > 0.5);
+
+    check_close(out, expected, 0.0);
+    CHECK(chunked.tell() == whole.tell());
+}
+
+TEST_CASE("Generator realtime chunks match one call")
+{
+    Cosine whole(1024);
+    Cosine chunked(1024);
+
+    SECTION("one voice")
+    {
+        check_chunks_match_one_call(whole, chunked);
+    }
+
+    SECTION("chorus")
+    {
+        whole.setSeed(457745);
+        whole.setChorus(3, 0.25);
+
+        chunked.setSeed(457745);
+        chunked.setChorus(3, 0.25);
+
+        check_chunks_match_one_call(whole, chunked);
+    }
+}
+
+TEST_CASE("Generator negative frequency and phase")
+{
+    Generator gen(8, make_ramp_waveform());
+
+    SECTION("a negative frequency plays the waveform backwards")
+    {
+        check_close(
+            gen.generate(1.0, -1.0),
+            Buffer({0.0, 0.875, 0.75, 0.625, 0.5, 0.375, 0.25, 0.125}),
+            0.0);
+    }
+
+    SECTION("a negative phase starts earlier in the waveform")
+    {
+        // A phase of -0.5 is a quarter of the waveform, 2 samples.
+        check_close(
+            gen.generate2(1.0, 1.0, -0.5),
+            Buffer({0.75, 0.875, 0.0, 0.125, 0.25, 0.375, 0.5, 0.625}),
+            0.0);
+    }
+
+    SECTION("a chorus plays backwards too")
+    {
+        // One voice, not detuned.  The chorus reads a step ahead.
+        gen.setChorus(1, 0.0);
+
+        check_close(
+            gen.generate(1.0, -1.0),
+            Buffer({0.875, 0.75, 0.625, 0.5, 0.375, 0.25, 0.125, 0.0}),
+            0.0);
+    }
 }
 
 TEST_CASE("Generator buzz() with Buffers matches buzz() with numbers")

@@ -38,8 +38,9 @@ src/test/test_wavefile2.wav
 # tools/coverage.sh HTML report
 /coverage_html/
 
-# Claude Code config and history, mounted by start-claude.ps1
+# Agent config, logins and history, mounted by start-agent.ps1
 /claude-cfg/
+/agy-cfg/
 
 # .wav files written by the examples (C++ and Python), not their inputs
 src/examples/Temperature_*_Shifted_*.wav

@@ -71,6 +71,49 @@ compiler:
 ``tools/test_pip_install.py`` checks that: it installs the checkout into a
 new venv and runs the Python tests there.
 
+macOS versions
+~~~~~~~~~~~~~~
+
+Building from source needs no macOS settings: the build targets the macOS it
+is built on.
+
+macOS wheel builds
+~~~~~~~~~~~~~~~~~~
+
+This is only for building wheels to publish on PyPI.
+
+A wheel is tagged with the macOS it targets and doesn't install on an older
+one.  To build a wheel for Macs older than the one building it, set
+``MACOSX_DEPLOYMENT_TARGET`` to the oldest macOS the wheel supports:
+
+.. code-block:: bash
+
+    MACOSX_DEPLOYMENT_TARGET=11.0 python3 -m pip wheel --no-deps -w dist .
+
+The target also sets how ``AudioPlaybackRt`` waits while its playback buffers
+are full.  Targeting macOS 11 or newer it sleeps, targeting an older macOS it
+keeps a CPU core busy, it spins.
+
+For example, building on macOS 15:
+
+============================  ================  ==============  =============
+``MACOSX_DEPLOYMENT_TARGET``  Wheel's tag       Installs on     While waiting
+============================  ================  ==============  =============
+not set                       ``macosx_15_0``   15 or newer     Sleeps
+``11.0``                      ``macosx_11_0``   11 or newer     Sleeps
+``10.14``, Intel only         ``macosx_10_14``  10.14 or newer  Spins
+============================  ================  ==============  =============
+
+The tags end in the processor type, ``x86_64`` (Intel) or ``arm64`` (Apple
+Silicon).  To support every Mac, publish three wheels, ``pip`` installs the
+newest one the Mac supports:
+
+- ``macosx_11_0_arm64`` for Apple Silicon.
+- ``macosx_11_0_x86_64`` for Intel with macOS 11 or newer.
+- ``macosx_10_14_x86_64`` for Intel with macOS 10.14 or 10.15.
+
+Check the tag in each wheel's file name.
+
 
 Building with Bazel
 -------------------

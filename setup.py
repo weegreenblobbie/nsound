@@ -9,6 +9,7 @@ builds into //src/python:Nsound.
 
 import glob
 import os
+import platform
 import re
 import sys
 
@@ -48,6 +49,23 @@ def platform_os():
         return "NSOUND_PLATFORM_OS_MAC"
 
     return "NSOUND_PLATFORM_OS_LINUX"
+
+
+def target_this_macos():
+    """Targets the macOS being built on, unless MACOSX_DEPLOYMENT_TARGET is set.
+
+    pybind11 would target macOS 10.14, where AudioPlaybackRt spins while it
+    waits.
+    """
+    version = platform.mac_ver()[0].split(".")
+
+    # From macOS 11 on, wheels are tagged by the major version, e.g. 15.0.
+    if int(version[0]) >= 11:
+        target = version[0] + ".0"
+    else:
+        target = ".".join(version[:2])
+
+    os.environ.setdefault("MACOSX_DEPLOYMENT_TARGET", target)
 
 
 def write_nsound_h(version_a, version_b, version_c, version):
@@ -129,6 +147,10 @@ def main():
     else:
         # The same code generation flags as Bazel's.
         extra_compile_args = ["-fno-strict-aliasing", "-fwrapv"]
+
+    # Before Pybind11Extension, which reads the target.
+    if sys.platform == "darwin":
+        target_this_macos()
 
     module = Pybind11Extension(
         "Nsound._Nsound",

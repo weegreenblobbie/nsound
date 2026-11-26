@@ -1,8 +1,9 @@
 # Dev container for nsound: C++ (GCC + Clang), Bazel, Catch2 unit tests,
-# code coverage, and the Python/pybind11 bindings.
+# code coverage, and the Python/pybind11 bindings, with the Claude Code and
+# Antigravity (agy, for Gemini) CLI agents.
 #
-# Build:  docker build -t nsound-claude .
-# Update Claude Code / tools later with:  docker build --no-cache -t nsound-claude .
+# Build:  docker build -t nsound-agent .
+# Update the agents / tools later with:  docker build --no-cache -t nsound-agent .
 #
 # Every download is checked against a SHA-256 pinned here or in
 # docker_requirements_lock.txt, and the build prints each hash it checked.
@@ -77,7 +78,7 @@ USER ubuntu
 
 # Caches (Bazel, Bazelisk, ccache) live here. The launch script mounts a named
 # Docker volume on this folder so builds stay fast between runs.
-RUN mkdir -p /home/ubuntu/.cache
+RUN mkdir -p /home/ubuntu/.cache /home/ubuntu/.gemini
 
 # Claude Code via the native installer (npm install is deprecated).  The
 # installer is checked against the hash pinned here; it checks the Claude
@@ -94,8 +95,23 @@ RUN curl -fsSL -o /tmp/claude-install.sh https://claude.ai/install.sh \
     && rm /tmp/claude-install.sh \
     && claude --version
 
-# DISABLE_AUTOUPDATER: the container is thrown away on exit, so auto-updates
-#   would just re-download every run. Rebuild the image to update instead.
+# Antigravity CLI (agy) via the official installer.  The installer is checked
+# against the hash pinned here; it checks the agy download against the release
+# manifest's SHA-512 itself.
+ARG AGY_INSTALL_SHA256=62966c07365423bd4dc209355060744058fb30d60f5323e2d360e39de64e5042
+RUN curl -fsSL -o /tmp/agy-install.sh https://antigravity.google/cli/install.sh \
+    && actual="$(sha256sum /tmp/agy-install.sh | cut -d' ' -f1)" \
+    && if [ "${actual}" != "${AGY_INSTALL_SHA256}" ]; then \
+        echo "antigravity.google/cli/install.sh: SHA-256 ${actual}, expected ${AGY_INSTALL_SHA256}" >&2; exit 1; \
+    fi \
+    && echo "antigravity.google/cli/install.sh: SHA-256 ${actual} passed" \
+    && bash /tmp/agy-install.sh \
+    && rm /tmp/agy-install.sh \
+    && agy --version
+
+# DISABLE_AUTOUPDATER: stops Claude Code auto-updates, which would just
+#   re-download every run because the container is thrown away on exit.
+#   Rebuild the image to update instead.
 # MPLBACKEND: matplotlib draws without a display.
 # CCACHE_DIR: keep ccache in the persistent cache volume.
 ENV CLAUDE_CONFIG_DIR="/home/ubuntu/.claude" \
@@ -115,7 +131,6 @@ RUN gcc --version | head -1 \
 
 WORKDIR /workspace
 
-# ENTRYPOINT + empty CMD means extra "docker run" arguments are appended to
-# claude, e.g.  docker run ... nsound-claude --resume <uuid>
-ENTRYPOINT ["claude", "--dangerously-skip-permissions"]
-CMD []
+# The "docker run" arguments pick the agent, see start-agent.ps1, e.g.
+#   docker run ... nsound-agent claude --dangerously-skip-permissions
+CMD ["bash"]
