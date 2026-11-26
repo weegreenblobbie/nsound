@@ -1,4 +1,4 @@
-Claude and I will work on the following.
+Claude / Gemini and I will work on the following.
 
 Bazel build
 -----------
@@ -36,6 +36,38 @@ Remove all C++ build warnings
 -----------------------------
 
 [x] Treat warnings as errors
+
+Dockerfile and start-agent
+--------------------------
+
+[x] Update Dockerfile to incoporate Dockerfile.gemini to build a claude and gemini docker container
+[x] Update start-claude.ps1 and start-gemini.ps1 to a single start-agent.psy that takes [calude|gemini] [resume-hash]
+
+Chords in bebot GUI
+-------------------
+
+[x] Update the bebot.py GUI demo with the following:
+
+Inspect the existing Pygame UI demo in this workspace first and summarize what files, controls, and audio/synthesis setup are already there before making edits.
+
+Build an interactive X-Y chord/arpeggio synthesizer GUI on top of the Pygame UI:
+
+1. X-Y Pad Interaction (Mouse Press, Drag, Release):
+   - Keep the square X-Y pad where pressing and holding the mouse button starts audio generation, moving the mouse updates the sound in real time, and releasing stops/fades it cleanly.
+   - Vertical axis (Y): maps to root pitch (continuous glide by default, or snapped to semitones when Snap to Semitones is enabled), with all chord voices moving together in lockstep off the shifting root frequency f_root = 440 * 2^((m_root - 69) / 12) and f_n = f_root * 2^(n / 12).
+   - Horizontal axis (X): maps smoothly to a real-time synthesizer parameter (such as filter cutoff or harmonic brightness/timbre) that complements chord playback.
+   - Draw visual feedback on the X-Y pad, including live cursor/crosshair position and faint horizontal semitone guide lines when semitone snapping is active.
+
+2. Compact Chord Selector:
+   - Add a small chord-type dropdown/selector (kept compact around ~6–8 qualities such as Major, Minor, Sus2, Sus4, Dim, Aug, Maj7, Min7, using semitone offsets from the root) rather than listing every root+chord combination.
+
+3. Semitone Snap Toggle & Arpeggio Mode:
+   - Add a "Snap to Semitones" toggle to switch between continuous frequency gliding and quantized semitone steps.
+   - Add an "Arpeggio" toggle with a "Speed" parameter (e.g., Hz or BPM) so when enabled, it steps through the active chord's notes sequentially on repeat while the mouse is held (resetting cleanly to the root on mouse-down), and when disabled, it plays the chord voices together.
+
+4. Clean Real-Time Audio & Thread Safety:
+   - Ensure parameter updates from the Pygame event loop to the audio engine are thread-safe, scaled cleanly (e.g., dividing per-voice gain by voice count to prevent clipping), and smoothed with short ramps on note/step/parameter changes to avoid clicks, pops, or zipper noise.
+   - Keep changes focused, modular, and easy to run/test from the command line, and report any new dependencies or run commands needed.
 
 Publish to pypi
 ---------------

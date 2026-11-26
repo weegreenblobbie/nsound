@@ -925,6 +925,10 @@ generate2(const float64 & frequency, const float64 & phase)
             sample += (*waveform_)[static_cast<uint32>(pos)];
 
             chorus_position_[i] += frequency * chorus_factor_[i];
+
+            // Kept within the waveform, so the range check above stays short.
+            while(chorus_position_[i] >= sample_rate_) chorus_position_[i] -= sample_rate_;
+            while(chorus_position_[i] <  0)            chorus_position_[i] += sample_rate_;
         }
 
         sample /= static_cast<float64>(chorus_n_voices_);
@@ -936,6 +940,11 @@ generate2(const float64 & frequency, const float64 & phase)
 
     position_ += frequency;
     sync_pos_ += frequency;
+
+    // Kept within the waveform, so the range checks above stay short however
+    // long the generator plays.
+    while(position_ >= sample_rate_) position_ -= sample_rate_;
+    while(position_ <  0)            position_ += sample_rate_;
 
     // limit
     if(sync_pos_ > sample_rate_)

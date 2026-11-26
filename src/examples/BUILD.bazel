@@ -7,7 +7,7 @@ started with `bazel run` (see run_from_examples_dir.h), for example:
 """
 
 load("@rules_cc//cc:defs.bzl", "cc_binary")
-load("@rules_python//python:defs.bzl", "py_binary")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 
 [
     cc_binary(
@@ -31,6 +31,15 @@ load("@rules_python//python:defs.bzl", "py_binary")
     ]
 ]
 
+# bebot.py's synthesizer, apart from its window.
+py_library(
+    name = "bebot_synth",
+    srcs = ["bebot_synth.py"],
+    imports = ["."],
+    visibility = ["//src/test:__pkg__"],
+    deps = ["//src/python:Nsound"],
+)
+
 # bebot.py, a synthesizer played with the mouse in a pygame window.  It uses
 # the Python module Bazel builds, which plays through portaudio:
 #
@@ -40,6 +49,7 @@ py_binary(
     srcs = ["bebot.py"],
     main = "bebot.py",
     deps = [
+        ":bebot_synth",
         "//src/python:Nsound",
         "@nsound_pypi//matplotlib",
         "@nsound_pypi//pygame",

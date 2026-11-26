@@ -1,27 +1,33 @@
-# NSS - Nicks Star Stacker
+# Nsound
 
-This file provides guidance to AI agents while working in this repo.  These rules apply to all of nss, nested `AGENTS.md` 
+This file provides guidance to AI agents while working in this repo.  These rules apply to all of nsound, nested `AGENTS.md` 
 add or override rules for their subtree.
 
 # Overview
 
-`nss` is a python3 based reop.  The root of the repo should be in the default PYTHONPATH so `import nss` works.
+Nsound is a C++20 library and Python module for audio synthesis featuring dynamic digital filters.  It builds with Bazel on Linux, macOS and Windows.  `README.rst` describes the build, the targets and the feature flags.
 
 ## Directory Structure:
-- `ai-venv/` - A temporary, headless python3 virtual enviroment for use by ai agents, not part of the committed code tree.  `pytest` must be executed using this venv.  If it is missing, create it with `python -m venv ai-venv` (never use `venv/`) and install `requirements.txt` into it; call its binaries directly (`ai-venv/bin/python`).  Qt tests run headless with `QT_QPA_PLATFORM=offscreen`.
-- `nss/` - The main production code comprising tools and utilies for manipulation 16-bit TIFF image files with `numpy`.
-- `nss/color_gui/` - The directory of PyQt6 widgets to build out the UI for a color grading application.
-- `tests/` - A collection of `pytest` files and data, though you may find `*_test.py` next to the main files in the `nss/` subtree.
-- `venv/` - A temporary python3 virtual enviroment that runs nativaly outside the AI agent sandbox, please ignore.
+- `src/Nsound/` - The C++ library.
+- `src/python/` - The pybind11 bindings of the Python module.
+- `src/test/` - Catch2 C++ tests (`<Class>_test.cc`), Python `unittest` tests (`test_*.py`), manual test programs (`test_*.cc`) and the gold files in `gold/`.
+- `src/examples/` - C++ and Python example programs.
+- `src/bin/` - Command line programs.
+- `bazel/` - Build flags, Bazel rules and dependency patches.
+- `tools/` - Coverage and `pip install` test scripts.
+- `docs/` - The user guide and reference documentation.
+- `claude-cfg/`, `agy-cfg/` - The agents' config and logins, not part of the committed code tree, please ignore.
 
 # Key Concepts:
-- `nss/tiff_file.py` contains a `TiffFile` class for reading and writing 16-bit TIFF images; it keeps the stored pixel values (no min/max stretch) and the embedded ICC profile, please use it for all image IO.
-- `nss.py` is a main entry point for moon image alignment tools.
-- `color.py` is the main entry point to starting up the color grading application.
-- `pytest` is the tool used for running unit tests.
-- `AGENTS.md` holds the immutable rules, `README.md` may contain tool help or code local documentation.
+- `bazel build //...` builds everything and `bazel test //...` runs the C++ and Python unit tests.  `README.rst` lists the clang, sanitizer and coverage configs.
+- Warnings in files under `src/` are errors.
+- `setup.py` builds the Python module for `pip`, separately from Bazel.  A build change must work in both, `tools/test_pip_install.py` tests the `pip` one.
+- `src/Nsound/Nsound.h` is generated from `Nsound.h.in` by Bazel and by `setup.py`, edit the template.  The version is in `version.bzl`.
+- The Linux container and Windows share the source tree.  Changes must work with gcc, clang and MSVC.
+- `Dockerfile` and `start-agent.ps1` make and start the agents' container.
+- `AGENTS.md` holds the immutable rules, `README.md` and `README.rst` may contain tool help or code local documentation.
 - Prioritize in order: correctness, readaility, performance.
-- `requirements.txt` is used for creating python3 virtual enviroments, python dependences must be maintained in this file and shared between AI agents and users of this repo.
+- Python dependencies are maintained in these files: `requirements.in` (Bazel), `docker_requirements.in` (the container) and `pyproject.toml` (the package).  Each `.in` file has a `*_lock.txt` file made by the `uv` command at the lock's top.
 
 # Patterns to avoid
 - Do not write local python script for editing files, use standard patch files instead.
@@ -34,7 +40,7 @@ add or override rules for their subtree.
 Before changing any files in a directory, check for and read any local AGENTS.md and README.md fiels in the directory path.
 
 Discovery process:
-1. Ideinfy the directory you are working in, i.e. `tests/`, `nss/`, etc.
+1. Ideinfy the directory you are working in, i.e. `src/test/`, `src/Nsound/`, etc.
 2. Check if documentation files exist at that level:
   * `test -f <directory>/AGENTS.md` - Rules and constraints for this subtree
   * `test -f <directory>/README.md` - Context, architecture, and guidance for this subtree
@@ -124,10 +130,6 @@ Big-O compares how one algorithm scales.  It does not choose between differnt al
 
 Working code is not enough. Correctness comes first.  Maintainability comes second. Performance comes third, and it comes from data layout and intefaces, not form local hotspot edits.
 
-## 11. Data transforms
-
-A process is a sequence of transforms.  Each transform takes well-defind data input and procues well-defined dat output.  Do not build an object model of the simulated world.  Decide what the machine should do, then write that down.
-
 ## 12. Rules aplies to all code
 
 These rules apply to all the code you write, and all the code that you are asked to review.
@@ -154,68 +156,32 @@ Every turn should be goal-drivin.  Create success criteria and loop until you ha
 
 ## 18. Immutability
 
-Some functions have been marked IMMUTABLE in their docstrings, these must never be changed. If you want to change them, STOP.  Ask the user to make the changes for you if they agree to make them.
+Some functions have been marked IMMUTABLE in their docstrings or header comments, these must never be changed. If you want to change them, STOP.  Ask the user to make the changes for you if they agree to make them.
 
-## 19. Python design
+## 19. C++ design
 
-* **NumPy Vectorization:** Favor NumPy vectorized operations over Python `for` loops when processing image arrays.
-* **Separation of Concerns:** Keep the GUI logic (PyQt6) decoupled from the NumPy/OpenCV image processing math.
-* **Type Hints and Docstrings:** Every function and method signature must have type hints (all arguments and the return type), and every module, class, function and method must have at least a one-line docstring saying what it does.  Generated files are exempt (fix their generator instead).
+* **Headers:** Use `#pragma once`.
+* **Ownership:** Create owned objects with `std::make_unique<T>` or `std::make_shared<T>` where possible, and use `std::vector<T>` instead of `new[]` and `delete[]`.
+* **Member Initialization:** Follow C++ Core Guidelines C.45 and C.48, give members their constant initial values in the class definition.
+* **Untrusted Input:** Validate what is read from files and byte strings before using it.
 
-## 20. Unit tests
+## 21. Unit tests
 
 To ensure robust test coverage and catch edge cases, all unit tests must adhere to the following rules:
 
-1. **Non-Square Numpy Arrays:** Any test utilizing numpy arrays must use non-square dimensions (e.g., shape `(13, 12, 3)` or `(4, 2, 3)` instead of `(10, 10, 3)` or `(10, 10)`). This prevents axis-handling errors that remain hidden when row and column dimensions are identical.
+1. **Distinct Dimensions:** Any test utilizing multi-dimensional data must use different sizes and contents per dimension (e.g., 2 channels of 13 samples with different values in each channel). This prevents axis-handling errors that remain hidden when dimensions or channels are identical.
 
 2. **Value Flow Verification:** Tests must prove that values actually flow through the logic. Do not solely initialize parameters with `0` or `0.0` and assert `0` or `0.0`. Always include test cases with non-zero, distinct values to positively confirm the code correctly applies transformations, assignments, and state updates.
 
 3. **Single Source of Truth (SSOT) for Diagnostics & Testing:** Never re-implement, duplicate, or independently re-calculate core mathematical transforms, masks, or intermediate states inside test scripts or diagnostic plotting functions. Diagnostic and test scripts must consume the exact arrays and values returned directly by the core engine functions.
 
-## 21. Be Frugle
+4. **Headless:** Tests run without a sound card or a display.  Plot tests use matplotlib's Agg backend, playback tests capture the audio into a file.
+
+5. **Coverage:** `tools/coverage.sh` fails if the `src/Nsound` line coverage drops below `MINIMUM_PERCENT` in `tools/check_coverage.py`.  Raise it as tests are added, never lower it.
+
+6. **Python Defines Behavior:** Before changing what a C++ method does, search `src/test/*.py` and `src/examples/*.py` for its uses.
+
+## 22. Be Frugle
 
 - Do no show code diffs in the terminal that waste tokens and context.  The user can use `git diff` to see changes. You only need to summarise what files and or functions were edited.
 - Do not write logging or debug print statements that spam the console with 10s, 100s or 1000s of lines, that also wastes context and tokens.
-
-
-# AI Agent Operating Directives: Lightroom Color Math Reverse Engineering
-
-## 1. Core Philosophy
-You are operating as a scientific researcher reverse-engineering Adobe Lightroom's color math. Your workflow must be strictly methodical, hypothesis-driven, and trackable. We are currently trying to define the mathematical behavior of the Balance (-100 to +100) and Blending (0 to 1.0) sliders.
-
-## 2. The Status Ledger
-You MUST begin every single response by printing the following Status Ledger. If you do not print this, you have violated your core directive.
-
-### 📋 STATUS LEDGER
-* **Current Focus:** [State exactly what single variable/slider we are testing right now]
-* **Working Baseline:** [Brief summary of the working state]
-* **Graveyard (Failed Attempts):** [List of mathematical approaches we have ruled out]
-* **Current Hypothesis:** [What exact formula are we testing next?]
-
-## 3. Strict Operational Rules
-
-### A. One Variable at a Time
-You are forbidden from trying to solve the Blending slider and the Balance slider simultaneously. If we are focused on Blending, assume Balance is locked at `0`. If we are focused on Balance, assume Blending is locked at `0.5`. Do not introduce math for both at the same time, as this lets a fit find false minimums.
-
-### B. Mandatory Regression Check
-Any new mathematical formula you propose MUST mathematically reduce down to our established working base state when `balance = 0` and `blending = 0.5`. Before writing code to implement a new formula, you must explicitly state how it reduces to the baseline in these conditions.
-
-### C. RMSE Spike Handling
-When we fit or validate a new hypothesis, we will check the RMSE against the baseline (`blending=0.5, balance=0`). If your new formula causes the baseline RMSE to spike, the hypothesis has failed. 
-* Do NOT attempt to add "patches", offsets, or magic numbers to fix a broken base state.
-* Immediately log the failed formula in the Graveyard.
-* Revert the code entirely and formulate a new hypothesis.
-
-### D. Minimal Interventions
-When working on code output, after reading my input files, please make the smallest change possible to achieve the requested result. Do not change any other code, formatting, or names. If there are no changes to files, just state so and skip printing a file to our chat to save time and screen space.
-
-### E. Structural Mask Evaluation on Neutral Gray Gradient
-Structural mask parameters (the mask curves and their Blending/Balance dependence) MUST be evaluated exclusively over the neutral gray gradient (where R == G == B) using a neutral mask, NEVER over the saturated color blocks. Saturated color blocks have large hue-dependent errors that swamp structural curve deltas.
-
-## 4. Current Context & Architecture
-* **Language/Stack:** Python, numpy, scipy.
-* **Model:** `nss/color_grading` - read `nss/color_grading/README.md` for the model, the generated tables and the validation commands with their baselines.
-* **GUI:** `nss/color_gui` - read `nss/color_gui/README.md` for the data pipeline, state, threads and layout.
-
-## 5. color grading references
-* `color_grading_tests.md` contains settings and filenames exported from adobe lightroom and stored in tests/test_data

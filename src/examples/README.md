@@ -36,24 +36,37 @@ still write their `.wav` files.
 `bebot_py` is the Python example with a Bazel target; it runs `bebot.py` with
 the Python module Bazel builds, matplotlib and pygame:
 
-    bazel run //src/examples:bebot_py -- --host-api "Windows WASAPI" --buffer 0.005
+    bazel run //src/examples:bebot_py -- --host-api wasapi --buffer 0.005
 
 ### bebot.py
 
-A synthesizer played with the mouse: press a button in its window and move.
-Left to right raises the pitch, bottom to top brightens the sound.  ESC quits.
+A chord synthesizer played with the mouse: hold the left button on the square
+pad and move, release to fade out.  Bottom to top raises the chord's root note
+from 40 to 650 Hz, left to right brightens the sound.  ESC quits.
 
-The window and the sound run in two processes; the window shares the newest
-mouse position with the sound's process.  The options set the latency from
-mouse to sound:
+The panel beside the pad sets:
+
+| Control | What it does |
+|---|---|
+| Chord | None (the default, the root alone), Major, Minor, Sus2, Sus4, Dim, Aug, Maj7 or Min7 |
+| Snap to Semitones | The root moves in whole semitones, marked by lines on the pad, instead of gliding |
+| Arpeggio | The chord's notes play one at a time, from the root at each press |
+| Tempo | The arpeggio's tempo, 40 to 240 beats per minute, a beat is a quarter note |
+| Note value | Each arpeggio note's length: 1, 1/2, 1/4, 1/8 or 1/16, or the triplets 1/8T and 1/16T.  Notes start on their exact sample |
+| Note levels | A volume from 0 to 100% for each of the chord's notes, also used by the arpeggio.  Lowering one leaves the others as loud; a note's level stays with its position when the chord changes |
+
+`bebot_synth.py` makes the sound, tested by `//src/test:py_test_bebot_synth`.
+The window and the sound run in two processes; the window shares its controls
+with the sound's process.  The options set the latency from mouse to sound:
 
 | Option | Default | What it does |
 |---|---|---|
-| `--host-api NAME` | portaudio's default | The portaudio host API to play through, with 0.01 s buffers.  `bazel run //src/bin:ns_playback` lists them |
+| `--host-api NAME` | portaudio's default | The portaudio host API to play through, with 0.01 s buffers.  `bazel run //src/bin:ns_playback` lists them; "windows " can be left off and case doesn't matter, e.g. `wasapi`, `wdm-ks` or `mme` |
 | `--buffer SECONDS` | 0.1, or 0.01 with `--host-api` or `--jack` | The seconds of audio in each buffer |
 | `--buffers N` | 3 | How many buffers the sound can be ahead of what is heard |
-| `--chunk SECONDS` | 0.01 | The seconds of sound made per mouse position read.  Smaller follows the mouse sooner, too small crackles |
+| `--chunk SECONDS` | 0.01 | The seconds of sound made per read of the controls.  Smaller follows the mouse sooner, too small crackles |
 | `-j`, `--jack` | | Plays through JACK, Linux only |
+| `--debug` | | Prints the chunks' render times and the playback's underrun and overrun counters every 5 s of sound and at each release |
 
 When its sound starts it prints the host API and device, the format, these
 settings and the latency they add up to, at most:

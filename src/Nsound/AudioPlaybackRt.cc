@@ -59,6 +59,13 @@
 #include <chrono>
 #include <thread>
 
+// std::atomic's wait() and notify_one() need macOS 11, a build for an older
+// macOS spins while it waits instead.
+#if !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) \
+    || __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 110000
+    #define NSOUND_ATOMIC_WAIT 1
+#endif
+
 using std::cerr;
 using std::cout;
 using std::endl;
@@ -526,6 +533,11 @@ _callback(
 
         n_ready_.fetch_sub(1);
 
+        #ifdef NSOUND_ATOMIC_WAIT
+            // Wakes _wait_for_free_buffer().
+            n_ready_.notify_one();
+        #endif
+
         ++rd_ptr_;
 
         if(rd_ptr_ == pool_end_)
@@ -745,7 +757,14 @@ _wait_for_free_buffer()
     while(n == pool_size_)
     {
         ++overrun_count_;
-        std::this_thread::yield();
+
+        #ifdef NSOUND_ATOMIC_WAIT
+            // Sleeps until the callback takes a buffer.
+            n_ready_.wait(n);
+        #else
+            std::this_thread::yield();
+        #endif
+
         n = n_ready_.load();
     }
 }
