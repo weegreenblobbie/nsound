@@ -182,7 +182,7 @@ cc_library(
             "//src/python:Nsound",
             "@nsound_pypi//matplotlib",
             "@nsound_pypi//numpy",
-        ] + (["//src/examples:bebot_synth"] if test == "test_bebot_synth.py" else []),
+        ] + (["//src/examples:synth_engine"] if test == "test_synth.py" else []),
     )
     for test in glob(["test_*.py"])
 ]

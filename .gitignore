@@ -47,6 +47,7 @@ src/examples/Temperature_*_Shifted_*.wav
 src/examples/Temperature_out.wav
 src/examples/bebot.wav
 src/examples/bebot-*.wav
+src/examples/synth-rt-*.wav
 src/examples/delayline-rt-*.wav
 src/examples/example*.wav
 src/examples/interstellar-theme.wav

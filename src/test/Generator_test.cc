@@ -14,6 +14,8 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <cmath>
+
 using namespace Nsound;
 
 static const float64 GAMMA = 8e-7;
@@ -355,6 +357,92 @@ TEST_CASE("Generator realtime chunks match one call")
         chunked.setChorus(3, 0.25);
 
         check_chunks_match_one_call(whole, chunked);
+    }
+}
+
+TEST_CASE("Generator setChorus() with chosen voices")
+{
+    Generator gen(8, make_ramp_waveform());
+
+    SECTION("a voice starts its phase ahead")
+    {
+        gen.setChorus(Buffer({0.0}), Buffer({0.25}));
+
+        // 2 samples ahead, and the chorus reads a step ahead.
+        Buffer expected(
+            {0.375, 0.5, 0.625, 0.75, 0.875, 0.0, 0.125, 0.25});
+
+        check_close(gen.generate(1.0, 1.0), expected, 0.0);
+
+        // Starting over starts at the phase again.
+        check_close(gen.generate(1.0, 1.0), expected, 0.0);
+    }
+
+    SECTION("the output is the voices' average, each detuned")
+    {
+        // The second voice plays twice as fast, half a wavelength ahead.
+        gen.setChorus(Buffer({0.0, 1.0}), Buffer({0.0, 0.5}));
+
+        check_close(
+            gen.generate(1.0, 1.0),
+            Buffer({0.4375, 0.125, 0.3125, 0.5, 0.6875, 0.375, 0.5625, 0.25}),
+            0.0);
+    }
+
+    SECTION("phases wrap around the wavetable")
+    {
+        gen.setChorus(Buffer({0.0}), Buffer({0.25}));
+        Buffer expected = gen.generate(1.0, 1.0);
+
+        for(float64 phase : {1.25, -0.75, -2.75})
+        {
+            gen.setChorus(Buffer({0.0}), Buffer({phase}));
+
+            check_close(gen.generate(1.0, 1.0), expected, 0.0);
+        }
+    }
+
+    SECTION("drawSine2() uses the voices")
+    {
+        gen.setChorus(Buffer({0.0}), Buffer({0.25}));
+
+        // A quarter of a wave ahead, a sine is a cosine.
+        CHECK(gen.drawSine2(1.0, 0.0) == 1.0);
+        CHECK(std::abs(gen.drawSine2(1.0, 0.0) - std::sqrt(0.5)) < 1e-12);
+    }
+
+    SECTION("copies keep the voices")
+    {
+        gen.setChorus(Buffer({0.0, 1.0}), Buffer({0.0, 0.5}));
+
+        Generator copy(gen);
+
+        check_close(copy.generate(1.0, 1.0), gen.generate(1.0, 1.0), 0.0);
+    }
+
+    SECTION("empty Buffers turn the chorus off")
+    {
+        gen.setChorus(Buffer({0.5}), Buffer({0.5}));
+        gen.setChorus(Buffer(), Buffer());
+
+        check_close(gen.generate(1.0, 1.0), make_ramp_waveform(), 0.0);
+    }
+
+    SECTION("each voice needs a detune and a phase")
+    {
+        CHECK_THROWS_AS(
+            gen.setChorus(Buffer({0.0, 0.1}), Buffer({0.0})), Exception);
+    }
+
+    SECTION("setChorus(n, sigma) starts every voice at phase 0")
+    {
+        gen.setChorus(Buffer({0.0}), Buffer({0.5}));
+        gen.setChorus(1, 0.0);
+
+        check_close(
+            gen.generate(1.0, 1.0),
+            Buffer({0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 0.0}),
+            0.0);
     }
 }
 

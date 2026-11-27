@@ -20,7 +20,7 @@ Nsound, a C++ framework for synthesizing sound
 .. _`Nsound Doxygen Reference`: https://weegreenblobbie.com/nsound/doxygen/index.html
 
 .. _`Introduction & Bebot`: https://www.youtube.com/watch?v=j4uLvl68PtI
-.. _`bebot.py`: https://github.com/weegreenblobbie/nsound/blob/master/src/examples/bebot.py
+.. _`synth.py`: https://github.com/weegreenblobbie/nsound/blob/master/src/examples/synth.py
 
 .. _`Oscilloscope`: https://www.youtube.com/watch?v=ORnQVFpdSoA
 .. _`make_oscilloscope_video.py`:  https://github.com/weegreenblobbie/nsound/blob/master/src/examples/make_oscilloscope_video.py
@@ -46,7 +46,7 @@ YouTube Videos & Source Code
 =========================  ===================================
 YouTube Video              Source Code
 =========================  ===================================
-`Introduction & Bebot`_    `bebot.py`_
+`Introduction & Bebot`_    `synth.py`_ 
 `Oscilloscope`_            `make_oscilloscope_video.py`_
 `Moog VCF & Delayline`_    `moogvcf-rt.py`_ , `delayline-rt.py`_
 `Tape Deck`_               `tapedeck-rt.py`_
