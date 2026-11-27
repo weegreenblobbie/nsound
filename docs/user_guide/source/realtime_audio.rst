@@ -177,17 +177,17 @@ the event system.
 Bebot
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Bebot is based off the really cool "Bebot" iPhone app.  When executed, a GUI
-window will pop up.  If you have JACK working, use the ``--jack`` flag to
+The synth's Bebot instrument is based off the really cool "Bebot" iPhone app.
+When ``synth.py`` is executed, a GUI window will pop up.  If you have JACK working, use the ``--jack`` flag to
 connect to the JACK server.
 
 .. code-block:: console
 
     $ cd src/examples
-    $ python bebot.py
-    $ python bebot.py --jack   # if you have JACK working
+    $ python synth.py
+    $ python synth.py --jack   # if you have JACK working
 
-    Hello Bebot!
+    Hello Synth!
     Press ESC to quit.
 
 .. image:: /images/bebot.png

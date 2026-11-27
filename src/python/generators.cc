@@ -96,9 +96,25 @@ bind_generators(py::module_ & m)
             py::arg("n_harmonics"),
             py::arg("delay"))
         .def("setChorus",
-            &Generator::setChorus,
+            py::overload_cast<const uint32, const float64 &>(&Generator::setChorus),
             py::arg("n_voices"),
             py::arg("sigma") = 0.02)
+        // Lists, or Buffers, which are sequences too.
+        .def("setChorus",
+            [](Generator & self,
+               const std::vector<float64> & detunes,
+               const std::vector<float64> & phases)
+            {
+                Buffer detune_buffer;
+                Buffer phase_buffer;
+
+                for(float64 detune : detunes) detune_buffer << detune;
+                for(float64 phase : phases) phase_buffer << phase;
+
+                self.setChorus(detune_buffer, phase_buffer);
+            },
+            py::arg("detunes"),
+            py::arg("phases"))
         .def("drawDecay",
             &Generator::drawDecay,
             py::arg("duration"),

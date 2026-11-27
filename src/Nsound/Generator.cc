@@ -30,6 +30,7 @@
 #include <Nsound/Generator.h>
 #include <Nsound/RngTausworthe.h>
 
+#include <cmath>
 #include <iostream>
 
 //~#include <cmath>
@@ -256,12 +257,48 @@ setChorus(const uint32 n_voices, const float64 & amount)
 
     chorus_factor_.clear();
     chorus_position_.clear();
+    chorus_phase_.assign(chorus_n_voices_, 0.0);
 
     for(uint32 i = 0; i < chorus_n_voices_; ++i)
     {
         chorus_factor_.push_back(1.0 + rng_->get(-amount, amount));
 
         chorus_position_.push_back(0.0);
+    }
+
+    reset();
+}
+
+void
+Generator::
+setChorus(const Buffer & detunes, const Buffer & phases)
+{
+    M_ASSERT_VALUE(detunes.getLength(), ==, phases.getLength());
+
+    if(detunes.getLength() == 0)
+    {
+        chorus_is_on_ = false;
+        return;
+    }
+
+    chorus_is_on_ = true;
+
+    chorus_n_voices_ = detunes.getLength();
+
+    chorus_factor_.clear();
+    chorus_phase_.clear();
+    chorus_position_.assign(chorus_n_voices_, 0.0);
+
+    for(uint32 i = 0; i < chorus_n_voices_; ++i)
+    {
+        chorus_factor_.push_back(1.0 + detunes[i]);
+
+        // The phase's place in the wavetable, within it.
+        float64 position = std::fmod(phases[i], 1.0) * sample_rate_;
+
+        if(position < 0.0) position += sample_rate_;
+
+        chorus_phase_.push_back(position);
     }
 
     reset();
@@ -1168,6 +1205,7 @@ operator=(const Generator & rhs)
     chorus_n_voices_ = rhs.chorus_n_voices_;
     chorus_position_ = rhs.chorus_position_;
     chorus_factor_   = rhs.chorus_factor_;
+    chorus_phase_    = rhs.chorus_phase_;
 
     sync_is_master_ = rhs.sync_is_master_;
     sync_is_slave_  = rhs.sync_is_slave_;
@@ -1205,7 +1243,7 @@ reset()
 
     for(uint32 i = 0; i < chorus_n_voices_; ++i)
     {
-        chorus_position_[i] = 0.0;
+        chorus_position_[i] = chorus_phase_[i];
     }
 
     std::set<Generator *>::iterator itor = sync_slaves_.begin();

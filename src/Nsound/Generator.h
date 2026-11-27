@@ -120,6 +120,22 @@ class Generator
         const uint32 n_voices,
         const float64 & sigma = 0.02);
 
+    //! Chorus or Unison with every voice chosen
+    //
+    //! Like setChorus(n_voices, sigma), the output sample is the average of
+    //! the voices.  Voice \f$n\f$ plays at \f$\left({1.0 +
+    //! \alpha_n}\right) f\f$, where \f$\alpha_n\f$ is detunes[n], and starts
+    //! phases[n] of a wavelength ahead, e.g. 0.25 starts a quarter of the way
+    //! into the wavetable.  A detune of 0 keeps the frequency.  The
+    //! generate() methods read each voice one step ahead of its phase.
+    //!
+    //! detunes and phases have one value for each voice, empty Buffers turn
+    //! the chorus off.
+    void
+    setChorus(
+        const Buffer & detunes,
+        const Buffer & phases);
+
     //! This method draws an exponential curve that decays from 1.0 to 0.0 over the duration.
     //
     //! \f[ y\left[n\right]=e^{-\alpha n\tau} \f]
@@ -634,6 +650,7 @@ class Generator
     uint32               chorus_n_voices_ = 0;
     std::vector<float64> chorus_position_;
     std::vector<float64> chorus_factor_;
+    std::vector<float64> chorus_phase_;    //! Each voice's starting position
 
     // Sync stuff
     boolean sync_is_master_ = false;       //! Indicates if this generator is the master
